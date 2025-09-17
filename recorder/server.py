@@ -16,9 +16,8 @@ from oedisi.types.common import BrokerConfig
 
 from record_subscription import run_simulator
 
-
+logger = logging.getLogger("uvicorn.error")
 app = FastAPI()
-
 
 @app.get("/")
 def read_root():
@@ -48,8 +47,10 @@ def download_results():
 
 @app.post("/run")
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
-    logging.info(broker_config)
+    logger.info(broker_config)
+    print(broker_config)
     try:
+        logger.info("Adding task to background tasks")
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").dict()
         return JSONResponse(response, 200)

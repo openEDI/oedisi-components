@@ -487,14 +487,19 @@ def go_cosim(
 
 def run_simulator(broker_config: BrokerConfig):
     """Load static_inputs and input_mapping and run JSON."""
+    logger.info("Starting feeder simulator")
+    logger.info("Loading static_inputs.json and input_mapping.json")
     with open("static_inputs.json") as f:
         parameters = json.load(f)
     with open("input_mapping.json") as f:
         input_mapping = json.load(f)
+    logger.info(f"Feeder parameters: {parameters}")
     config = FeederConfig(**parameters)
+    logger.info(f"Feeder config: {config}")
     sim = FeederSimulator(config)
+    logger.info(f"Simulator created, starting co-simulation")
     go_cosim(sim, config, input_mapping, broker_config)
-
+    logger.info(f"Simulator Complete")
 
 if __name__ == "__main__":
     run_simulator(BrokerConfig(broker_ip="127.0.0.1"))

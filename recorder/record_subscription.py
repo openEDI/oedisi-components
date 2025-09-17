@@ -11,10 +11,10 @@ import pyarrow as pa
 from oedisi.types.common import BrokerConfig
 from oedisi.types.data_types import MeasurementArray
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
-
 
 class Recorder:
     def __init__(

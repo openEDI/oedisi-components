@@ -1,5 +1,5 @@
-helics==3.4.0
-helics-apps==3.4.0
+helics
+helics-apps
 pydantic
 pyarrow
 scipy

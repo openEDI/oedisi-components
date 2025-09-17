@@ -1,7 +1,7 @@
-FROM python:3.10.6-slim-bullseye
+FROM python:3.13-slim-bullseye
 #USER root
 RUN apt-get update && apt-get install -y git ssh
-
+RUN apt install cmake -y
 RUN mkdir -p /root/.ssh
 
 WORKDIR /simulation

@@ -17,8 +17,8 @@ from oedisi.componentframework.system_configuration import ComponentStruct
 from oedisi.types.common import ServerReply, HeathCheck, DefaultFileNames
 from oedisi.types.common import BrokerConfig
 
+logger = logging.getLogger("uvicorn.error")
 REQUEST_TIMEOUT_SEC = 1200
-
 app = FastAPI()
 
 base_path = os.getcwd()
@@ -53,22 +53,37 @@ def read_root():
 
 @app.get("/sensor")
 async def sensor():
-    logging.info(os.getcwd())
+    logger.info("Checking for sensors.json file")
+    logger.info(os.getcwd())
     sensor_path = os.path.join(base_path, "sensors", "sensors.json")
     while not os.path.exists(sensor_path):
         time.sleep(1)
-        logging.info(f"waiting {sensor_path}")
-    logging.info("success")
+        logger.info(f"waiting {sensor_path}")
+    logger.info("success")
     data = json.load(open(sensor_path, "r"))
     return data
 
+@app.post("/sensor")
+async def sensor_post(sensor_list:list[str]):
+    sensor_dir = os.path.join(base_path, "sensors")
+    sensor_path = os.path.join(sensor_dir, "sensors.json")
+    try:
+        os.makedirs(sensor_dir, exist_ok=True)
+        with open(sensor_path, "w") as f:
+            json.dump(sensor_list, f, indent=2)
+        response = ServerReply(detail=f"Wrote {len(sensor_list)} sensors to {sensor_path}").dict()
+        return JSONResponse(response, 200)
+    except Exception as e:
+        err = traceback.format_exc()
+        logger.error(f"Failed to write sensors file: {err}")
+        raise HTTPException(status_code=500, detail=str(err))
 
 @app.post("/profiles")
 async def upload_profiles(file: UploadFile):
     try:
         data = file.file.read()
         if not file.filename.endswith(".zip"):
-            HTTPException(400, "Invalid file type. Only zipped profiles are accepted.")
+            raise HTTPException(400, "Invalid file type. Only zipped profiles are accepted.")
 
         profile_path = "./profiles"
 
@@ -101,7 +116,7 @@ async def upload_model(file: UploadFile):
     try:
         data = file.file.read()
         if not file.filename.endswith(".zip"):
-            HTTPException(
+            raise HTTPException(
                 400, "Invalid file type. Only zipped opendss models are accepted."
             )
 
@@ -120,24 +135,24 @@ async def upload_model(file: UploadFile):
             return JSONResponse(response, 200)
 
         else:
-            HTTPException(400, "A valid opendss model should have a master.dss file.")
+            raise HTTPException(400, "A valid opendss model should have a master.dss file.")
     except Exception as e:
-        HTTPException(500, "Unknown error while uploading userdefined opendss model.")
+        raise HTTPException(500, "Unknown error while uploading userdefined opendss model.")
 
 
 @app.post("/run")
 async def run_feeder(
     broker_config: BrokerConfig, background_tasks: BackgroundTasks
 ):  # :BrokerConfig
-    logging.info(broker_config)
+    logger.info(broker_config)
     try:
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").dict()
-
         return JSONResponse(response, 200)
     except Exception as e:
         err = traceback.format_exc()
-        HTTPException(500, str(err))
+        logger.error(f"Error in /run: {err}")
+        raise HTTPException(500, str(err))
 
 
 @app.post("/configure")

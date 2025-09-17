@@ -1,42 +1,54 @@
 """Core class to abstract OpenDSS into Feeder class."""
 
-import csv
-import json
-import logging
-import math
-import os
-import random
-import time
-from enum import Enum
-from time import strptime
 from typing import Dict, List, Optional, Set, Tuple
+from time import strptime
+from enum import Enum
+import logging
+import random
+import math
+import time
+import json
+import csv
+import os
 
-import boto3
-import numpy as np
-import opendssdirect as dss
-import xarray as xr
-from botocore import UNSIGNED
+from scipy.sparse import coo_matrix, csc_matrix
 from botocore.config import Config
+from pydantic import BaseModel
+from botocore import UNSIGNED
+import opendssdirect as dss
 from dss_functions import (
     get_capacitors,
     get_generators,
-    get_loads,
     get_pvsystems,
     get_voltages,
+    get_loads,
 )
+import xarray as xr
+import numpy as np
+import boto3
 
 from oedisi.types.data_types import (
-    Command,
-    InverterControl,
     InverterControlMode,
+    InverterControl,
     IncidenceList,
+    Command,
 )
-from pydantic import BaseModel
-from scipy.sparse import coo_matrix, csc_matrix
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
+
+def command(command_str:str)-> str:
+    logger.info(f"OpenDSS Command: {command_str}")
+    try:
+        dss.Text.Command(command_str)
+        result = dss.Text.Result()
+        logger.info(f"OpenDSS Reply: {result}")
+        return result
+    except Exception as e:
+        logger.error(f"OpenDSS Error: {e}")
+        raise ValueError(e)
+
 
 
 def permutation(from_list, to_list):
@@ -153,13 +165,18 @@ class FeederSimulator(object):
                 raise Exception("Set existing_feeder_file when uploading data")
         else:
             self._feeder_file = config.existing_feeder_file
-
+        logger.info(f"Using feeder file: {self._feeder_file}")
         self.open_lines = config.open_lines
         self.load_feeder()
-
         if self._sensor_location is None:
+            logger.info("No sensor location provided, creating measurement lists")
             self.create_measurement_lists()
+        else:
+            logger.info(
+                f"Using sensor location {self._sensor_location}, not creating measurement lists"
+            )
 
+        logger.info("Running initial snapshot")
         self.snapshot_run()
         assert self._state == OpenDSSState.SNAPSHOT_RUN, f"{self._state}"
 
@@ -278,6 +295,7 @@ class FeederSimulator(object):
     ):
         """Initialize list of sensor locations for the measurement federate."""
         random.seed(voltage_seed)
+        logger.info(f"Creating measurement lists")
         os.makedirs("sensors", exist_ok=True)
         voltage_subset = random.sample(
             self._AllNodeNames,
@@ -285,6 +303,7 @@ class FeederSimulator(object):
         )
         with open(os.path.join("sensors", "voltage_ids.json"), "w") as fp:
             json.dump(voltage_subset, fp, indent=4)
+            logger.info(f"Voltage sensors exported to sensors/voltage_ids.json")
 
         random.seed(real_seed)
         real_subset = random.sample(
@@ -293,6 +312,7 @@ class FeederSimulator(object):
         )
         with open(os.path.join("sensors", "real_ids.json"), "w") as fp:
             json.dump(real_subset, fp, indent=4)
+            logger.info(f"Real power sensors exported to sensors/real_ids.json")
 
         random.seed(reactive_seed)
         reactive_subset = random.sample(
@@ -301,6 +321,7 @@ class FeederSimulator(object):
         )
         with open(os.path.join("sensors", "reactive_ids.json"), "w") as fp:
             json.dump(reactive_subset, fp, indent=4)
+            logger.info(f"Reactive power sensors exported to sensors/reactive_ids.json")
 
     def get_circuit_name(self):
         """Get name of current opendss circuit."""
@@ -334,11 +355,19 @@ class FeederSimulator(object):
 
     def load_feeder(self):
         """Load feeder once downloaded. Relies on legacy mode."""
+        logger.info("Loading feeder into OpenDSS")
         # Real solution is kvarlimit with kvarmax
         dss.Basic.LegacyModels(True)
-        dss.Text.Command("clear")
-        dss.Text.Command("redirect " + self._feeder_file)
-        result = dss.Text.Result()
+        logger.info("Enabling legacy models")
+        if not os.path.exists(self._feeder_file):
+            raise ValueError(f"Feeder file {self._feeder_file} not found")
+
+        command("clear")
+
+        base_path = os.getcwd()
+        logger.info("Current working directory: " + base_path)
+        result = command(f'redirect "{self._feeder_file}"')
+        logger.info(f"Feeder loaded")
         if not result == "":
             raise ValueError("Feeder not loaded: " + result)
         self._circuit = dss.Circuit
@@ -357,7 +386,7 @@ class FeederSimulator(object):
                 self._source_indexes.append(
                     self._AllNodeNames.index(Bus.upper() + "." + str(phase))
                 )
-
+        logger.info("Setting up base voltages")
         self.setup_vbase()
 
         self._pvsystems = set()
@@ -366,12 +395,13 @@ class FeederSimulator(object):
 
         if self.tap_setting is not None:
             # Doesn't work with AutoTrans or 3-winding transformers.
-            dss.Text.Command(f"batchedit transformer..* wdg=2 tap={self.tap_setting}")
+            command(f"batchedit transformer..* wdg=2 tap={self.tap_setting}")
 
         if self.open_lines is not None:
             for l in self.open_lines:
                 self.open_line(l)
         self._state = OpenDSSState.LOADED
+        logger.info("Feeder loaded into OpenDSS")
 
     def disable_elements(self):
         """Disable most elements. Used in disabled_run."""
