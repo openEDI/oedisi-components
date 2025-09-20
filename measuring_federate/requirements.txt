@@ -7,6 +7,6 @@ pandas
 fastapi
 uvicorn
 requests
-grequests
+httpx
 oedisi>=2.0.2,<3
 

@@ -3,27 +3,29 @@ import traceback
 import requests
 import zipfile
 import logging
+import asyncio
+import logging
 import socket
 import time
 import json
 import os
-import asyncio
 
 from fastapi import FastAPI, BackgroundTasks, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import HTTPException
 import helics as h
-import httpx
 import uvicorn
+import httpx
 
 from oedisi.componentframework.system_configuration import (
-    WiringDiagram,
     ComponentStruct,
+    WiringDiagram,
 )
 from oedisi.types.common import ServerReply, HeathCheck
 from oedisi.tools.broker_utils import get_time_data
 
 logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.DEBUG)
 app = FastAPI()
 
 WIRING_DIAGRAM_FILENAME = "system.json"
@@ -310,7 +312,7 @@ async def configure(wiring_diagram: WiringDiagram):
         url = build_url(component.host, component.container_port, ["configure"])
         logger.info(f"making a request to url - {url}")
 
-        r = requests.post(url, json=component_model.dict())
+        r = requests.post(url[:-1], json=component_model.dict())
         assert (
             r.status_code == 200
         ), f"POST request to update configuration failed for url - {url}"
