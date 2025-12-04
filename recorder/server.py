@@ -25,7 +25,7 @@ def read_root():
     hostname = socket.gethostname()
     host_ip = socket.gethostbyname(hostname)
 
-    response = HeathCheck(hostname=hostname, host_ip=host_ip).dict()
+    response = HeathCheck(hostname=hostname, host_ip=host_ip).model_dump()
 
     return JSONResponse(response, 200)
 
@@ -51,7 +51,7 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
     logging.info(broker_config)
     try:
         background_tasks.add_task(run_simulator, broker_config)
-        response = ServerReply(detail="Task sucessfully added.").dict()
+        response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
     except Exception as e:
         err = traceback.format_exc()
@@ -70,7 +70,7 @@ async def configure(component_struct:ComponentStruct):
     json.dump(params , open(DefaultFileNames.STATIC_INPUTS.value, "w"))
     response = ServerReply(
             detail = f"Sucessfully updated configuration files."
-        ).dict() 
+        ).model_dump() 
     return JSONResponse(response, 200)
 
 if __name__ == "__main__":

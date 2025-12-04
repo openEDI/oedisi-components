@@ -112,7 +112,7 @@ class EchoFederate:
                 )
                 continue
 
-            topology = Topology.parse_obj(self.sub.topology.json)
+            topology = Topology.model_validate(self.sub.topology.json)
             [branch_info, bus_info] = adapter.extract_info(topology)
 
             slack = topology.slack_bus[0]
@@ -120,14 +120,14 @@ class EchoFederate:
 
             area_branch, area_bus = area_info(branch_info, bus_info, slack_bus)
 
-            voltages_mag = VoltagesMagnitude.parse_obj(self.sub.voltages_mag.json)
+            voltages_mag = VoltagesMagnitude.model_validate(self.sub.voltages_mag.json)
 
             area_bus = adapter.extract_voltages(area_bus, voltages_mag)
 
             time = voltages_mag.time
             logger.info(time)
 
-            injection = Injection.parse_obj(self.sub.injections.json)
+            injection = Injection.model_validate(self.sub.injections.json)
             area_bus = adapter.extract_injection(area_bus, injection)
 
             voltages, power_flow, control, conversion = lindistflow.optimal_power_flow(
@@ -179,10 +179,10 @@ class EchoFederate:
 
             logger.info(commands)
             if commands:
-                self.pub_commands.publish(CommandList(__root__=commands).json())
+                self.pub_commands.publish(CommandList(root=commands).model_dump_json())
 
             pub_mags = adapter.pack_voltages(voltages, time)
-            self.pub_voltages.publish(pub_mags.json())
+            self.pub_voltages.publish(pub_mags.model_dump_json())
 
         self.stop()
 

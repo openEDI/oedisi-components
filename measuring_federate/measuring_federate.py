@@ -122,9 +122,9 @@ class MeasurementRelay:
             logger.info("start time: " + str(datetime.now()))
             json_data = self.sub_measurement.json
             if "equipment_ids" in json_data:
-                measurement = EquipmentNodeArray.parse_obj(json_data)
+                measurement = EquipmentNodeArray.model_validate(json_data)
             else:
-                measurement = MeasurementArray.parse_obj(json_data)
+                measurement = MeasurementArray.model_validate(json_data)
 
             with open(self.measurement_file, "r") as fp:
                 self.measurement = json.load(fp)
@@ -132,7 +132,7 @@ class MeasurementRelay:
             logger.debug("measured transformed")
             logger.debug(measurement_transformed)
 
-            self.pub_measurement.publish(measurement_transformed.json())
+            self.pub_measurement.publish(measurement_transformed.model_dump_json())
 
             granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
             logger.info("end time: " + str(datetime.now()))
