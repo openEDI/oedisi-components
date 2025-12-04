@@ -3,7 +3,9 @@ scipy
 matplotlib
 numpy
 pandas
-oedisi>=2.0.2,<3
+# TODO: Switch back to PyPI version once Pydantic v2 is released
+# oedisi>=2.0.2,<3
+git+https://github.com/openEDI/oedisi.git@main
 helics>=3.6.1
 -r recorder/requirements.txt
 -r LocalFeeder/requirements.txt
