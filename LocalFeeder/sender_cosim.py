@@ -340,7 +340,7 @@ def go_cosim(
     h.helicsFederateEnterExecutingMode(vfed)
     initial_data = get_initial_data(sim, config)
 
-    topology_dict = initial_data.topology.dict()
+    topology_dict = initial_data.topology.model_dump()
     topology_dict["bus_coords"] = sim.get_bus_coords()
     topology_json = json.dumps(topology_dict)
     logger.info("Sending topology and saving to topology.json")
@@ -352,7 +352,7 @@ def go_cosim(
     logger.info("Evaluating the forecasted PV")
     forecast_data = sim.forcast_pv(int(config.number_of_timesteps))
     PVforecast = [MeasurementArray(**xarray_to_dict(forecast),
-                    units="kW").json() for forecast in forecast_data]
+                    units="kW").model_dump_json() for forecast in forecast_data]
     pub_pv_forecast.publish(json.dumps(PVforecast))
 
     granted_time = -1
@@ -377,11 +377,11 @@ def go_cosim(
             config.start_date, "%Y-%m-%d %H:%M:%S"
         ) + timedelta(seconds=current_index * config.run_freq_sec)
 
-        change_obj_cmds = CommandList.parse_obj(sub_command_set.json)
-        sim.change_obj(change_obj_cmds.__root__)
+        change_obj_cmds = CommandList.model_validate(sub_command_set.json)
+        sim.change_obj(change_obj_cmds.root)
 
-        inverter_controls = InverterControlList.parse_obj(sub_invcontrol.json)
-        for inv_control in inverter_controls.__root__:
+        inverter_controls = InverterControlList.model_validate(sub_invcontrol.json)
+        for inv_control in inverter_controls.root:
             sim.apply_inverter_control(inv_control)
 
         pv_sets = sub_pv_set.json
@@ -427,46 +427,46 @@ def go_cosim(
             VoltagesMagnitude(
                 **xarray_to_dict(voltage_magnitudes),
                 time=current_timestamp,
-            ).json()
+            ).model_dump_json()
         )
         pub_voltages_real.publish(
             VoltagesReal(
                 **xarray_to_dict(current_data.feeder_voltages.real),
                 time=current_timestamp,
-            ).json()
+            ).model_dump_json()
         )
         pub_voltages_imag.publish(
             VoltagesImaginary(
                 **xarray_to_dict(current_data.feeder_voltages.imag),
                 time=current_timestamp,
-            ).json()
+            ).model_dump_json()
         )
         pub_powers_real.publish(
             PowersReal(
                 **xarray_to_dict(current_data.PQ_injections_all.real),
                 time=current_timestamp,
-            ).json()
+            ).model_dump_json()
         )
         pub_powers_imag.publish(
             PowersImaginary(
                 **xarray_to_dict(current_data.PQ_injections_all.imag),
                 time=current_timestamp,
-            ).json()
+            ).model_dump_json()
         )
-        pub_injections.publish(current_data.injections.json())
+        pub_injections.publish(current_data.injections.model_dump_json())
         pub_available_power.publish(
             MeasurementArray(
                 **xarray_to_dict(sim.get_available_pv()),
                 time=current_timestamp,
                 units="kWA",
-            ).json()
+            ).model_dump_json()
         )
 
         if config.use_sparse_admittance:
             pub_load_y_matrix.publish(
                 sparse_to_admittance_sparse(
                     current_data.load_y_matrix, sim._AllNodeNames
-                ).json()
+                ).model_dump_json()
             )
         else:
             pub_load_y_matrix.publish(
@@ -475,7 +475,7 @@ def go_cosim(
                         current_data.load_y_matrix.toarray()
                     ),
                     ids=sim._AllNodeNames,
-                ).json()
+                ).model_dump_json()
             )
 
         logger.info("end time: " + str(datetime.now()))

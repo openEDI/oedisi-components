@@ -126,11 +126,10 @@ def get_indices(topology, measurement):
 
 
 class AlgorithmParameters(BaseModel):
+    model_config = {"use_enum_values": True}
+
     tol: float = 5e-7
     base_power: Optional[float] = 100.0
-
-    class Config:
-        use_enum_values = True
 
 
 def state_estimator(
@@ -290,7 +289,7 @@ class StateEstimatorFederate:
 
         self.initial_ang = None
         self.initial_V = None
-        topology = Topology.parse_obj(self.sub_topology.json)
+        topology = Topology.model_validate(self.sub_topology.json)
         ids = topology.base_voltage_magnitudes.ids
         logger.info("Topology has been read")
         slack_index = None
@@ -312,9 +311,9 @@ class StateEstimatorFederate:
 
             logger.info("start time: " + str(datetime.now()))
 
-            voltages = VoltagesMagnitude.parse_obj(self.sub_voltages_magnitude.json)
-            power_P = PowersReal.parse_obj(self.sub_power_P.json)
-            power_Q = PowersImaginary.parse_obj(self.sub_power_Q.json)
+            voltages = VoltagesMagnitude.model_validate(self.sub_voltages_magnitude.json)
+            power_P = PowersReal.model_validate(self.sub_power_P.json)
+            power_Q = PowersImaginary.model_validate(self.sub_power_Q.json)
             knownV = get_indices(topology, voltages)
 
             if self.initial_V is None:
@@ -347,12 +346,12 @@ class StateEstimatorFederate:
             self.pub_voltage_mag.publish(
                 VoltagesMagnitude(
                     values=list(voltage_magnitudes), ids=ids, time=voltages.time
-                ).json()
+                ).model_dump_json()
             )
             self.pub_voltage_angle.publish(
                 VoltagesAngle(
                     values=list(voltage_angles), ids=ids, time=voltages.time
-                ).json()
+                ).model_dump_json()
             )
             logger.info("end time: " + str(datetime.now()))
 
@@ -372,9 +371,9 @@ def run_simulator(broker_config: BrokerConfig):
         config = json.load(f)
         federate_name = config["name"]
         if "algorithm_parameters" in config:
-            parameters = AlgorithmParameters.parse_obj(config["algorithm_parameters"])
+            parameters = AlgorithmParameters.model_validate(config["algorithm_parameters"])
         else:
-            parameters = AlgorithmParameters.parse_obj({})
+            parameters = AlgorithmParameters.model_validate({})
 
     with open("input_mapping.json") as f:
         input_mapping = json.load(f)

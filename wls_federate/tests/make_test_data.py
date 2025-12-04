@@ -17,7 +17,7 @@ def load_timestep(filename, timestep):
 
 
 def write_test_data(outputsdir, targetdir, timestep):
-    topology = Topology.parse_file(outputsdir / "topology.json")
+    topology = Topology.model_validate_json((outputsdir / "topology.json").read_text())
     power_real = load_timestep(outputsdir / "measured_power_real.feather", timestep)
     power_imag = load_timestep(outputsdir / "measured_power_imag.feather", timestep)
     voltage_mag = load_timestep(
@@ -27,17 +27,17 @@ def write_test_data(outputsdir, targetdir, timestep):
     voltage_imag = load_timestep(outputsdir / "voltage_imag.feather", timestep)
 
     with open(targetdir / "topology.json", "w") as f:
-        f.write(topology.json())
+        f.write(topology.model_dump_json())
     with open(targetdir / "power_real.json", "w") as f:
-        f.write(PowersReal(**power_real, equipment_ids=[]).json())
+        f.write(PowersReal(**power_real, equipment_ids=[]).model_dump_json())
     with open(targetdir / "power_imag.json", "w") as f:
-        f.write(PowersImaginary(**power_imag, equipment_ids=[]).json())
+        f.write(PowersImaginary(**power_imag, equipment_ids=[]).model_dump_json())
     with open(targetdir / "voltage_magnitude.json", "w") as f:
-        f.write(VoltagesMagnitude(**voltage_mag).json())
+        f.write(VoltagesMagnitude(**voltage_mag).model_dump_json())
     with open(targetdir / "voltage_real.json", "w") as f:
-        f.write(VoltagesReal(**voltage_real).json())
+        f.write(VoltagesReal(**voltage_real).model_dump_json())
     with open(targetdir / "voltage_imaginary.json", "w") as f:
-        f.write(VoltagesImaginary(**voltage_imag).json())
+        f.write(VoltagesImaginary(**voltage_imag).model_dump_json())
 
 
 test_data_dir = "wls_federate/tests/small_smartds_tap_time_3"

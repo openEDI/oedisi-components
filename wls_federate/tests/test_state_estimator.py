@@ -72,29 +72,32 @@ INPUT_DATA = list(
 
 
 def get_topology(directory):
-    return Topology.parse_file(os.path.join(directory, "topology.json"))
+    with open(os.path.join(directory, "topology.json")) as f:
+        return Topology.model_validate_json(f.read())
 
 
 def get_measurements(directory):
-    return (
-        PowersReal.parse_file(os.path.join(directory, "power_real.json")),
-        PowersImaginary.parse_file(os.path.join(directory, "power_imag.json")),
-        VoltagesMagnitude.parse_file(os.path.join(directory, "voltage_magnitude.json")),
-    )
+    with open(os.path.join(directory, "power_real.json")) as f:
+        power_real = PowersReal.model_validate_json(f.read())
+    with open(os.path.join(directory, "power_imag.json")) as f:
+        power_imag = PowersImaginary.model_validate_json(f.read())
+    with open(os.path.join(directory, "voltage_magnitude.json")) as f:
+        voltage_mag = VoltagesMagnitude.model_validate_json(f.read())
+    return (power_real, power_imag, voltage_mag)
 
 
 @pytest.fixture()
 def sparse_topology():
-    return Topology.parse_file(
-        os.path.join(TEST_DIR, "ieee123data", "sparse_topology.json")
-    )
+    with open(os.path.join(TEST_DIR, "ieee123data", "sparse_topology.json")) as f:
+        return Topology.model_validate_json(f.read())
 
 
 def get_actuals(directory):
-    return (
-        VoltagesReal.parse_file(os.path.join(directory, "voltage_real.json")),
-        VoltagesImaginary.parse_file(os.path.join(directory, "voltage_imaginary.json")),
-    )
+    with open(os.path.join(directory, "voltage_real.json")) as f:
+        voltage_real = VoltagesReal.model_validate_json(f.read())
+    with open(os.path.join(directory, "voltage_imaginary.json")) as f:
+        voltage_imag = VoltagesImaginary.model_validate_json(f.read())
+    return (voltage_real, voltage_imag)
 
 
 def inner_args(parameters, topology, measurements):
