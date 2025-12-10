@@ -2,6 +2,6 @@ helics>=3.4.0
 pyyaml
 fastapi
 uvicorn
-oedisi>=2.0.2,<3
+git+https://github.com/openEDI/oedisi.git@main
 grequests
 python-multipart
