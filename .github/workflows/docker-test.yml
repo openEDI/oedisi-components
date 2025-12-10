@@ -33,7 +33,7 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install matplotlib pyarrow numpy matplotlib pandas
-        pip install oedisi==1.2.1
+        pip install git+https://github.com/openEDI/oedisi.git@main
 
         python post_analysis.py outputs_build
     - name: Archive logs
