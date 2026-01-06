@@ -3,6 +3,6 @@ pydantic
 cvxpy
 numpy
 networkx
-git+https://github.com/openEDI/oedisi.git@main
+oedisi~=3.0
 fastapi
 uvicorn
