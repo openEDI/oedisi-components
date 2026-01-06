@@ -7,4 +7,4 @@ fastapi
 uvicorn
 requests
 grequests
-git+https://github.com/openEDI/oedisi.git@main
+oedisi~=3.0
