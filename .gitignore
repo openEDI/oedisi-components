@@ -8,3 +8,5 @@ recorder_*
 local_feeder
 build
 .vscode/
+.secrets
+.env

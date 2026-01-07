@@ -29,36 +29,25 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_KEY }}
+          username: ${{ secrets.DOCKERHUB_USERNAME_AL }}
+          password: ${{ secrets.DOCKERHUB_API_KEY_AL }}
 
-      - name: Find Docker contexts and build+push
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install docker python-dotenv requests rich
+
+      - name: Run workflow_runner.py
         env:
           RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_USERNAME_AL: ${{ secrets.DOCKERHUB_USERNAME_AL }}
+          DOCKERHUB_API_KEY_AL: ${{ secrets.DOCKERHUB_API_KEY_AL }}
+          MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
+          MAILJET_API_SECRET: ${{ secrets.MAILJET_API_SECRET }}
         run: |
-          set -eu
-          echo "Finding Dockerfiles..."
-          # find directories containing a Dockerfile (limit depth to avoid scanning big folders)
-          mapfile -t dirs < <(find . -maxdepth 4 -type f -name Dockerfile -exec dirname {} \; | sort -u)
-          if [ ${#dirs[@]} -eq 0 ]; then
-            echo "No Dockerfiles found. Exiting."
-            exit 0
-          fi
-
-          echo "Found contexts:"
-          for d in "${dirs[@]}"; do
-            echo " - $d"
-          done
-
-          # Normalize a tag without a leading 'v' (so both 'v1.2.3' and '1.2.3' are available)
-          NORMALIZED_TAG=$(echo "${RELEASE_TAG}" | sed 's/^v//')
-
-          for d in "${dirs[@]}"; do
-            # create an image name from path: replace leading ./ and slashes with _
-            name=$(echo "$d" | sed 's|^\./||; s|/|_|g')
-            image_with_v="${DOCKERHUB_USERNAME}/${name}:${RELEASE_TAG}"
-            image_no_v="${DOCKERHUB_USERNAME}/${name}:${NORMALIZED_TAG}"
-            echo "Building and pushing ${image_with_v} and ${image_no_v} from context ${d}"
-            docker buildx build --platform linux/amd64,linux/arm64 -t "${image_with_v}" -t "${image_no_v}" "${d}" --push
-          done
+          python workflow_runner.py
