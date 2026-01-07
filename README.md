@@ -143,3 +143,40 @@ Since HELICS does not have linux ARM builds, you have to run with
 ```bash
 export DOCKER_DEFAULT_PLATFORM=linux/amd64
 ```
+
+## Release workflow (CI)
+
+This repository includes a GitHub Actions workflow at `.github/workflows/publish-on-release.yml` that runs on published GitHub releases and:
+
+- Finds all folders containing a `Dockerfile`.
+- Builds multi-arch images using `docker buildx` and pushes them to Docker Hub.
+- Tags images as `DOCKERHUB_USERNAME/<path_with_slashes_replaced_with_underscores>:<release_tag>` and also with the normalized tag (strips a leading `v`).
+
+Required GitHub repository secrets:
+
+- `DOCKERHUB_USERNAME` — your Docker Hub username.
+- `PAT_TOKEN` — your Docker Hub password or personal access token stored as a repository secret.
+
+How to test
+
+- Publish a release (or tag) on GitHub for this repository — the workflow triggers on published releases.
+- To run the same logic locally (useful for debugging), you can run:
+
+```bash
+export RELEASE_TAG=v1.2.3
+export DOCKERHUB_USERNAME=youruser
+export PAT_TOKEN=...
+echo "$PAT_TOKEN" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+mapfile -t dirs < <(find . -maxdepth 4 -type f -name Dockerfile -exec dirname {} \; | sort -u)
+NORMALIZED_TAG=${RELEASE_TAG#v}
+for d in "${dirs[@]}"; do
+	name=$(echo "$d" | sed 's|^\./||; s|/|_|g')
+	docker buildx build --platform linux/amd64,linux/arm64 -t "${DOCKERHUB_USERNAME}/${name}:${RELEASE_TAG}" -t "${DOCKERHUB_USERNAME}/${name}:${NORMALIZED_TAG}" "${d}" --push
+done
+```
+
+Notes
+
+- Add the two secrets in the repository Settings → Secrets → Actions.
+- Images will be pushed to Docker Hub; ensure your account has push permission and consider Docker Hub rate limits.
+

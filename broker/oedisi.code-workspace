@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../../oedisi-ieee123"
+		},
+		{
+			"path": "../../openapi_spec"
 		}
 	],
 	"settings": {}

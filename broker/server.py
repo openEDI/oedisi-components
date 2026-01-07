@@ -1,4 +1,5 @@
 from functools import cache
+from enum import Enum
 import traceback
 import requests
 import zipfile
@@ -30,6 +31,23 @@ app = FastAPI()
 
 WIRING_DIAGRAM_FILENAME = "system.json"
 WIRING_DIAGRAM: WiringDiagram | None = None
+
+class SimulationState(str, Enum):
+    FEDERATE_CONFIGURATION_SUCESSS = "federate_configuration_sucess"
+    FEDERATE_CONFIGURATION_FAILURE = "federate_configuration_failed"
+    FEDERATE_CONNECTION_TIMED_OUT = "federate_connection_timed_out"
+    FEDERATE_RUNTIME_FAILURE = "federate_runtime_failure"
+    SIMULATION_TERMINATED = "simulation_terminated"
+    WAITING_FOR_FEDERATES = "waiting_for_federates"
+    STARTING_SIMULATION = "starting_simulation"
+    SIMULATION_ERROR = "simulation_error"
+    SERVER_READY = "server_ready"
+    COMPLETED = "completed"
+    RUNNING = "running"
+    PAUSED = "paused"
+
+app.state.simulation_state = SimulationState.SERVER_READY
+app.state.simulation_lock = asyncio.Lock()
 
 @cache
 def kubernetes_service():
@@ -129,6 +147,7 @@ async def add_sensors(sensors: list[str]):
         err = traceback.format_exc()
         raise HTTPException(status_code=500, detail=str(err))
 
+
 @app.post("/model")
 async def upload_model(file: UploadFile):
     try:
@@ -191,6 +210,8 @@ async def terminate_simulation():
     try:
         h.helicsCloseLibrary()
         logger.info("Closed helics library")
+        async with app.state.simulation_lock:
+            app.state.simulation_state = SimulationState.SIMULATION_TERMINATED
         return JSONResponse({"detail": "Helics broker sucessfully closed"}, 200)
     except Exception as e:
         raise HTTPException(status_code=404, detail="Failed download ")
@@ -234,14 +255,20 @@ async def run_simulation():
                     "feeder_port": feeder_port,
                 }
                 logger.info(f"{myobj}")
-                # create tasks so we can monitor them periodically
                 task = asyncio.create_task(client.post(url[:-1], json=myobj))
                 tasks.append(task)
 
-        # Periodically log task status every 5 seconds until all done
+
+        sleep_delay_sec = 5
+        max_wait_time_min = 5
+        max_count = max_wait_time_min * 60 / 5
+        count = 0
+
         if tasks:
             pending = set(tasks)
             while pending:
+                async with app.state.simulation_lock:
+                    app.state.simulation_state = SimulationState.WAITING_FOR_FEDERATES
                 done = {t for t in pending if t.done()}
                 for idx, t in enumerate(tasks):
                     state = (
@@ -260,13 +287,18 @@ async def run_simulation():
                             info = f"exception={exc}"
                     logger.info(f"Task {idx}: {state} {info or ''}")
 
-                # remove completed tasks from pending
                 pending -= done
-
-                if pending:
-                    await asyncio.sleep(5)
+                if pending and count <= max_count:
+                    await asyncio.sleep(sleep_delay_sec)
+                    count += 1
+                elif pending and count > max_count:
+                    async with app.state.simulation_lock:
+                        app.state.simulation_state = SimulationState.FEDERATE_CONNECTION_TIMED_OUT
+                    raise HTTPException(
+                        status_code=500,
+                        detail = F"Failed to start simulation after {max_wait_time_min} minutes. Please check the logs for more details.",
+                    )
                 else:
-                    # ensure exceptions are observed to avoid warnings
                     for idx, t in enumerate(tasks):
                         try:
                             res = t.result()
@@ -274,26 +306,49 @@ async def run_simulation():
                         except Exception as exc:
                             logger.error(f"Task {idx} failed: {exc}")
 
-    while h.helicsBrokerIsConnected(broker):
-        time.sleep(1)   
-        query_result = broker.query("broker", "current_state")
-        logger.info(f"Federates expected: {len(component_map)-1}")
-        logger.info(f"Federates connected: {len(broker.query("broker", "federates"))}")
-        logger.info(f"Simulation state: {query_result['state']}")
-        logger.info(f"Global time: {query_result['attributes']['parent']}")
-    h.helicsCloseLibrary()
+    # max_wait_time_min = 1
+    # max_count = max_wait_time_min * 60 / 5
+    # count = 0
 
+    while h.helicsBrokerIsConnected(broker):
+        await asyncio.sleep(sleep_delay_sec)
+        async with app.state.simulation_lock:
+            app.state.simulation_state = SimulationState.RUNNING
+        query_result = broker.query("broker", "current_state")
+        expected_federates = len(component_map)-1
+        connected_federates = len(broker.query("broker", "federates"))
+        logger.info(f"Federates expected: {expected_federates}")
+        logger.info(f"Federates connected: {connected_federates}")
+        logger.info(f"Simulation state: {query_result['state']}")
+        logger.info(f"Global time: {get_time_data(broker)}")
+
+        if expected_federates != connected_federates:
+            async with app.state.simulation_lock:
+                app.state.simulation_state = SimulationState.FEDERATE_RUNTIME_FAILURE
+            raise HTTPException(
+                error_code=500,
+                detail= "Federate failure. Check out the logs"
+            )
+
+        count += 1
+    h.helicsCloseLibrary()
+    async with app.state.simulation_lock:
+        app.state.simulation_state = SimulationState.COMPLETED
     return
 
 
 @app.post("/run")
 async def run_feeder(background_tasks: BackgroundTasks):
+    async with app.state.simulation_lock:
+        app.state.simulation_state = SimulationState.STARTING_SIMULATION
     try:
         background_tasks.add_task(run_simulation)
-        response = ServerReply(detail="Task sucessfully added.").dict()
+        response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse({"detail": response}, 200)
     except Exception as e:
         err = traceback.format_exc()
+        async with app.state.simulation_lock:
+            app.state.simulation_state = SimulationState.SIMULATION_ERROR
         raise HTTPException(status_code=404, detail=str(err))
 
 
@@ -301,46 +356,40 @@ async def run_feeder(background_tasks: BackgroundTasks):
 async def configure(wiring_diagram: WiringDiagram):
     global WIRING_DIAGRAM
     WIRING_DIAGRAM = wiring_diagram
+    json.dump(wiring_diagram.model_dump(), open(WIRING_DIAGRAM_FILENAME, "w"))
+    try:
+        for component in wiring_diagram.components:
+            component_model = ComponentStruct(component=component, links=[])
+            for link in wiring_diagram.links:
+                if link.target == component.name:
+                    component_model.links.append(link)
 
-    json.dump(wiring_diagram.dict(), open(WIRING_DIAGRAM_FILENAME, "w"))
-    for component in wiring_diagram.components:
-        component_model = ComponentStruct(component=component, links=[])
-        for link in wiring_diagram.links:
-            if link.target == component.name:
-                component_model.links.append(link)
+            url = build_url(component.host, component.container_port, ["configure"])
+            logger.info(f"making a request to url - {url}")
 
-        url = build_url(component.host, component.container_port, ["configure"])
-        logger.info(f"making a request to url - {url}")
+            r = requests.post(url[:-1], json=component_model.model_dump())
+            assert (
+                r.status_code == 200
+            ), f"POST request to update configuration failed for url - {url}"
 
-        r = requests.post(url[:-1], json=component_model.dict())
-        assert (
-            r.status_code == 200
-        ), f"POST request to update configuration failed for url - {url}"
-    return JSONResponse(
-        ServerReply(
-            detail="Sucessfully updated config files for all containers"
-        ).dict(),
-        200,
-    )
-
+        async with app.state.simulation_lock:
+            app.state.simulation_state = SimulationState.FEDERATE_CONFIGURATION_SUCESSS
+        return JSONResponse(
+            ServerReply(
+                detail="Sucessfully updated config files for all containers"
+            ).model_dump(),
+            200,
+        )
+    except Exception as _:
+        err = traceback.format_exc()
+        async with app.state.simulation_lock:
+            app.state.simulation_state = SimulationState.FEDERATE_CONFIGURATION_FAILURE
+        raise HTTPException(status_code=404, detail=str(err))
 
 @app.get("/status")
 async def status():
-    try:
-        name_2_timedata = {}
-        connected = h.helicsBrokerIsConnected(app.state.broker)
-        if connected:
-            for time_data in get_time_data(app.state.broker):
-                if (time_data.name not in name_2_timedata) or (
-                    name_2_timedata[time_data.name] != time_data
-                ):
-                    name_2_timedata[time_data.name] = time_data
-        return {"connected": connected, "timedata": name_2_timedata, "error": False}
-    except AttributeError as e:
-        return {"reply": str(e), "error": True}
+    return {"Simulation status": app.state.simulation_state.value}
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
-    # test_function()
-    # read_settings()
