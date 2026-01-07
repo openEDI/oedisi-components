@@ -1,11 +1,6 @@
+
 FROM python:3.13-slim-bullseye
-#USER root
-RUN apt-get update && apt-get install -y git ssh
-RUN apt install cmake -y
-RUN mkdir -p /root/.ssh
-
 WORKDIR /simulation
-
 COPY scenarios/docker_system.json docker_system.json
 COPY components.json .
 COPY LocalFeeder LocalFeeder

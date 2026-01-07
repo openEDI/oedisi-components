@@ -1,5 +1,4 @@
-helics
-helics-apps
+helics>=3.4.0
 pydantic
 pyarrow
 numpy

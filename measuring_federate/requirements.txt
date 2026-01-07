@@ -1,5 +1,4 @@
-helics
-helics-apps
+helics>=3.4.0
 pydantic
 pyarrow
 numpy
@@ -9,4 +8,3 @@ uvicorn
 requests
 httpx
 oedisi>=2.0.2,<3
-
