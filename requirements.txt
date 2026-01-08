@@ -3,8 +3,6 @@ scipy
 matplotlib
 numpy
 pandas
-# TODO: Switch back to PyPI version once Pydantic v2 is released
-# oedisi>=2.0.2,<3
 oedisi~=3.0
 helics>=3.6.1
 -r recorder/requirements.txt
