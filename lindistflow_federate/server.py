@@ -25,7 +25,7 @@ def read_root():
             host_ip = socket.gethostbyname(socket.gethostname() + ".local")
         except socket.gaierror:
             pass
-    response = HeathCheck(hostname=hostname, host_ip=host_ip).dict()
+    response = HeathCheck(hostname=hostname, host_ip=host_ip).model_dump()
     return JSONResponse(response, 200)
 
 
@@ -35,7 +35,7 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
     federate = EchoFederate(broker_config)
     try:
         background_tasks.add_task(federate.run)
-        response = ServerReply(detail="Task sucessfully added.").dict()
+        response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
     except Exception as _:
         err = traceback.format_exc()
@@ -52,7 +52,7 @@ async def configure(component_struct: ComponentStruct):
         links[link.target_port] = f"{link.source}/{link.source_port}"
     json.dump(links, open(DefaultFileNames.INPUT_MAPPING.value, "w"))
     json.dump(params, open(DefaultFileNames.STATIC_INPUTS.value, "w"))
-    response = ServerReply(detail="Sucessfully updated configuration files.").dict()
+    response = ServerReply(detail="Sucessfully updated configuration files.").model_dump()
     return JSONResponse(response, 200)
 
 

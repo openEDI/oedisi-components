@@ -229,5 +229,5 @@ if __name__ == "__main__":
             voltage_ids=sample(BUSES, 3 * len(BUSES) // 4),
             real_power_ids=sample(BUSES, 3 * len(BUSES) // 4),
             reactive_power_ids=sample(BUSES, 3 * len(BUSES) // 4),
-        ).json()
+        ).model_dump_json()
     )
