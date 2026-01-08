@@ -20,7 +20,8 @@ def extract_data(path):
     voltage_real = pd.read_feather(join(path, "voltage_real.feather"))
     voltage_imag = pd.read_feather(join(path, "voltage_imag.feather"))
 
-    topology = Topology.parse_file(join(path, "topology.json"))
+    with open(join(path, "topology.json")) as f:
+        topology = Topology.model_validate_json(f.read())
 
     base_voltage_magnitudes = np.array(topology.base_voltage_magnitudes.values)
 

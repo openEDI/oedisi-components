@@ -73,7 +73,7 @@ def read_root():
     hostname = socket.gethostname()
     host_ip = socket.gethostbyname(hostname)
 
-    response = HeathCheck(hostname=hostname, host_ip=host_ip).dict()
+    response = HeathCheck(hostname=hostname, host_ip=host_ip).model_dump()
 
     return JSONResponse(response, 200)
 
@@ -99,7 +99,7 @@ async def upload_profiles(file: UploadFile):
 
                 files = {"file": open(file.filename, "rb")}
                 r = requests.post(url, files=files)
-                response = ServerReply(detail=r.text).dict()
+                response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload profiles")
     except Exception as e:
@@ -128,7 +128,7 @@ async def upload_model(file: UploadFile):
 
                 files = {"file": open(file.filename, "rb")}
                 r = requests.post(url, files=files)
-                response = ServerReply(detail=r.text).dict()
+                response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload model")
     except Exception as e:
@@ -222,7 +222,7 @@ def run_simulation():
 async def run_feeder(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(run_simulation)
-        response = ServerReply(detail="Task sucessfully added.").dict()
+        response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse({"detail": response}, 200)
     except Exception as e:
         err = traceback.format_exc()
@@ -234,7 +234,7 @@ async def configure(wiring_diagram: WiringDiagram):
     global WIRING_DIAGRAM
     WIRING_DIAGRAM = wiring_diagram
 
-    json.dump(wiring_diagram.dict(), open(WIRING_DIAGRAM_FILENAME, "w"))
+    json.dump(wiring_diagram.model_dump(), open(WIRING_DIAGRAM_FILENAME, "w"))
     for component in wiring_diagram.components:
         component_model = ComponentStruct(component=component, links=[])
         for link in wiring_diagram.links:
@@ -244,14 +244,14 @@ async def configure(wiring_diagram: WiringDiagram):
         url = build_url(component.host, component.container_port, ["configure"])
         logger.info(f"making a request to url - {url}")
 
-        r = requests.post(url, json=component_model.dict())
+        r = requests.post(url, json=component_model.model_dump())
         assert (
             r.status_code == 200
         ), f"POST request to update configuration failed for url - {url}"
     return JSONResponse(
         ServerReply(
             detail="Sucessfully updated config files for all containers"
-        ).dict(),
+        ).model_dump(),
         200,
     )
 

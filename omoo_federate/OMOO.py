@@ -558,7 +558,7 @@ class OMOOFederate:
         # granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
         granted_time = h.helicsFederateRequestTime(self.vfed, 1000)
 
-        topology = Topology.parse_obj(self.sub_topology.json)
+        topology = Topology.model_validate(self.sub_topology.json)
         ids = topology.base_voltage_magnitudes.ids
         logger.info("Topology has been read")
         slack_index = None
@@ -612,8 +612,8 @@ class OMOOFederate:
                 )
                 continue
 
-            voltages_real = VoltagesReal.parse_obj(self.sub_voltages_real.json)
-            voltages_imag = VoltagesImaginary.parse_obj(
+            voltages_real = VoltagesReal.model_validate(self.sub_voltages_real.json)
+            voltages_imag = VoltagesImaginary.model_validate(
                 self.sub_voltages_imaginary.json
             )
             voltages = measurement_to_xarray(
@@ -622,7 +622,7 @@ class OMOOFederate:
             logger.debug(np.max(np.abs(voltages) / v))
             assert topology.base_voltage_magnitudes.ids == list(voltages.ids.data)
 
-            injections = Injection.parse_obj(self.injections.json)
+            injections = Injection.model_validate(self.injections.json)
             power_injections = eqarray_to_xarray(
                 injections.power_real
             ) + 1j * eqarray_to_xarray(injections.power_imaginary)
@@ -631,7 +631,7 @@ class OMOOFederate:
             ]
             _, pv_injections = xr.align(pv_ratings, pv_injections)
             available_power = measurement_to_xarray(
-                MeasurementArray.parse_obj(self.sub_available_power.json)
+                MeasurementArray.model_validate(self.sub_available_power.json)
             )
 
             split_power = available_power / pv_injections.ids.groupby(
@@ -662,8 +662,8 @@ class OMOOFederate:
             logger.debug("PVframe")
             logger.debug(pv)
 
-            power_P = PowersReal.parse_obj(self.sub_power_P.json)
-            power_Q = PowersImaginary.parse_obj(self.sub_power_Q.json)
+            power_P = PowersReal.model_validate(self.sub_power_P.json)
+            power_Q = PowersImaginary.model_validate(self.sub_power_Q.json)
             assert topology.base_voltage_magnitudes.ids == power_P.ids
             assert topology.base_voltage_magnitudes.ids == power_Q.ids
             ts = time.time()
@@ -720,7 +720,7 @@ class OMOOFederate:
                         power_set_xr.values[i].imag,
                     )
                 )
-            command_list_obj = CommandList(__root__=command_list)
+            command_list_obj = CommandList(root=command_list)
             logger.debug(command_list_obj)
             # Turn P_set and Q_set into commands
             if set_power:
@@ -751,9 +751,9 @@ if __name__ == "__main__":
         config = json.load(f)
         federate_name = config["name"]
         if "algorithm_parameters" in config:
-            parameters = OMOOParameters.parse_obj(config["algorithm_parameters"])
+            parameters = OMOOParameters.model_validate(config["algorithm_parameters"])
         else:
-            parameters = OMOOParameters.parse_obj({})
+            parameters = OMOOParameters.model_validate({})
 
     with open("input_mapping.json") as f:
         input_mapping = json.load(f)

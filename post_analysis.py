@@ -26,7 +26,7 @@ voltage_imag = feather.read_feather(
 )
 
 with open(os.path.join(args.directory, "topology.json")) as f:
-    topology = Topology.parse_obj(json.load(f))
+    topology = Topology.model_validate(json.load(f))
     base_voltage_df = pd.DataFrame(
         {
             "id": topology.base_voltage_magnitudes.ids,

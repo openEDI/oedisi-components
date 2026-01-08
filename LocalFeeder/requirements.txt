@@ -10,5 +10,5 @@ boto3
 xarray
 fastapi
 uvicorn
-oedisi>=2.0.2,<3
+oedisi~=3.0
 python-multipart
