@@ -8,4 +8,4 @@ recorder_*
 local_feeder
 build
 .vscode/
-.env
+*.env
