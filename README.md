@@ -20,9 +20,9 @@ state estimation, and distributed OPF.
 | **Recorder** | [![Test - Recorder](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml) | [![Verify recorder](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
 | **WLS** | [![Test - WLS Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml) | [![Verify wls_federate](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
 
-## Monorepo Structure
+## Repository Structure
 
-This repository is organized as a Python monorepo containing 6 independent but related components for power system co-simulation. See the **Component Status** table above for test and Docker build status for each component.
+This repository is organized as a Python repository containing  components for power system co-simulation. See the **Component Status** table above for test and Docker build status for each component.
 
 **Components:**
 - **[broker](Components/broker/README.md)** - Central orchestration service for HELICS federates
@@ -33,12 +33,12 @@ This repository is organized as a Python monorepo containing 6 independent but r
 - **[wls_federate](Components/wls_federate/README.md)** - Weighted least squares state estimation
 
 **Each component includes:**
-- ✅ `pyproject.toml` for modern Python packaging (PEP 621)
-- ✅ Comprehensive test suite with pytest
-- ✅ Individual README documentation
-- ✅ Standardized code quality tools (mypy, pytest, black, isort)
-- ✅ Dockerfile for containerization
-- ✅ GitHub Actions workflow for automated testing
+- `pyproject.toml` for modern Python packaging (PEP 621)
+- Comprehensive test suite with pytest
+- Individual README documentation
+- Standardized code quality tools (mypy, pytest, black, isort)
+- Dockerfile for containerization
+- GitHub Actions workflow for automated testing
 
 ### Continuous Integration
 
@@ -116,7 +116,7 @@ pre-commit install
 
 1. Install component dependencies. You can either:
 
-   **Option A: Install from monorepo** (recommended for development)
+   **Option A: Install from repository** (recommended for development)
    ```bash
    pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
                -e Components/measuring_federate -e Components/recorder -e Components/wls_federate
