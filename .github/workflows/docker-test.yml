@@ -1,6 +1,11 @@
 name: DockerTest
 
-on: [push]
+on:
+  push:
+    branches: [ main, al/restructed ]
+  pull_request:
+    branches: [ main ]
+
 jobs:
   docker:
     runs-on: ${{ matrix.os }}
@@ -10,7 +15,7 @@ jobs:
         os: [ubuntu-latest]
         python-version: ["3.10"]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: build docker container
         shell: bash
         run: |
