@@ -1,0 +1,134 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oedisi-example"
+version = "0.1.0"
+description = "OEDISI Example - A monorepo of co-simulation components for power system analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "openEDI", email = "info@openedi.org"}
+]
+keywords = ["oedisi", "power-systems", "co-simulation", "helics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+]
+
+# Common dependencies for development
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "mypy>=0.981",
+    "black>=23.0",
+    "isort>=5.9",
+    "flake8>=6.0",
+    "pydocstyle>=6.3",
+    "pre-commit>=3.0",
+]
+
+# All components for convenience
+all = [
+    "helics>=3.4.0",
+    "pydantic>=2.0",
+    "oedisi~=3.0",
+    "fastapi>=0.100",
+    "uvicorn>=0.23",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["Components"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+log_cli = true
+log_cli_level = "INFO"
+addopts = [
+    "--verbose",
+    "--strict-markers",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
+
+[tool.mypy]
+python_version = "3.10"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+follow_imports = "skip"
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+no_implicit_reexport = true
+# Uncomment for stricter checks:
+# disallow_untyped_defs = true
+# check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "Components.*"
+ignore_errors = false
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+
+[tool.black]
+line-length = 100
+target-version = ['py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | __pycache__
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_glob = ["*/build/*", "*/dist/*", "*/.venv/*"]
+
+[tool.coverage.run]
+source = ["Components"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "broker"
+version = "0.1.0"
+description = "OEDISI Broker - Central orchestration service for HELICS co-simulation federates"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "openEDI", email = "info@openedi.org"}
+]
+keywords = ["oedisi", "helics", "broker", "orchestration"]
+
+dependencies = [
+    "helics>=3.4.0",
+    "pyyaml",
+    "fastapi",
+    "uvicorn",
+    "oedisi~=3.0",
+    "grequests",
+    "python-multipart",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",  # for testing FastAPI
+    "mypy>=0.981",
+    "black>=23.0",
+    "isort>=5.9",
+]
+
+[project.scripts]
+broker-server = "broker.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["broker*"]
+exclude = ["tests*"]

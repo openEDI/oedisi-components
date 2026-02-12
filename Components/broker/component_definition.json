@@ -1,0 +1,7 @@
+{
+    "directory": "broker",
+    "execute_function": "python server.py",
+    "static_inputs": [],
+    "dynamic_inputs": [],
+    "dynamic_outputs": []
+}

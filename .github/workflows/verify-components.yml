@@ -1,0 +1,59 @@
+name: Verify Components
+
+on:
+  push:
+    branches: [ main, al/restructed ]
+    paths:
+      - 'Components/**'
+      - '.github/workflows/verify-components.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Components/**'
+      - '.github/workflows/verify-components.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        component:
+          - broker
+          - lindistflow_federate
+          - LocalFeeder
+          - measuring_federate
+          - recorder
+          - wls_federate
+
+    name: Verify ${{ matrix.component }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check Dockerfile exists
+      run: |
+        if [ -f "Components/${{ matrix.component }}/Dockerfile" ]; then
+          echo "✓ Dockerfile found"
+        else
+          echo "✗ Dockerfile MISSING"
+          exit 1
+        fi
+
+    - name: Check component_definition.json exists
+      run: |
+        if [ -f "Components/${{ matrix.component }}/component_definition.json" ]; then
+          echo "✓ component_definition.json found"
+        else
+          echo "✗ component_definition.json MISSING"
+          exit 1
+        fi
+
+    - name: Check README.md exists
+      run: |
+        if [ -f "Components/${{ matrix.component }}/README.md" ]; then
+          echo "✓ README.md found"
+        else
+          echo "✗ README.md MISSING"
+          exit 1
+        fi

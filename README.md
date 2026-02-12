@@ -3,25 +3,150 @@
 [![Main - Integration Tests](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml)
 [![Main - Docker Build Test](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml)
 [![Main - Unit Tests](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml)
+[![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml)
 
 This example shows how to use the GADAL api to manage simulations. We also
 use it as a testing ground for the testing the combination of feeders,
 state estimation, and distributed OPF.
 
+## Component Status
+
+| Component | Tests | Verify |
+|-----------|-------|--------|
+| **Broker** | [![Test - Broker](https://github.com/openEDI/oedisi-example/actions/workflows/test-broker.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-broker.yml) | [![Verify broker](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+| **LinDistFlow** | [![Test - LinDistFlow](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml) | [![Verify lindistflow_federate](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+| **LocalFeeder** | [![Test - LocalFeeder](https://github.com/openEDI/oedisi-example/actions/workflows/test-localfeeder.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-localfeeder.yml) | [![Verify LocalFeeder](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+| **Measuring** | [![Test - Measuring Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-measuring.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-measuring.yml) | [![Verify measuring_federate](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+| **Recorder** | [![Test - Recorder](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml) | [![Verify recorder](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+| **WLS** | [![Test - WLS Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml) | [![Verify wls_federate](https://img.shields.io/github/actions/workflow/status/openEDI/oedisi-example/verify-components.yml?label=verify&branch=main)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
+
+## Monorepo Structure
+
+This repository is organized as a Python monorepo containing 6 independent but related components for power system co-simulation. See the **Component Status** table above for test and Docker build status for each component.
+
+**Components:**
+- **[broker](Components/broker/README.md)** - Central orchestration service for HELICS federates
+- **[lindistflow_federate](Components/lindistflow_federate/README.md)** - Optimal power flow using linear distflow
+- **[localfeeder](Components/LocalFeeder/README.md)** - OpenDSS-based distribution feeder simulator  
+- **[measuring_federate](Components/measuring_federate/README.md)** - Sensor simulation with noise injection
+- **[recorder](Components/recorder/README.md)** - Data recording for co-simulation outputs
+- **[wls_federate](Components/wls_federate/README.md)** - Weighted least squares state estimation
+
+**Each component includes:**
+- ✅ `pyproject.toml` for modern Python packaging (PEP 621)
+- ✅ Comprehensive test suite with pytest
+- ✅ Individual README documentation
+- ✅ Standardized code quality tools (mypy, pytest, black, isort)
+- ✅ Dockerfile for containerization
+- ✅ GitHub Actions workflow for automated testing
+
+### Continuous Integration
+
+Each component has its own GitHub Actions workflow that:
+- Runs tests on Python 3.10 and 3.11
+- Performs type checking with mypy
+- Generates code coverage reports
+- Triggers on changes to component code
+
+Additionally:
+- **Dockerfile Verification**: Ensures all components have valid Dockerfiles
+- **Integration Tests**: End-to-end system testing
+- **Docker Build Tests**: Validates container builds
+
+### Quick Start - Development Installation
+
+Install all components in editable mode from the repository root:
+
+```bash
+# Install all components for development
+pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
+            -e Components/measuring_federate -e Components/recorder -e Components/wls_federate
+
+# Or install with dev dependencies
+pip install -e "Components/broker[dev]" -e "Components/lindistflow_federate[dev]" \
+            -e "Components/LocalFeeder[dev]" -e "Components/measuring_federate[dev]" \
+            -e "Components/recorder[dev]" -e "Components/wls_federate[dev]"
+```
+
+### Running Tests
+
+Run all tests from the repository root:
+```bash
+pytest Components/
+```
+
+Run tests for a specific component:
+```bash
+pytest Components/broker/tests/
+pytest Components/wls_federate/tests/
+```
+
+Run with coverage:
+```bash
+pytest --cov=Components --cov-report=html Components/
+```
+
+### Code Quality
+
+The repository uses standardized code quality tools configured in [pyproject.toml](pyproject.toml):
+
+```bash
+# Format code
+black Components/
+isort Components/
+
+# Type checking
+mypy Components/
+
+# Linting
+flake8 Components/
+
+# Check docstrings
+pydocstyle Components/
+```
+
+Install pre-commit hooks:
+```bash
+pre-commit install
+```
+
 # Install and Running Locally
 
-1. To run the simulation, you'll need several libraries such as OpenDSSDirect.py and pyarrow.
-```bash
-pip install -r requirements.txt
-```
-2. Run `oedisi build --system scenarios/docker_system.json` to initialize the system
-defined in `scenarios/test_system.json` in a `build` directory.
+## Installation
 
-You can specify your own directory with `--system` and your own system json
+1. Install component dependencies. You can either:
+
+   **Option A: Install from monorepo** (recommended for development)
+   ```bash
+   pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
+               -e Components/measuring_federate -e Components/recorder -e Components/wls_federate
+   ```
+
+   **Option B: Install from requirements.txt** (legacy method)
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Install development tools (optional):
+   ```bash
+   pip install pytest mypy black isort flake8 pydocstyle pre-commit
+   ```
+
+## Running Simulations
+
+1. Build the simulation system:
+```bash
+oedisi build --system scenarios/docker_system.json
+```
+
+This initializes the system defined in `scenarios/test_system.json` in a `build` directory.
+
+You can specify your own directory with `--build-dir` and your own system json
 with `--system`.
 
-3. Run `oedisi run`
-4. Analyze the results using `python post_analysis.py`
+2. Run `oedisi run`
+
+3. Analyze the results using `python post_analysis.py`
 
 This computes some percentage relative errors in magnitude (MAPE) and angle (MAE),
 as well as plots in `errors.png`, `voltage_magnitudes_0.png`, `voltage_angles_0.png`, etc.
@@ -47,40 +172,77 @@ pulls types from `oedisi.types.data_types`.
 
 ![Block diagram of simulation](sgidal-example.png)
 
+## Component Overview
 
-## Component definitions
+Each component is a standalone Python package with its own documentation. Click the component name for detailed information:
 
-Our components use `component_definitions.json` files in each directory to define what
-their dynamic inputs and outputs are. This allows us to configure these when
-we build the simulation.
+### **[Broker](Components/broker/README.md)**
+Central orchestration service for HELICS federates. Provides REST API endpoints for federate coordination and HELICS broker management.
 
-## AWSFeeder
+### **[LinDistFlow Federate](Components/lindistflow_federate/README.md)**  
+Optimal power flow using linear distflow formulation. Implements convex optimization (cvxpy) for three-phase distribution system control.
 
-An OpenDSS simulation which loads a specified SMART-DS feeder. It outputs
-- topology: Y-matrix, slack bus, initial phases
-- powers
-- voltages
+### **[LocalFeeder](Components/LocalFeeder/README.md)** (AWSFeeder)
+OpenDSS-based distribution feeder simulator. Loads SMART-DS feeders and outputs:
+- Topology: Y-matrix, slack bus, initial phases
+- Powers and voltages for all nodes
+- Real-time power flow simulation
 
-## `measuring_federate`
-
-The measuring federate can take MeasurementArray inputs and then output subsets at specified nodes.
-The `measuring_federate` can also add Gaussian noise with given variance.
+### **[Measuring Federate](Components/measuring_federate/README.md)**
+Sensor simulation with noise injection. Takes MeasurementArray inputs and outputs subsets at specified nodes with:
+- Additive Gaussian noise
+- Multiplicative (percentage) noise
+- Configurable per-sensor parameters
 
 This federate is instantiated as multiple sensors for each type of measurement.
 
-## `wls_federate`
+### **[WLS Federate](Components/wls_federate/README.md)**
+Weighted Least Squares state estimation. Reads topology from the feeder simulation and measurements from the measuring federates, then outputs estimated voltages and power with angles.
 
-The state estimation federate reads the `topology` from the feeder simulation
-and measurements from the measuring federates. Then the federate outputs the
-filled in voltages and power with angles.
-
-## `recorder`
-
-The `recorder` federate can connect to a subscription with a measurement array, and
-then will save it to a specified `.arrow` file as well as a `.csv` file.
+### **[Recorder](Components/recorder/README.md)**
+Data recording federate. Connects to HELICS subscriptions and saves data to:
+- `.feather` files (PyArrow columnar format - efficient)
+- `.csv` files (human-readable format)
 
 This component is instantiated multiple times in the simulation for every subscription of interest.
 This is similar to the HELICS observer functionality, but with more specific data types.
+
+## Component Package Structure
+
+Each component follows a standardized src-layout structure:
+```
+Components/{component}/
+├── src/
+│   └── {package_name}/
+│       ├── __init__.py          # Package initialization with version
+│       ├── server.py            # FastAPI REST server with main() entry point
+│       └── {main_module}.py     # Core federate implementation
+├── tests/                       # Test suite (outside src for isolation)
+│   ├── __init__.py
+│   └── test_*.py
+├── pyproject.toml               # Modern Python packaging (PEP 621)
+├── requirements.txt             # Legacy dependency specification  
+├── README.md                    # Comprehensive component documentation
+├── pytest.ini                   # Test configuration
+├── mypy.ini                     # Type checking configuration
+├── .gitignore                   # Python gitignore patterns
+├── Dockerfile                   # Container image definition
+└── component_definition.json    # OEDISI component spec (inputs/outputs)
+```
+
+**Benefits of src-layout:**
+- Clear separation between source code and tests
+- Prevents accidental imports from development directory
+- Ensures tests run against installed package
+- Standard practice for modern Python packages
+
+## Component Definitions
+
+Components use `component_definition.json` files in each directory to define their dynamic inputs and outputs. This allows the OEDISI framework to:
+- Configure connections between federates
+- Validate wiring diagrams
+- Generate appropriate subscriptions/publications
+- Build simulation systems declaratively
 
 # How was the example constructed?
 

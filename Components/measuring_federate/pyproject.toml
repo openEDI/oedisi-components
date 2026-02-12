@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "measuring-federate"
+version = "0.1.0"
+description = "OEDISI Measuring Federate - Sensor/measurement simulation with noise injection"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "openEDI", email = "info@openedi.org"}
+]
+keywords = ["oedisi", "helics", "sensor", "measurement", "noise"]
+
+dependencies = [
+    "helics>=3.4.0",
+    "pydantic",
+    "pyarrow",
+    "numpy",
+    "pandas",
+    "fastapi",
+    "uvicorn",
+    "requests",
+    "grequests",
+    "oedisi~=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",  # for testing FastAPI
+    "mypy>=0.981",
+    "black>=23.0",
+    "isort>=5.9",
+]
+
+[project.scripts]
+measuring-federate-server = "measuring_federate.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["measuring_federate*"]
+exclude = ["tests*"]

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lindistflow-federate"
+version = "0.1.0"
+description = "OEDISI LinDistFlow Federate - Optimal power flow using linear distflow formulation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "openEDI", email = "info@openedi.org"}
+]
+keywords = ["oedisi", "helics", "opf", "power-flow", "optimization"]
+
+dependencies = [
+    "helics>=3.4.0",
+    "pydantic",
+    "cvxpy",
+    "numpy",
+    "networkx",
+    "oedisi~=3.0",
+    "fastapi",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",  # for testing FastAPI
+    "mypy>=0.981",
+    "black>=23.0",
+    "isort>=5.9",
+]
+
+[project.scripts]
+lindistflow-server = "lindistflow_federate.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["lindistflow_federate*"]
+exclude = ["tests*"]
