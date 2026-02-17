@@ -11,7 +11,7 @@ state estimation, and distributed OPF.
 
 ## Component Status
 
-| Component | Version | Tests | Verify |
+| Component | Version | Tests | Structure Valid |
 |-----------|---------|-------|--------|
 | **Broker** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/broker/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - Broker](https://github.com/openEDI/oedisi-example/actions/workflows/test-broker.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-broker.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
 | **LinDistFlow** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/lindistflow_federate/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - LinDistFlow](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) |
