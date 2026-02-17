@@ -3,7 +3,6 @@
 [![Main - Integration Tests](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml)
 [![Main - Docker Build Test](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml)
 [![Main - Unit Tests](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml)
-[![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml)
 
 This example shows how to use the GADAL api to manage simulations. We also
 use it as a testing ground for the testing the combination of feeders,
