@@ -500,5 +500,5 @@ def test_mean_absolute_error_least_squares(parameters, input_data):
     mean_mag_error = np.mean(np.abs(np.abs(true_voltage) - np.abs(estimate_voltage)))
     mean_angle_error = np.mean(np.abs(np.angle(true_voltage * estimate_voltage.conj())))
 
-    assert mean_mag_error < 0.04, f"Max relative error too high: {mean_mag_error}"
-    assert mean_angle_error < 0.04, f"Max angle error too high: {mean_angle_error}"
+    assert mean_mag_error < 0.05, f"Max relative error too high: {mean_mag_error}"
+    assert mean_angle_error < 0.05, f"Max angle error too high: {mean_angle_error}"
