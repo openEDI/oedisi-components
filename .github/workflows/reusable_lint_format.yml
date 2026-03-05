@@ -7,7 +7,7 @@ on:
         description: Python version used for pre-commit checks
         required: false
         type: string
-        default: "3.10"
+        default: "3.13"
 
 jobs:
   lint-format:
