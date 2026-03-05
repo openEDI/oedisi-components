@@ -1,6 +1,6 @@
 {
     "directory": "LocalFeeder",
-    "execute_function": "python sender_cosim.py",
+    "execute_function": "python -m src.localfeeder.sender_cosim",
     "static_inputs": [
         {
             "type": "",

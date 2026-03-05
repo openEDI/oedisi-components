@@ -1,6 +1,6 @@
 {
     "directory": "lindistflow_federate",
-    "execute_function": "python opf_federate.py",
+    "execute_function": "python -m src.lindistflow_federate.opf_federate",
     "static_inputs": [
         {"type": "", "port_id": "name"},
         {"type": "", "port_id": "deltat"},

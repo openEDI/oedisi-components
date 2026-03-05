@@ -1,6 +1,6 @@
 {
     "directory": "recorder",
-    "execute_function": "python record_subscription.py",
+    "execute_function": "python -m src.recorder.record_subscription",
     "static_inputs": [
         {"type": "", "port_id": "filename"}
     ],

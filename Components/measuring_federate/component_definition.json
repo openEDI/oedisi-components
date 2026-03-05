@@ -1,6 +1,6 @@
 {
     "directory": "measuring_federate",
-    "execute_function": "python measuring_federate.py",
+    "execute_function": "python -m src.measuring_federate.measuring_federate",
     "static_inputs": [
         {
             "type": "",

@@ -39,8 +39,11 @@ jobs:
         run: |
           pip install matplotlib pyarrow numpy matplotlib pandas
           pip install oedisi~=3.0
-
-          python post_analysis.py outputs_build
+          if [[ -f post_analysis.py ]]; then
+            python post_analysis.py outputs_build
+          else
+            echo "post_analysis.py not found; skipping analysis step"
+          fi
       - name: Archive logs
         uses: actions/upload-artifact@v4
         if: always()

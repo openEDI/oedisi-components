@@ -1,6 +1,6 @@
 {
     "directory": "broker",
-    "execute_function": "python server.py",
+    "execute_function": "python -m src.broker.server",
     "static_inputs": [],
     "dynamic_inputs": [],
     "dynamic_outputs": []
