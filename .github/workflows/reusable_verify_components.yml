@@ -1,0 +1,68 @@
+name: Reusable Verify Components
+
+on:
+  workflow_call:
+    inputs:
+      component-root:
+        description: Optional path to a single component root (e.g. . or Components/broker)
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  verify-components:
+    runs-on: ubuntu-latest
+    name: Verify component metadata
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check component_definition.json exists
+        env:
+          COMPONENT_ROOT: ${{ inputs.component-root }}
+        run: |
+          if [ -n "$COMPONENT_ROOT" ]; then
+            target="$COMPONENT_ROOT/component_definition.json"
+            if [ -f "$target" ]; then
+              echo "$target found"
+            else
+              echo "$target missing"
+              exit 1
+            fi
+          else
+            components=(broker lindistflow_federate LocalFeeder measuring_federate recorder wls_federate)
+            for component in "${components[@]}"; do
+              target="Components/${component}/component_definition.json"
+              if [ -f "$target" ]; then
+                echo "$target found"
+              else
+                echo "$target missing"
+                exit 1
+              fi
+            done
+          fi
+
+      - name: Check README.md exists
+        env:
+          COMPONENT_ROOT: ${{ inputs.component-root }}
+        run: |
+          if [ -n "$COMPONENT_ROOT" ]; then
+            target="$COMPONENT_ROOT/README.md"
+            if [ -f "$target" ]; then
+              echo "$target found"
+            else
+              echo "$target missing"
+              exit 1
+            fi
+          else
+            components=(broker lindistflow_federate LocalFeeder measuring_federate recorder wls_federate)
+            for component in "${components[@]}"; do
+              target="Components/${component}/README.md"
+              if [ -f "$target" ]; then
+                echo "$target found"
+              else
+                echo "$target missing"
+                exit 1
+              fi
+            done
+          fi
