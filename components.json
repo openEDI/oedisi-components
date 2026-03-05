@@ -1,9 +1,8 @@
 {
-    "Recorder": "recorder/component_definition.json",
-    "LocalFeeder": "LocalFeeder/component_definition.json",
-    "MeasurementComponent": "measuring_federate/component_definition.json",
-    "StateEstimatorComponent": "wls_federate/component_definition.json",
-    "OMOOComponent": "omoo_federate/component_definition.json",
-    "Feeder": "LocalFeeder/component_definition.json",
-    "OptimalPowerFlow": "lindistflow_federate/component_definition.json"
+    "Recorder": "Components/recorder/component_definition.json",
+    "LocalFeeder": "Components/LocalFeeder/component_definition.json",
+    "MeasurementComponent": "Components/measuring_federate/component_definition.json",
+    "StateEstimatorComponent": "Components/wls_federate/component_definition.json",
+    "Feeder": "Components/LocalFeeder/component_definition.json",
+    "OptimalPowerFlow": "Components/lindistflow_federate/component_definition.json"
 }
