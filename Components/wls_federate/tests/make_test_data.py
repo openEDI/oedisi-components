@@ -1,14 +1,15 @@
+import os
 from pathlib import Path
+
+import pandas as pd
 from oedisi.types.data_types import (
-    Topology,
-    PowersReal,
     PowersImaginary,
+    PowersReal,
+    Topology,
+    VoltagesImaginary,
     VoltagesMagnitude,
     VoltagesReal,
-    VoltagesImaginary,
 )
-import pandas as pd
-import os
 
 
 def load_timestep(filename, timestep):
@@ -20,9 +21,7 @@ def write_test_data(outputsdir, targetdir, timestep):
     topology = Topology.model_validate_json((outputsdir / "topology.json").read_text())
     power_real = load_timestep(outputsdir / "measured_power_real.feather", timestep)
     power_imag = load_timestep(outputsdir / "measured_power_imag.feather", timestep)
-    voltage_mag = load_timestep(
-        outputsdir / "measured_voltage_magnitude.feather", timestep
-    )
+    voltage_mag = load_timestep(outputsdir / "measured_voltage_magnitude.feather", timestep)
     voltage_real = load_timestep(outputsdir / "voltage_real.feather", timestep)
     voltage_imag = load_timestep(outputsdir / "voltage_imag.feather", timestep)
 

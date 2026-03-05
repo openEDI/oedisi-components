@@ -1,8 +1,8 @@
 import csv
 import json
 import logging
-from datetime import datetime
 import time
+from datetime import datetime
 
 import helics as h
 import numpy as np
@@ -40,9 +40,7 @@ class Recorder:
         fedinfo.core_init = "--federates=1"
         logger.debug(name)
 
-        h.helicsFederateInfoSetTimeProperty(
-            fedinfo, h.helics_property_time_delta, deltat
-        )
+        h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, deltat)
 
         self.vfed = h.helicsCreateValueFederate(name, fedinfo)
         logger.info("Value federate created")
@@ -61,9 +59,10 @@ class Recorder:
         start = True
         granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
 
-        with pa.OSFile(self.feather_filename, "wb") as sink, pa.OSFile(
-            self.feather_filename + ".stream", "wb"
-        ) as streamsink:
+        with (
+            pa.OSFile(self.feather_filename, "wb") as sink,
+            pa.OSFile(self.feather_filename + ".stream", "wb") as streamsink,
+        ):
             writer = None
             streamwriter = None
             while granted_time < h.HELICS_TIME_MAXTIME:
@@ -74,12 +73,9 @@ class Recorder:
                 json_data["time"] = granted_time
                 measurement = MeasurementArray(**self.sub.json)
                 measurement_dict = {
-                    key: value
-                    for key, value in zip(measurement.ids, measurement.values)
+                    key: value for key, value in zip(measurement.ids, measurement.values)
                 }
-                measurement_dict["time"] = measurement.time.strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )
+                measurement_dict["time"] = measurement.time.strftime("%Y-%m-%d %H:%M:%S")
                 logger.debug(measurement.time)
 
                 if start:
@@ -94,9 +90,7 @@ class Recorder:
                 writer.write_batch(record_batch)
                 streamwriter.write_batch(record_batch)
 
-                granted_time = h.helicsFederateRequestTime(
-                    self.vfed, h.HELICS_TIME_MAXTIME
-                )
+                granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
                 logger.info("end time: " + str(datetime.now()))
 
             if writer is not None:

@@ -19,7 +19,7 @@ The WLS federate implements state estimation for power systems using weighted le
 
 ## Key Features
 
-- ✅ Weighted least squares state estimation  
+- ✅ Weighted least squares state estimation
 - ✅ Jacobian matrix computation
 - ✅ scipy.optimize.least_squares solver
 - ✅ Sparse matrix support for efficiency

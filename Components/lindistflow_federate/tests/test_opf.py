@@ -1,7 +1,7 @@
 """Tests for LinDistFlow optimal power flow federate."""
 
-import pytest
 import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 def client():
     """Create a test client for the lindistflow FastAPI app."""
     from lindistflow_federate.server import app
+
     return TestClient(app)
 
 
@@ -39,10 +40,10 @@ class TestLinDistFlowOptimization:
     def test_echo_federate_initialization(self):
         """Test EchoFederate can be imported and basic structure exists."""
         from lindistflow_federate import EchoFederate
-        
+
         # Basic import test
         assert EchoFederate is not None
-        assert hasattr(EchoFederate, '__init__')
+        assert hasattr(EchoFederate, "__init__")
 
 
 # TODO: Add comprehensive tests for:

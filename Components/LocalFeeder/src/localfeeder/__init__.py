@@ -10,7 +10,7 @@ This component provides:
 
 __version__ = "0.1.0"
 
-from .FeederSimulator import FeederSimulator, FeederConfig
+from .FeederSimulator import FeederConfig, FeederSimulator
 
 __all__ = [
     "__version__",

@@ -1,12 +1,12 @@
-import logging
-import helics as h
-import numpy as np
-from pydantic import BaseModel
 import json
+import logging
 from datetime import datetime
 
-from oedisi.types.data_types import MeasurementArray, EquipmentNodeArray
+import helics as h
+import numpy as np
 from oedisi.types.common import BrokerConfig
+from oedisi.types.data_types import EquipmentNodeArray, MeasurementArray
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -34,9 +34,7 @@ def reindex(measurement_array: MeasurementArray, indices):
             values=[measurement_array.values[inv_map[i]] for i in indices],
             ids=indices,
             units=measurement_array.units,
-            equipment_ids=[
-                measurement_array.equipment_ids[inv_map[i]] for i in indices
-            ],
+            equipment_ids=[measurement_array.equipment_ids[inv_map[i]] for i in indices],
             time=measurement_array.time,
         )
     else:
@@ -67,9 +65,7 @@ def apply(f, measurement_array: MeasurementArray):
 
 
 class MeasurementRelay:
-    def __init__(
-        self, config: MeasurementConfig, input_mapping, broker_config: BrokerConfig
-    ):
+    def __init__(self, config: MeasurementConfig, input_mapping, broker_config: BrokerConfig):
         self.rng = np.random.default_rng(12345)
         # deltat = 60.
 
@@ -91,9 +87,7 @@ class MeasurementRelay:
         logger.info("Value federate created")
 
         # Register the publication #
-        self.sub_measurement = self.vfed.register_subscription(
-            input_mapping["subscription"], ""
-        )
+        self.sub_measurement = self.vfed.register_subscription(input_mapping["subscription"], "")
 
         # TODO: find better way to determine what the name of this federate instance is than looking at the subscription
         self.pub_measurement = self.vfed.register_publication(

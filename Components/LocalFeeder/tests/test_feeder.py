@@ -2,11 +2,14 @@ import logging
 import os
 import sys
 
+import localfeeder.sender_cosim as sender_cosim
 import numpy as np
 import pandas as pd
 import plotille
 import pytest
 import xarray as xr
+from localfeeder.FeederSimulator import FeederConfig, FeederSimulator
+from localfeeder.sender_cosim import agg_to_ids
 from oedisi.types.data_types import (
     Command,
     EquipmentNodeArray,
@@ -15,10 +18,6 @@ from oedisi.types.data_types import (
     VVControl,
     VWControl,
 )
-
-from localfeeder.FeederSimulator import FeederConfig, FeederSimulator
-import localfeeder.sender_cosim as sender_cosim
-from localfeeder.sender_cosim import agg_to_ids
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -148,9 +147,7 @@ def test_voltages(federate_config):
     # fig.set_x_limits(min_=-3, max_=3)
     fig.set_y_limits(min_=0, max_=2)
     fig.color_mode = "byte"
-    fig.plot(
-        range(len(base)), np.abs(disabled_solve / base).data, lc=50, label="Disabled"
-    )
+    fig.plot(range(len(base)), np.abs(disabled_solve / base).data, lc=50, label="Disabled")
     fig.plot(range(len(base)), np.abs(snapshot / base).data, lc=75, label="Snapshot")
     fig.plot(range(len(base)), np.abs(actuals / base).data, lc=100, label="Actuals")
     print("\n" + fig.show(legend=True))
@@ -162,9 +159,7 @@ def test_voltages(federate_config):
     # fig.set_x_limits(min_=-3, max_=3)
     fig.set_y_limits(min_=0.9, max_=1.1)
     fig.color_mode = "byte"
-    fig.plot(
-        range(len(base)), np.abs(disabled_solve / base).data, lc=50, label="Disabled"
-    )
+    fig.plot(range(len(base)), np.abs(disabled_solve / base).data, lc=50, label="Disabled")
     fig.plot(range(len(base)), np.abs(snapshot / base).data, lc=75, label="Snapshot")
     fig.plot(range(len(base)), np.abs(actuals / base).data, lc=100, label="Actuals")
     print("\n" + fig.show(legend=True))
@@ -292,9 +287,7 @@ def initial_data(sim, federate_config):
         }
     )
     logging.info(df.describe())
-    df = pd.DataFrame(
-        {"injections": initial_data.topology.injections.power_real.values}
-    )
+    df = pd.DataFrame({"injections": initial_data.topology.injections.power_real.values})
     logging.info(df.describe())
     assert initial_data is not None
 
@@ -362,14 +355,8 @@ def simulation_middle(sim, Y):
 
     plot_complex_array(current_data.PQ_injections_all.data, label="PQ injection")
 
-    diff = np.abs(
-        current_data.PQ_injections_all - (-current_data.calculated_power)
-    ) * np.exp(
-        1j
-        * (
-            np.angle(current_data.PQ_injections_all)
-            - np.angle(-current_data.calculated_power)
-        )
+    diff = np.abs(current_data.PQ_injections_all - (-current_data.calculated_power)) * np.exp(
+        1j * (np.angle(current_data.PQ_injections_all) - np.angle(-current_data.calculated_power))
     )
 
     plot_complex_array(diff.data, label="Calculated - Injected")
@@ -411,23 +398,17 @@ def test_controls(federate_config):
 
     # Find first with equipment type = PVSystem
     power_real = current_data.injections.power_real
-    pv_system_indices = list(
-        equipment_indices_on_equipment_node_array(power_real, "PVSystem")
-    )
+    pv_system_indices = list(equipment_indices_on_equipment_node_array(power_real, "PVSystem"))
     max_index = np.argmax(np.abs([power_real.values[i] for i in pv_system_indices]))
     pv_system_index = pv_system_indices[max_index]
     pv_system_index = None
     for i in range(len(power_real.ids)):
-        if power_real.ids[i] == "113.1" and power_real.equipment_ids[i].startswith(
-            "PVSystem"
-        ):
+        if power_real.ids[i] == "113.1" and power_real.equipment_ids[i].startswith("PVSystem"):
             pv_system_index = i
             break
     assert pv_system_index is not None
 
-    print(
-        f"{power_real.ids[pv_system_index]} {power_real.equipment_ids[pv_system_index]}"
-    )
+    print(f"{power_real.ids[pv_system_index]} {power_real.equipment_ids[pv_system_index]}")
     # Try setting current power to half of that.
     assert abs(power_real.values[pv_system_index]) > 0.01
     sim.change_obj(
@@ -449,21 +430,13 @@ def test_controls(federate_config):
     print(power_real.ids[pv_system_index])
     print(new_power_real.values[pv_system_index])
     print(new_power_real.ids[pv_system_index])
-    assert (
-        np.abs(
-            new_power_real.values[pv_system_index] - power_real.values[pv_system_index]
-        )
-        > 1
-    )
+    assert np.abs(new_power_real.values[pv_system_index] - power_real.values[pv_system_index]) > 1
     (bad_indices,) = np.where(
         np.abs(np.array(new_power_real.values) - np.array(power_real.values)) > 1
     )
 
     for i in bad_indices:
-        print(
-            f"Old: {power_real.equipment_ids[i]} {power_real.ids[i]} "
-            f"{power_real.values[i]}"
-        )
+        print(f"Old: {power_real.equipment_ids[i]} {power_real.ids[i]} " f"{power_real.values[i]}")
         print(
             f"New: {new_power_real.equipment_ids[i]} {new_power_real.ids[i]} "
             f"{new_power_real.values[i]}"
@@ -511,12 +484,7 @@ def test_inv_control(federate_config):
 
     even_newer_voltages = sim.get_voltages_actual()
 
-    assert (
-        float(
-            np.sum(np.abs(new_voltages.loc["113.1"] - even_newer_voltages.loc["113.1"]))
-        )
-        < 1
-    )
+    assert float(np.sum(np.abs(new_voltages.loc["113.1"] - even_newer_voltages.loc["113.1"]))) < 1
 
     test_inverter_data = InverterControl(
         pvsystem_list=["PVSystem.113"],
@@ -532,12 +500,7 @@ def test_inv_control(federate_config):
 
     nocontrol_voltages = sim.get_voltages_actual()
 
-    assert (
-        float(
-            np.sum(np.abs(old_voltages.loc["113.1"] - nocontrol_voltages.loc["113.1"]))
-        )
-        < 1
-    )
+    assert float(np.sum(np.abs(old_voltages.loc["113.1"] - nocontrol_voltages.loc["113.1"]))) < 1
 
 
 def test_inv_control_full(federate_config):
@@ -627,12 +590,7 @@ def test_pv_setpoints(federate_config):
     )
     sim.set_pv_output("113", 20, 5)
     sim.snapshot_run()
-    power = (
-        -sim.get_PQs_pv(static=True)
-        .groupby("equipment_ids")["PVSystem.113"]
-        .sum()
-        .item()
-    )
+    power = -sim.get_PQs_pv(static=True).groupby("equipment_ids")["PVSystem.113"].sum().item()
     assert np.isclose(power.real, 20), f"Real power is {power.real}"
     assert np.isclose(power.imag, 5), f"Reactive power is {power.imag}"
 
@@ -648,12 +606,7 @@ def test_pv_setpoints(federate_config):
     sim.snapshot_run()
     sim.set_pv_output("113", 20, 5)
     sim.snapshot_run()
-    power = (
-        -sim.get_PQs_pv(static=True)
-        .groupby("equipment_ids")["PVSystem.113"]
-        .sum()
-        .item()
-    )
+    power = -sim.get_PQs_pv(static=True).groupby("equipment_ids")["PVSystem.113"].sum().item()
     assert np.isclose(power.real, 8), f"Real power is {power.real}"
     assert np.isclose(power.imag, 2), f"Reactive power is {power.imag}"
 
@@ -664,8 +617,7 @@ def test_incidence_matrix(federate_config):
 
     core_bus_names = set(name.split(".")[0] for name in sim._AllNodeNames)
     assert all(
-        bus_name.split(".")[0] in core_bus_names
-        for bus_name in incidences.from_equipment
+        bus_name.split(".")[0] in core_bus_names for bus_name in incidences.from_equipment
     ), f"Could not find the following buses: {list(filter(lambda bus_name: bus_name.split('.')[0] not in core_bus_names, incidences.from_equipment))}"
     assert all(
         bus_name.split(".")[0] in core_bus_names for bus_name in incidences.to_equipment

@@ -1,35 +1,32 @@
-from fastapi import FastAPI, BackgroundTasks, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.exceptions import HTTPException
-import helics as h
-import grequests
-import traceback
-import requests
-import zipfile
-import uvicorn
+import json
 import logging
+import os
 import socket
 import time
-import yaml
-import json
-import os
-import json
+import traceback
+import zipfile
 
+import grequests
+import helics as h
+import requests
+import uvicorn
+import yaml
+from fastapi import BackgroundTasks, FastAPI, UploadFile
+from fastapi.exceptions import HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from oedisi.componentframework.system_configuration import (
-    WiringDiagram,
     ComponentStruct,
+    WiringDiagram,
 )
-from oedisi.types.common import ServerReply, HeathCheck
 from oedisi.tools.broker_utils import get_time_data
+from oedisi.types.common import HeathCheck, ServerReply
 
 logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI()
 
 is_kubernetes_env = (
-    os.environ["KUBERNETES_SERVICE_NAME"]
-    if "KUBERNETES_SERVICE_NAME" in os.environ
-    else None
+    os.environ["KUBERNETES_SERVICE_NAME"] if "KUBERNETES_SERVICE_NAME" in os.environ else None
 )
 
 WIRING_DIAGRAM_FILENAME = "system.json"
@@ -94,9 +91,7 @@ async def upload_profiles(file: UploadFile):
                 port = component_map[hostname]
                 data = file.file.read()
                 if not file.filename.endswith(".zip"):
-                    HTTPException(
-                        400, "Invalid file type. Only zip files are accepted."
-                    )
+                    HTTPException(400, "Invalid file type. Only zip files are accepted.")
                 with open(file.filename, "wb") as f:
                     f.write(data)
 
@@ -123,9 +118,7 @@ async def upload_model(file: UploadFile):
                 port = component_map[hostname]
                 data = file.file.read()
                 if not file.filename.endswith(".zip"):
-                    HTTPException(
-                        400, "Invalid file type. Only zip files are accepted."
-                    )
+                    HTTPException(400, "Invalid file type. Only zip files are accepted.")
                 with open(file.filename, "wb") as f:
                     f.write(data)
 
@@ -251,13 +244,9 @@ async def configure(wiring_diagram: WiringDiagram):
         logger.info(f"making a request to url - {url}")
 
         r = requests.post(url, json=component_model.model_dump())
-        assert (
-            r.status_code == 200
-        ), f"POST request to update configuration failed for url - {url}"
+        assert r.status_code == 200, f"POST request to update configuration failed for url - {url}"
     return JSONResponse(
-        ServerReply(
-            detail="Sucessfully updated config files for all containers"
-        ).model_dump(),
+        ServerReply(detail="Sucessfully updated config files for all containers").model_dump(),
         200,
     )
 

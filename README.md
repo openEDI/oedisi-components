@@ -28,7 +28,7 @@ This repository is organized as a Python repository containing  components for p
 **Components:**
 - **[broker](Components/broker/README.md)** - Central orchestration service for HELICS federates
 - **[lindistflow_federate](Components/lindistflow_federate/README.md)** - Optimal power flow using linear distflow
-- **[localfeeder](Components/LocalFeeder/README.md)** - OpenDSS-based distribution feeder simulator  
+- **[localfeeder](Components/LocalFeeder/README.md)** - OpenDSS-based distribution feeder simulator
 - **[measuring_federate](Components/measuring_federate/README.md)** - Sensor simulation with noise injection
 - **[recorder](Components/recorder/README.md)** - Data recording for co-simulation outputs
 - **[wls_federate](Components/wls_federate/README.md)** - Weighted least squares state estimation
@@ -180,7 +180,7 @@ Each component is a standalone Python package with its own documentation. Click 
 ### **[Broker](Components/broker/README.md)**
 Central orchestration service for HELICS federates. Provides REST API endpoints for federate coordination and HELICS broker management.
 
-### **[LinDistFlow Federate](Components/lindistflow_federate/README.md)**  
+### **[LinDistFlow Federate](Components/lindistflow_federate/README.md)**
 Optimal power flow using linear distflow formulation. Implements convex optimization (cvxpy) for three-phase distribution system control.
 
 ### **[LocalFeeder](Components/LocalFeeder/README.md)** (AWSFeeder)
@@ -222,7 +222,7 @@ Components/{component}/
 │   ├── __init__.py
 │   └── test_*.py
 ├── pyproject.toml               # Modern Python packaging (PEP 621)
-├── requirements.txt             # Legacy dependency specification  
+├── requirements.txt             # Legacy dependency specification
 ├── README.md                    # Comprehensive component documentation
 ├── pytest.ini                   # Test configuration
 ├── mypy.ini                     # Type checking configuration

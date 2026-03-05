@@ -10,7 +10,7 @@ This component provides:
 
 __version__ = "0.1.0"
 
-from .measuring_federate import MeasurementRelay, MeasurementConfig
+from .measuring_federate import MeasurementConfig, MeasurementRelay
 
 __all__ = [
     "__version__",

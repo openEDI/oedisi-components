@@ -1,5 +1,5 @@
-import numpy as np
 import localfeeder.sender_cosim as sender_cosim
+import numpy as np
 
 
 def test_true_angles():

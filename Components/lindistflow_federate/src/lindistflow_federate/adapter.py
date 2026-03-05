@@ -1,7 +1,8 @@
-import numpy as np
 import logging
 from enum import IntEnum
 from typing import Tuple
+
+import numpy as np
 from oedisi.types.data_types import (
     AdmittanceMatrix,
     AdmittanceSparse,
@@ -16,9 +17,8 @@ from oedisi.types.data_types import (
     VoltagesAngle,
     VoltagesImaginary,
     VoltagesMagnitude,
-    VoltagesReal
+    VoltagesReal,
 )
-
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -63,7 +63,7 @@ def index_info(branch: dict, bus: dict) -> Tuple[dict, dict]:
         branch[name]["to"] = bus[branch[name]["to_bus"]]["idx"]
         y = branch[name]["y"]
         del branch[name]["y"]
-        z = -1*np.linalg.pinv(y)
+        z = -1 * np.linalg.pinv(y)
         for idx, value in np.ndenumerate(z):
             row = idx[0]
             col = idx[1]
@@ -74,12 +74,12 @@ def index_info(branch: dict, bus: dict) -> Tuple[dict, dict]:
 
 def extract_voltages(bus: dict, voltages: VoltagesMagnitude) -> dict:
     for id, voltage in zip(voltages.ids, voltages.values):
-        [name, _] = id.split('.')
+        [name, _] = id.split(".")
 
         if name not in bus:
             continue
 
-        bus[name]['kv'] = voltage/1000.0
+        bus[name]["kv"] = voltage / 1000.0
     return bus
 
 
@@ -88,11 +88,11 @@ def pack_voltages(voltages: dict, time: int) -> VoltagesMagnitude:
     values = []
     for key, value in voltages.items():
         for phase, voltage in value.items():
-            if phase == 'A':
+            if phase == "A":
                 id = f"{key}.1"
-            if phase == 'B':
+            if phase == "B":
                 id = f"{key}.2"
-            if phase == 'C':
+            if phase == "C":
                 id = f"{key}.3"
             ids.append(id)
             values.append(voltage)
@@ -101,34 +101,34 @@ def pack_voltages(voltages: dict, time: int) -> VoltagesMagnitude:
 
 def extract_powers(bus: dict, real: PowersReal, imag: PowersImaginary) -> dict:
     for id, eq, power in zip(real.ids, real.equipment_ids, real.values):
-        [name, phase] = id.split('.')
+        [name, phase] = id.split(".")
 
         if name not in bus:
             continue
-        [type, _] = eq.split('.')
+        [type, _] = eq.split(".")
         phase = int(phase) - 1
         if type == "PVSystem":
             logger.info(f"{id} : {power}")
             bus[name]["eqid"] = eq
-            bus[name]["pv"][phase][0] = power*1000
+            bus[name]["pv"][phase][0] = power * 1000
         else:
             bus[name]["eqid"] = eq
-            bus[name]["pq"][phase][0] = -power*1000
+            bus[name]["pq"][phase][0] = -power * 1000
 
     for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values):
-        [name, phase] = id.split('.')
+        [name, phase] = id.split(".")
 
         if name not in bus:
             continue
 
-        [type, _] = eq.split('.')
+        [type, _] = eq.split(".")
         phase = int(phase) - 1
         if type == "PVSystem":
             bus[name]["eqid"] = eq
-            bus[name]["pv"][phase][1] = power*1000
+            bus[name]["pv"][phase][1] = power * 1000
         else:
             bus[name]["eqid"] = eq
-            bus[name]["pq"][phase][1] = -power*1000
+            bus[name]["pq"][phase][1] = -power * 1000
     return bus
 
 
@@ -137,39 +137,39 @@ def extract_injection(bus: dict, powers: Injection) -> dict:
     imag = powers.power_imaginary
 
     for id, eq, power in zip(real.ids, real.equipment_ids, real.values):
-        [name, phase] = id.split('.')
+        [name, phase] = id.split(".")
 
         if name not in bus:
             continue
-        if name.find('OPEN') != -1:
+        if name.find("OPEN") != -1:
             continue
 
-        [type, _] = eq.split('.')
+        [type, _] = eq.split(".")
         phase = int(phase) - 1
         if type == "PVSystem":
             bus[name]["eqid"] = eq
-            bus[name]["pv"][phase][0] = power*1000
+            bus[name]["pv"][phase][0] = power * 1000
             logger.debug(f"{eq}, {power}")
         else:
             bus[name]["eqid"] = eq
-            bus[name]["pq"][phase][0] = -power*1000
+            bus[name]["pq"][phase][0] = -power * 1000
 
     for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values):
-        [name, phase] = id.split('.')
+        [name, phase] = id.split(".")
 
         if name not in bus:
             continue
-        if name.find('OPEN') != -1:
+        if name.find("OPEN") != -1:
             continue
 
-        [type, _] = eq.split('.')
+        [type, _] = eq.split(".")
         phase = int(phase) - 1
         if type == "PVSystem":
             bus[name]["eqid"] = eq
-            bus[name]["pv"][phase][1] = power*1000
+            bus[name]["pv"][phase][1] = power * 1000
         else:
             bus[name]["eqid"] = eq
-            bus[name]["pq"][phase][1] = -power*1000
+            bus[name]["pq"][phase][1] = -power * 1000
     return bus
 
 
@@ -181,15 +181,15 @@ def extract_info(topology: Topology) -> Tuple[dict, dict]:
     admittance = topology.admittance.admittance_list
 
     for fr_eq, to_eq, y in zip(from_equip, to_equip, admittance):
-        [from_name, from_phase] = fr_eq.split('.')
+        [from_name, from_phase] = fr_eq.split(".")
         type = "LINE"
-        if from_name.find('OPEN') != -1:
-            [from_name, _] = from_name.split('_')
+        if from_name.find("OPEN") != -1:
+            [from_name, _] = from_name.split("_")
             type = "SWITCH"
 
-        [to_name, to_phase] = to_eq.split('.')
-        if to_name.find('OPEN') != -1:
-            [to_name, _] = to_name.split('_')
+        [to_name, to_phase] = to_eq.split(".")
+        if to_name.find("OPEN") != -1:
+            [to_name, _] = to_name.split("_")
             type = "SWITCH"
 
         if from_name == to_name:
@@ -213,18 +213,18 @@ def extract_info(topology: Topology) -> Tuple[dict, dict]:
         col = int(to_phase) - 1
         branch_info[key]["y"][row][col] = complex(y[0], y[1])
 
-        if from_phase not in branch_info[key]['phases']:
-            branch_info[key]['phases'].append(from_phase)
+        if from_phase not in branch_info[key]["phases"]:
+            branch_info[key]["phases"].append(from_phase)
 
-        if from_phase not in bus_info[from_name]['phases']:
-            bus_info[from_name]['phases'].append(from_phase)
+        if from_phase not in bus_info[from_name]["phases"]:
+            bus_info[from_name]["phases"].append(from_phase)
 
-        if to_phase not in bus_info[to_name]['phases']:
-            bus_info[to_name]['phases'].append(to_phase)
+        if to_phase not in bus_info[to_name]["phases"]:
+            bus_info[to_name]["phases"].append(to_phase)
 
-        branch_info[key]['type'] = type
-        branch_info[key]['fr_bus'] = from_name
-        branch_info[key]['to_bus'] = to_name
+        branch_info[key]["type"] = type
+        branch_info[key]["fr_bus"] = from_name
+        branch_info[key]["to_bus"] = to_name
 
     bus_info = extract_voltages(bus_info, topology.base_voltage_magnitudes)
 

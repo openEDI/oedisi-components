@@ -10,7 +10,6 @@ import helics as h
 import numpy as np
 import numpy.typing as npt
 import xarray as xr
-from .FeederSimulator import FeederConfig, FeederSimulator
 from oedisi.types.common import BrokerConfig
 from oedisi.types.data_types import (
     AdmittanceMatrix,
@@ -29,6 +28,8 @@ from oedisi.types.data_types import (
     VoltagesReal,
 )
 from scipy.sparse import coo_matrix
+
+from .FeederSimulator import FeederConfig, FeederSimulator
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -51,7 +52,7 @@ def sparse_to_admittance_sparse(array: coo_matrix, unique_ids: List[str]):
 
 def get_true_phases(angle):
     """Round complex angles to predefined set of phases."""
-    for test_angle in map(lambda x: x * np.pi / 3, range(-3,4)):
+    for test_angle in map(lambda x: x * np.pi / 3, range(-3, 4)):
         if np.abs(angle - test_angle) <= np.pi / 6:
             return angle
     raise ValueError(f"angle {angle} not close to -pi to pi")
@@ -114,12 +115,8 @@ def get_powers(PQ_load, PQ_PV, PQ_gen, PQ_cap):
     PQ_gen_real, PQ_gen_imag = xarray_to_powers(PQ_gen)
     PQ_cap_real, PQ_cap_imag = xarray_to_powers(PQ_cap)
 
-    power_real = concat_measurement_arrays(
-        PQ_load_real, PQ_PV_real, PQ_gen_real, PQ_cap_real
-    )
-    power_imag = concat_measurement_arrays(
-        PQ_load_imag, PQ_PV_imag, PQ_gen_imag, PQ_cap_imag
-    )
+    power_real = concat_measurement_arrays(PQ_load_real, PQ_PV_real, PQ_gen_real, PQ_cap_real)
+    power_imag = concat_measurement_arrays(PQ_load_imag, PQ_PV_imag, PQ_gen_imag, PQ_cap_imag)
     return power_real, power_imag
 
 
@@ -145,8 +142,7 @@ def get_initial_data(sim: FeederSimulator, config: FeederConfig):
         )
 
     slack_ids = [
-        sim._AllNodeNames[i]
-        for i in range(sim._source_indexes[0], sim._source_indexes[-1] + 1)
+        sim._AllNodeNames[i] for i in range(sim._source_indexes[0], sim._source_indexes[-1] + 1)
     ]
 
     base_voltages = sim.get_base_voltages()
@@ -231,9 +227,7 @@ def get_current_data(sim: FeederSimulator, Y):
     PQ_injections_all = PQ_injections_all.assign_coords(
         equipment_ids=("ids", list(map(lambda x: x.split(".")[0], sim._AllNodeNames)))
     )
-    calculated_power = (
-        feeder_voltages * (Y.conjugate() @ feeder_voltages.conjugate()) / 1000
-    )
+    calculated_power = feeder_voltages * (Y.conjugate() @ feeder_voltages.conjugate()) / 1000
 
     PQ_injections_all[sim._source_indexes] = -calculated_power[sim._source_indexes]
 
@@ -321,17 +315,13 @@ def go_cosim(
     sub_command_set.option["CONNECTION_OPTIONAL"] = True
 
     inv_control_key = (
-        "unused/inv_control"
-        if "" not in input_mapping
-        else input_mapping["inv_control"]
+        "unused/inv_control" if "" not in input_mapping else input_mapping["inv_control"]
     )
     sub_invcontrol = vfed.register_subscription(inv_control_key, "")
     sub_invcontrol.set_default("[]")
     sub_invcontrol.option["CONNECTION_OPTIONAL"] = True
 
-    pv_set_key = (
-        "unused/pv_set" if "pv_set" not in input_mapping else input_mapping["pv_set"]
-    )
+    pv_set_key = "unused/pv_set" if "pv_set" not in input_mapping else input_mapping["pv_set"]
 
     sub_pv_set = vfed.register_subscription(pv_set_key, "")
     sub_pv_set.set_default("[]")
@@ -351,15 +341,15 @@ def go_cosim(
     # Publish the forecasted PV outputs as a list of MeasurementArray
     logger.info("Evaluating the forecasted PV")
     forecast_data = sim.forcast_pv(int(config.number_of_timesteps))
-    PVforecast = [MeasurementArray(**xarray_to_dict(forecast),
-                    units="kW").model_dump_json() for forecast in forecast_data]
+    PVforecast = [
+        MeasurementArray(**xarray_to_dict(forecast), units="kW").model_dump_json()
+        for forecast in forecast_data
+    ]
     pub_pv_forecast.publish(json.dumps(PVforecast))
 
     granted_time = -1
     request_time = 0
-    initial_timestamp = datetime.strptime(
-        config.start_date, "%Y-%m-%d %H:%M:%S"
-    )
+    initial_timestamp = datetime.strptime(config.start_date, "%Y-%m-%d %H:%M:%S")
 
     while request_time < int(config.number_of_timesteps):
         granted_time = h.helicsFederateRequestTime(vfed, request_time)
@@ -370,12 +360,12 @@ def go_cosim(
             request_time += 1
 
         current_index = int(granted_time)  # floors
-        current_timestamp = datetime.strptime(
-            config.start_date, "%Y-%m-%d %H:%M:%S"
-        ) + timedelta(seconds=granted_time * config.run_freq_sec)
-        floored_timestamp = datetime.strptime(
-            config.start_date, "%Y-%m-%d %H:%M:%S"
-        ) + timedelta(seconds=current_index * config.run_freq_sec)
+        current_timestamp = datetime.strptime(config.start_date, "%Y-%m-%d %H:%M:%S") + timedelta(
+            seconds=granted_time * config.run_freq_sec
+        )
+        floored_timestamp = datetime.strptime(config.start_date, "%Y-%m-%d %H:%M:%S") + timedelta(
+            seconds=current_index * config.run_freq_sec
+        )
 
         change_obj_cmds = CommandList.model_validate(sub_command_set.json)
         sim.change_obj(change_obj_cmds.root)
@@ -388,7 +378,9 @@ def go_cosim(
         for pv_set in pv_sets:
             sim.set_pv_output(pv_set[0].split(".")[1], pv_set[1], pv_set[2])
 
-        current_hour = 24*(floored_timestamp.date() - initial_timestamp.date()).days + floored_timestamp.hour
+        current_hour = (
+            24 * (floored_timestamp.date() - initial_timestamp.date()).days + floored_timestamp.hour
+        )
         logger.info(
             f"Solve at hour {current_hour} second "
             f"{60*floored_timestamp.minute + floored_timestamp.second}"
@@ -471,9 +463,7 @@ def go_cosim(
         else:
             pub_load_y_matrix.publish(
                 AdmittanceMatrix(
-                    admittance_matrix=numpy_to_y_matrix(
-                        current_data.load_y_matrix.toarray()
-                    ),
+                    admittance_matrix=numpy_to_y_matrix(current_data.load_y_matrix.toarray()),
                     ids=sim._AllNodeNames,
                 ).model_dump_json()
             )

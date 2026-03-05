@@ -1,9 +1,10 @@
 """Tests for recorder data logging functionality."""
 
-import pytest
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -11,6 +12,7 @@ from fastapi.testclient import TestClient
 def client():
     """Create a test client for the recorder FastAPI app."""
     from recorder.server import app
+
     return TestClient(app)
 
 
@@ -39,9 +41,9 @@ class TestRecorderInitialization:
     def test_recorder_can_be_imported(self):
         """Test that Recorder class can be imported."""
         from recorder import Recorder
-        
+
         assert Recorder is not None
-        assert hasattr(Recorder, '__init__')
+        assert hasattr(Recorder, "__init__")
 
 
 class TestRecorderDataOutput:
@@ -51,7 +53,7 @@ class TestRecorderDataOutput:
         """Test that PyArrow is available for feather format."""
         import pyarrow
         import pyarrow.feather
-        
+
         # Basic test that pyarrow is importable
         assert pyarrow is not None
         assert pyarrow.feather is not None
@@ -59,16 +61,16 @@ class TestRecorderDataOutput:
     def test_csv_format_support(self):
         """Test that pandas CSV writing is available."""
         import pandas as pd
-        
+
         # Create a simple test dataframe
-        df = pd.DataFrame({'time': [0.0, 1.0, 2.0], 'value': [1.0, 2.0, 3.0]})
+        df = pd.DataFrame({"time": [0.0, 1.0, 2.0], "value": [1.0, 2.0, 3.0]})
         assert df is not None
-        
+
     def test_output_directory_creation(self, temp_output_dir):
         """Test that output directories can be created."""
         test_dir = temp_output_dir / "test_output"
         test_dir.mkdir(exist_ok=True)
-        
+
         assert test_dir.exists()
         assert test_dir.is_dir()
 

@@ -1,7 +1,7 @@
 """Tests for measuring federate sensor/measurement simulation."""
 
-import pytest
 import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 def client():
     """Create a test client for the measuring federate FastAPI app."""
     from measuring_federate.server import app
+
     return TestClient(app)
 
 
@@ -30,15 +31,15 @@ class TestMeasurementConfiguration:
     def test_measurement_config_creation(self):
         """Test MeasurementConfig model can be created."""
         from measuring_federate import MeasurementConfig
-        
+
         # Test basic configuration
         config = MeasurementConfig(
             name="test_sensor",
             measurement_file="sensors.json",
             additive_noise_stddev=0.01,
-            multiplicative_noise_stddev=0.005
+            multiplicative_noise_stddev=0.005,
         )
-        
+
         assert config.name == "test_sensor"
         assert config.measurement_file == "sensors.json"
         assert config.additive_noise_stddev == 0.01
@@ -51,19 +52,19 @@ class TestNoiseInjection:
     def test_measurement_relay_initialization(self):
         """Test MeasurementRelay can be imported and has expected structure."""
         from measuring_federate import MeasurementRelay
-        
+
         assert MeasurementRelay is not None
-        assert hasattr(MeasurementRelay, '__init__')
+        assert hasattr(MeasurementRelay, "__init__")
 
     @pytest.mark.parametrize("seed", [42, 123, 999])
     def test_seeded_noise_reproducibility(self, seed):
         """Test that noise generation is reproducible with same seed."""
         np.random.seed(seed)
         noise1 = np.random.normal(0, 0.01, 100)
-        
+
         np.random.seed(seed)
         noise2 = np.random.normal(0, 0.01, 100)
-        
+
         np.testing.assert_array_equal(noise1, noise2)
 
 

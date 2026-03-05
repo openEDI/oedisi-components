@@ -17,6 +17,15 @@ import opendssdirect as dss
 import xarray as xr
 from botocore import UNSIGNED
 from botocore.config import Config
+from oedisi.types.data_types import (
+    Command,
+    IncidenceList,
+    InverterControl,
+    InverterControlMode,
+)
+from pydantic import BaseModel
+from scipy.sparse import coo_matrix, csc_matrix
+
 from .dss_functions import (
     get_capacitors,
     get_generators,
@@ -24,15 +33,6 @@ from .dss_functions import (
     get_pvsystems,
     get_voltages,
 )
-
-from oedisi.types.data_types import (
-    Command,
-    InverterControl,
-    InverterControlMode,
-    IncidenceList,
-)
-from pydantic import BaseModel
-from scipy.sparse import coo_matrix, csc_matrix
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -129,9 +129,7 @@ class FeederSimulator(object):
         self._inverter_counter = 0
         self._xycurve_counter = 0
 
-        self._start_time = int(
-            time.mktime(strptime(config.start_date, "%Y-%m-%d %H:%M:%S"))
-        )
+        self._start_time = int(time.mktime(strptime(config.start_date, "%Y-%m-%d %H:%M:%S")))
         self._run_freq_sec = config.run_freq_sec
         self._simulation_step = config.start_time_index
         self._number_of_timesteps = config.number_of_timesteps
@@ -139,9 +137,7 @@ class FeederSimulator(object):
 
         self.tap_setting = config.tap_setting
 
-        if config.existing_feeder_file is None or not os.path.exists(
-            config.existing_feeder_file
-        ):
+        if config.existing_feeder_file is None or not os.path.exists(config.existing_feeder_file):
             if self._use_smartds:
                 self._feeder_file = os.path.join("opendss", "Master.dss")
                 self.download_data("oedi-data-lake", update_loadshape_location=True)
@@ -169,7 +165,7 @@ class FeederSimulator(object):
         average irradiance is computed over all PV systems for each time step. This average irradiance
         is used to compute the individual PV system power output
         """
-        cmd = f'Set stepsize={self._run_freq_sec} Number=1'
+        cmd = f"Set stepsize={self._run_freq_sec} Number=1"
         dss.Text.Command(cmd)
         forecast = []
         for k in range(steps):
@@ -243,9 +239,7 @@ class FeederSimulator(object):
                     new_row = new_row.replace("file=", "file=../")
                     for token in new_row.split(" "):
                         if token.startswith("(file="):
-                            location = (
-                                token.split("=../profiles/")[1].strip().strip(")")
-                            )
+                            location = token.split("=../profiles/")[1].strip().strip(")")
                             all_profiles.add(location)
                     modified_loadshapes = modified_loadshapes + new_row
             with open(os.path.join("opendss", "LoadShapes.dss"), "w") as fp_loadshapes:
@@ -345,9 +339,7 @@ class FeederSimulator(object):
         self._AllNodeNames = self._circuit.YNodeOrder()
         self._node_number = len(self._AllNodeNames)
         self._nodes_index = [self._AllNodeNames.index(ii) for ii in self._AllNodeNames]
-        self._name_index_dict = {
-            ii: self._AllNodeNames.index(ii) for ii in self._AllNodeNames
-        }
+        self._name_index_dict = {ii: self._AllNodeNames.index(ii) for ii in self._AllNodeNames}
 
         self._source_indexes = []
         for Source in dss.Vsources.AllNames():
@@ -454,8 +446,7 @@ class FeederSimulator(object):
         hour = 0
         second = 0
         dss.Text.Command(
-            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} "
-            f"stepsize=0"
+            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} " f"stepsize=0"
         )
         dss.Text.Command("solve")
         self._state = OpenDSSState.DISABLED_SOLVE
@@ -463,21 +454,18 @@ class FeederSimulator(object):
     def just_solve(self):
         """Solvesolve without setting time or anything. Useful for commands."""
         assert (
-            self._state != OpenDSSState.UNLOADED
-            and self._state != OpenDSSState.DISABLED_RUN
+            self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN
         ), f"{self._state}"
         dss.Text.Command("solve number=1")
 
     def solve(self, hour, second):
         """Solve at specified time. Must not be unloaded or disabled."""
         assert (
-            self._state != OpenDSSState.UNLOADED
-            and self._state != OpenDSSState.DISABLED_RUN
+            self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN
         ), f"{self._state}"
 
         dss.Text.Command(
-            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} "
-            f"stepsize=0"
+            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} " f"stepsize=0"
         )
         dss.Text.Command("solve number=1")
         self._state = OpenDSSState.SOLVE_AT_TIME
@@ -502,9 +490,7 @@ class FeederSimulator(object):
             self._circuit.SetActiveElement("Load." + ld["name"])
             current_pq_name = dss.CktElement.Name()
             for i, node_name in enumerate(ld["node_names"]):
-                assert (
-                    node_name in all_node_names
-                ), f"{node_name} for {current_pq_name} not found"
+                assert node_name in all_node_names, f"{node_name} for {current_pq_name} not found"
                 if static:
                     power = complex(ld["kW"], ld["kVar"])
                     PQs.append(power / ld["numPhases"])
@@ -535,13 +521,9 @@ class FeederSimulator(object):
             self._circuit.SetActiveElement("PVSystem." + PV["name"])
             current_pq_name = dss.CktElement.Name()
             for i, node_name in enumerate(PV["node_names"]):
-                assert (
-                    node_name in all_node_names
-                ), f"{node_name} for {current_pq_name} not found"
+                assert node_name in all_node_names, f"{node_name} for {current_pq_name} not found"
                 if static:
-                    power = complex(
-                        -1 * PV["kW"], -1 * PV["kVar"]
-                    )  # -1 because injecting
+                    power = complex(-1 * PV["kW"], -1 * PV["kVar"])  # -1 because injecting
                     PQs.append(power / PV["numPhases"])
                 else:
                     power = dss.CktElement.Powers()
@@ -571,13 +553,9 @@ class FeederSimulator(object):
             current_pq_name = dss.CktElement.Name()
 
             for i, node_name in enumerate(gen["node_names"]):
-                assert (
-                    node_name in all_node_names
-                ), f"{node_name} for {current_pq_name} not found"
+                assert node_name in all_node_names, f"{node_name} for {current_pq_name} not found"
                 if static:
-                    power = complex(
-                        -1 * gen["kW"], -1 * gen["kVar"]
-                    )  # -1 because injecting
+                    power = complex(-1 * gen["kW"], -1 * gen["kVar"])  # -1 because injecting
                     PQs.append(power / gen["numPhases"])
                 else:
                     power = dss.CktElement.Powers()
@@ -610,13 +588,9 @@ class FeederSimulator(object):
         for cap in get_capacitors(dss):
             current_pq_name = cap["name"]
             for i, node_name in enumerate(cap["node_names"]):
-                assert (
-                    node_name in all_node_names
-                ), f"{node_name} for {current_pq_name} not found"
+                assert node_name in all_node_names, f"{node_name} for {current_pq_name} not found"
                 if static:
-                    power = complex(
-                        0, -1 * cap["kVar"]
-                    )  # -1 because it's injected into the grid
+                    power = complex(0, -1 * cap["kVar"])  # -1 because it's injected into the grid
                     PQs.append(power / cap["numPhases"])
                 else:
                     PQs.append(complex(0, cap["power"][2 * i + 1]))
@@ -654,19 +628,16 @@ class FeederSimulator(object):
     def _get_voltages(self):
         """Get powers and put in order of self._AllNodeNames."""
         assert (
-            self._state != OpenDSSState.DISABLED_RUN
-            and self._state != OpenDSSState.UNLOADED
+            self._state != OpenDSSState.DISABLED_RUN and self._state != OpenDSSState.UNLOADED
         ), f"{self._state}"
         name_voltage_dict = get_voltages(self._circuit)
         res_feeder_voltages = np.zeros((len(self._AllNodeNames)), dtype=np.complex128)
         for voltage_name in name_voltage_dict.keys():
-            res_feeder_voltages[self._name_index_dict[voltage_name]] = (
-                name_voltage_dict[voltage_name]
-            )
+            res_feeder_voltages[self._name_index_dict[voltage_name]] = name_voltage_dict[
+                voltage_name
+            ]
 
-        return xr.DataArray(
-            res_feeder_voltages, {"ids": list(name_voltage_dict.keys())}
-        )
+        return xr.DataArray(res_feeder_voltages, {"ids": list(name_voltage_dict.keys())})
 
     def change_obj(self, change_commands: List[Command]):
         """set/get an object property.
@@ -723,9 +694,7 @@ class FeederSimulator(object):
         ), f"PVsystem(s) {pvsystem_set} is already assigned inverter or may not exist"
         name = f"InvControl.invgenerated{self._inverter_counter}"
         # May need PVsystemlist
-        assert all(
-            pv_name.split(".")[0].lower() == "pvsystem" for pv_name in pvsystem_set
-        )
+        assert all(pv_name.split(".")[0].lower() == "pvsystem" for pv_name in pvsystem_set)
         if pvsystem_set == self._pvsystems:
             # This provides more stable behavior in the "default" case.
             pvlist = ""
@@ -767,9 +736,7 @@ class FeederSimulator(object):
                 inv_control.vvcontrol.voltage, inv_control.vvcontrol.reactive_response
             )
             dss.Text.Command(f"{inverter}.vvc_curve1={vvc_curve.split('.')[1]}")
-            dss.Text.Command(
-                f"{inverter}.deltaQ_factor={inv_control.vvcontrol.deltaq_factor}"
-            )
+            dss.Text.Command(f"{inverter}.deltaQ_factor={inv_control.vvcontrol.deltaq_factor}")
             dss.Text.Command(
                 f"{inverter}.VarChangeTolerance={inv_control.vvcontrol.varchangetolerance}"
             )
@@ -785,9 +752,7 @@ class FeederSimulator(object):
                 inv_control.vwcontrol.power_response,
             )
             dss.Text.Command(f"{inverter}.voltwatt_curve={vw_curve.split('.')[1]}")
-            dss.Text.Command(
-                f"{inverter}.deltaP_factor={inv_control.vwcontrol.deltap_factor}"
-            )
+            dss.Text.Command(f"{inverter}.deltaP_factor={inv_control.vwcontrol.deltap_factor}")
         if inv_control.mode == InverterControlMode.voltvar_voltwatt:
             dss.Text.Command(f"{inverter}.CombiMode = VV_VW")
         else:

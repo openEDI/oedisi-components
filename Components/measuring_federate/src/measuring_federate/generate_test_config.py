@@ -1,7 +1,7 @@
 from random import sample, seed
-from pydantic import BaseModel
 from typing import List
 
+from pydantic import BaseModel
 
 BUSES = [
     "P1UDT882LV.1",

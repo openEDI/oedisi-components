@@ -2,15 +2,15 @@ import os
 import sys
 
 import numpy as np
-import scipy.sparse
 import pytest
+import scipy.sparse
 from oedisi.types.data_types import (
-    Topology,
-    PowersReal,
     PowersImaginary,
+    PowersReal,
+    Topology,
+    VoltagesImaginary,
     VoltagesMagnitude,
     VoltagesReal,
-    VoltagesImaginary,
 )
 from scipy.sparse import sparray
 
@@ -18,12 +18,12 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 # sys.path.append(os.path.dirname(TEST_DIR))  # No longer needed with src-layout
 
 from wls_federate.state_estimator_federate import (
-    calculate_jacobian,
-    residual,
-    get_y,
     AlgorithmParameters,
-    get_indices,
+    calculate_jacobian,
     estimated_pqv,
+    get_indices,
+    get_y,
+    residual,
 )
 
 
@@ -119,11 +119,9 @@ def inner_args(parameters, topology, measurements):
 
     Y = get_y(topology.admittance, topology.base_voltage_magnitudes.ids)
 
-    Y = (
-        scipy.sparse.diags_array(base_voltages)
-        @ Y
-        @ scipy.sparse.diags_array(base_voltages)
-    ) / (base_power * 1000)
+    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (
+        base_power * 1000
+    )
     initial_ang = np.array(topology.base_voltage_angles.values)
     X0 = np.concatenate((initial_ang, np.full(num_node, 1)))
     return X0, z, num_node, knownP, knownQ, knownV, Y
@@ -132,9 +130,7 @@ def inner_args(parameters, topology, measurements):
 def test_calculate_jacobian(parameters, ieee123data):
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     H = calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y)
     assert H.shape == (len(knownP) + len(knownQ) + len(knownV), num_node * 2)
     assert isinstance(H, np.ndarray), f"H has type {type(H)}"
@@ -150,11 +146,9 @@ def test_get_y_sparse(sparse_topology):
     assert Y.shape == (len(ids), len(ids))
     assert isinstance(Y, sparray), f"Y has type {type(Y)}"
 
-    Y = (
-        scipy.sparse.diags_array(base_voltages)
-        @ Y
-        @ scipy.sparse.diags_array(base_voltages)
-    ) / (base_power * 1000)
+    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (
+        base_power * 1000
+    )
     assert Y.shape == (len(ids), len(ids))
     assert isinstance(Y, sparray), f"Y has type {type(Y)}"
 
@@ -173,9 +167,7 @@ def test_calculate_jacobian_sparse(parameters, sparse_topology, ieee123data):
 def test_residual(parameters, ieee123data):
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     h = residual(X0, z, num_node, knownP, knownQ, knownV, Y)
     assert h.shape == (len(knownP) + len(knownQ) + len(knownV),)
     assert isinstance(h, np.ndarray), f"h has type {type(h)}"
@@ -228,9 +220,7 @@ def test_residuals_against_actuals(parameters, input_data):
     ids_above_max = [ids[idx] for idx in idx_above_max]
     # h has units of base_power.
     max_power_watts = np.max(np.abs(h)) * parameters.base_power
-    assert (
-        max_power_watts < 10
-    ), f"Residuals are too high: max {max_power_watts} at {ids_above_max}"
+    assert max_power_watts < 10, f"Residuals are too high: max {max_power_watts} at {ids_above_max}"
 
 
 def get_mean_relative_error(topology, solution, actuals):
@@ -250,8 +240,7 @@ def get_mean_relative_error(topology, solution, actuals):
     estimated_voltage = voltage_mag * np.exp(1j * voltage_ang)
 
     return np.abs(
-        (estimated_voltage - true_voltage)
-        / np.array(topology.base_voltage_magnitudes.values)
+        (estimated_voltage - true_voltage) / np.array(topology.base_voltage_magnitudes.values)
     ).mean()
 
 
@@ -279,9 +268,7 @@ def test_least_squares_call(parameters, input_data):
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
 
     ls_result = scipy.optimize.least_squares(
         residual,
@@ -310,9 +297,7 @@ def test_least_squares_call(parameters, input_data):
 def test_compare_initial_conditions(parameters, ieee123data, sparse_topology):
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
 
     (
         X0_sparse,
@@ -335,9 +320,7 @@ def test_compare_initial_conditions(parameters, ieee123data, sparse_topology):
 def test_compare_jacobian_residuals_vs_sparse(parameters, ieee123data, sparse_topology):
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
 
     H = calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y)
     res = residual(X0, z, num_node, knownP, knownQ, knownV, Y)
@@ -388,9 +371,7 @@ def test_least_squares_with_perfect_initalization(parameters, input_data):
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
-    _, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    _, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     voltage_real, voltage_imag = actuals
     true_voltages = np.array(voltage_real.values) + 1j * np.array(voltage_imag.values)
     true_voltages /= np.array(topology.base_voltage_magnitudes.values)
@@ -428,9 +409,7 @@ def test_wls_agreement_with_yuqi(parameters, input_data):
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     ls_result = scipy.optimize.least_squares(
         residual,
         X0,
@@ -463,9 +442,7 @@ def test_wls_agreement_with_yuqi(parameters, input_data):
     estimate_voltage = vmagestDecen * np.exp(1j * vangestDecen)
 
     mean_mag_error = np.mean(np.abs(np.abs(true_voltage) - np.abs(estimate_voltage)))
-    mean_angle_error = np.mean(
-        np.abs(np.angle(true_voltage) - np.angle(estimate_voltage))
-    )
+    mean_angle_error = np.mean(np.abs(np.angle(true_voltage) - np.angle(estimate_voltage)))
 
     if input_data == "small_smartds_tap_time_3":
         assert (
@@ -488,9 +465,7 @@ def test_mean_absolute_error_least_squares(parameters, input_data):
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     ls_result = scipy.optimize.least_squares(
         residual,
         X0,

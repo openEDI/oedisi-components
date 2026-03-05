@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 def client():
     """Create a test client for the broker FastAPI app."""
     from broker.server import app
+
     return TestClient(app)
 
 

@@ -1,21 +1,21 @@
-from fastapi import FastAPI, BackgroundTasks, UploadFile, Request
+import asyncio
+import json
+import logging
+import os
+import socket
+import sys
+import time
+import traceback
+import zipfile
+
+import uvicorn
+from fastapi import BackgroundTasks, FastAPI, Request, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
-from .sender_cosim import run_simulator
-import traceback
-import asyncio
-import logging
-import zipfile
-import uvicorn
-import socket
-import json
-import time
-import sys
-import os
-
 from oedisi.componentframework.system_configuration import ComponentStruct
-from oedisi.types.common import ServerReply, HeathCheck, DefaultFileNames
-from oedisi.types.common import BrokerConfig
+from oedisi.types.common import BrokerConfig, DefaultFileNames, HeathCheck, ServerReply
+
+from .sender_cosim import run_simulator
 
 REQUEST_TIMEOUT_SEC = 1200
 
@@ -36,9 +36,7 @@ async def timeout_middleware(request: Request, call_next):
             ).model_dump()
             return JSONResponse(response, 504)
         else:
-            response = ServerReply(
-                detail="Request processing time exceeded limit"
-            ).model_dump()
+            response = ServerReply(detail="Request processing time exceeded limit").model_dump()
             return JSONResponse(response, 504)
 
 
@@ -78,22 +76,16 @@ async def upload_profiles(file: UploadFile):
         with zipfile.ZipFile(file.filename, "r") as zip_ref:
             zip_ref.extractall(profile_path)
 
-        if os.path.exists(
-            os.path.join(profile_path, "load_profiles")
-        ) and os.path.exists(os.path.join(profile_path, "pv_profiles")):
-            response = ServerReply(
-                detail=f"File uploaded to server: {file.filename}"
-            ).model_dump()
+        if os.path.exists(os.path.join(profile_path, "load_profiles")) and os.path.exists(
+            os.path.join(profile_path, "pv_profiles")
+        ):
+            response = ServerReply(detail=f"File uploaded to server: {file.filename}").model_dump()
             return JSONResponse(response, 200)
         else:
-            HTTPException(
-                400, "Invalid user defined profile structure. See OEDISI documentation."
-            )
+            HTTPException(400, "Invalid user defined profile structure. See OEDISI documentation.")
 
     except Exception as e:
-        HTTPException(
-            500, "Unknown error while uploading userdefined opendss profiles."
-        )
+        HTTPException(500, "Unknown error while uploading userdefined opendss profiles.")
 
 
 @app.post("/model")
@@ -101,9 +93,7 @@ async def upload_model(file: UploadFile):
     try:
         data = file.file.read()
         if not file.filename.endswith(".zip"):
-            HTTPException(
-                400, "Invalid file type. Only zipped opendss models are accepted."
-            )
+            HTTPException(400, "Invalid file type. Only zipped opendss models are accepted.")
 
         model_path = "./opendss"
 
@@ -114,9 +104,7 @@ async def upload_model(file: UploadFile):
             zip_ref.extractall(model_path)
 
         if os.path.exists(os.path.join(model_path, "master.dss")):
-            response = ServerReply(
-                detail=f"File uploaded to server: {file.filename}"
-            ).model_dump()
+            response = ServerReply(detail=f"File uploaded to server: {file.filename}").model_dump()
             return JSONResponse(response, 200)
 
         else:
@@ -141,22 +129,22 @@ async def run_feeder(
 
 
 @app.post("/configure")
-async def configure(component_struct:ComponentStruct): 
+async def configure(component_struct: ComponentStruct):
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name
     links = {}
     for link in component_struct.links:
         links[link.target_port] = f"{link.source}/{link.source_port}"
-    json.dump(links , open(DefaultFileNames.INPUT_MAPPING.value, "w"))
-    json.dump(params , open(DefaultFileNames.STATIC_INPUTS.value, "w"))
-    response = ServerReply(
-            detail = f"Sucessfully updated configuration files."
-        ).model_dump()
+    json.dump(links, open(DefaultFileNames.INPUT_MAPPING.value, "w"))
+    json.dump(params, open(DefaultFileNames.STATIC_INPUTS.value, "w"))
+    response = ServerReply(detail=f"Sucessfully updated configuration files.").model_dump()
     return JSONResponse(response, 200)
 
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ['PORT']))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
+
 
 def main():
     """Entry point for localfeeder-server console script."""

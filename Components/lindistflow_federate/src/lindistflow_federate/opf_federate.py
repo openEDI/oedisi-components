@@ -1,19 +1,19 @@
-import logging
-import helics as h
 import json
-from pathlib import Path
+import logging
 from datetime import datetime
+from pathlib import Path
+
+import helics as h
+from oedisi.types.common import BrokerConfig
 from oedisi.types.data_types import (
-    CommandList,
     Command,
+    CommandList,
     Injection,
     Topology,
     VoltagesMagnitude,
 )
 
-from oedisi.types.common import BrokerConfig
-from . import adapter
-from . import lindistflow
+from . import adapter, lindistflow
 from .area import area_info
 
 logger = logging.getLogger(__name__)
@@ -87,9 +87,7 @@ class EchoFederate:
         self.sub.voltages_mag = self.fed.register_subscription(
             self.inputs["voltages_magnitude"], ""
         )
-        self.sub.injections = self.fed.register_subscription(
-            self.inputs["injections"], ""
-        )
+        self.sub.injections = self.fed.register_subscription(self.inputs["injections"], "")
 
     def register_publication(self) -> None:
         self.pub_commands = self.fed.register_publication(
@@ -107,9 +105,7 @@ class EchoFederate:
 
         while granted_time < h.HELICS_TIME_MAXTIME:
             if not self.sub.voltages_mag.is_updated():
-                granted_time = h.helicsFederateRequestTime(
-                    self.fed, h.HELICS_TIME_MAXTIME
-                )
+                granted_time = h.helicsFederateRequestTime(self.fed, h.HELICS_TIME_MAXTIME)
                 continue
 
             topology = Topology.model_validate(self.sub.topology.json)
@@ -159,22 +155,13 @@ class EchoFederate:
                                         val=setpoint,
                                     )
                                 )
-                            elif (
-                                self.static.control_type == lindistflow.ControlType.VAR
-                            ):
+                            elif self.static.control_type == lindistflow.ControlType.VAR:
                                 commands.append(
-                                    Command(
-                                        obj_name=eqid, obj_property="kVAR", val=setpoint
-                                    )
+                                    Command(obj_name=eqid, obj_property="kVAR", val=setpoint)
                                 )
-                            elif (
-                                self.static.control_type
-                                == lindistflow.ControlType.WATT_VAR
-                            ):
+                            elif self.static.control_type == lindistflow.ControlType.WATT_VAR:
                                 commands.append(
-                                    Command(
-                                        obj_name=eqid, obj_property="kVA", val=setpoint
-                                    )
+                                    Command(obj_name=eqid, obj_property="kVA", val=setpoint)
                                 )
 
             logger.info(commands)

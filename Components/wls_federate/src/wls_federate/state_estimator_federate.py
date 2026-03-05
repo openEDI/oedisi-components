@@ -178,11 +178,9 @@ def state_estimator(
 
     Y = get_y(topology.admittance, topology.base_voltage_magnitudes.ids)
     # Hand-crafted unit conversion (check it, it works)
-    Y = (
-        scipy.sparse.diags_array(base_voltages)
-        @ Y
-        @ scipy.sparse.diags_array(base_voltages)
-    ) / (parameters.base_power * 1000)
+    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (
+        parameters.base_power * 1000
+    )
     tol = parameters.tol
 
     if type(initial_ang) != np.ndarray:
@@ -197,9 +195,7 @@ def state_estimator(
         Vabs = np.full(num_node, initial_V)
     else:
         Vabs = initial_V
-    assert Vabs.shape == (
-        num_node,
-    ), f"Initial Vabs shape {Vabs.shape} does not match {num_node}"
+    assert Vabs.shape == (num_node,), f"Initial Vabs shape {Vabs.shape} does not match {num_node}"
 
     X0 = np.concatenate((delta, Vabs))
     logging.debug(X0)
@@ -252,9 +248,7 @@ class StateEstimatorFederate:
         fedinfo.core_name = federate_name
         fedinfo.core_type = h.HELICS_CORE_TYPE_ZMQ
         fedinfo.core_init = "--federates=1"
-        h.helicsFederateInfoSetTimeProperty(
-            fedinfo, h.helics_property_time_delta, deltat
-        )
+        h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, deltat)
 
         self.vfed = h.helicsCreateValueFederate(federate_name, fedinfo)
         logger.info("Value federate created")
@@ -263,15 +257,9 @@ class StateEstimatorFederate:
         self.sub_voltages_magnitude = self.vfed.register_subscription(
             input_mapping["voltages_magnitude"], "V"
         )
-        self.sub_power_P = self.vfed.register_subscription(
-            input_mapping["powers_real"], "W"
-        )
-        self.sub_power_Q = self.vfed.register_subscription(
-            input_mapping["powers_imaginary"], "W"
-        )
-        self.sub_topology = self.vfed.register_subscription(
-            input_mapping["topology"], ""
-        )
+        self.sub_power_P = self.vfed.register_subscription(input_mapping["powers_real"], "W")
+        self.sub_power_Q = self.vfed.register_subscription(input_mapping["powers_imaginary"], "W")
+        self.sub_topology = self.vfed.register_subscription(input_mapping["topology"], "")
         self.pub_voltage_mag = self.vfed.register_publication(
             "voltage_mag", h.HELICS_DATA_TYPE_STRING, ""
         )
@@ -304,9 +292,7 @@ class StateEstimatorFederate:
 
         while granted_time < h.HELICS_TIME_MAXTIME:
             if not self.sub_voltages_magnitude.is_updated():
-                granted_time = h.helicsFederateRequestTime(
-                    self.vfed, h.HELICS_TIME_MAXTIME
-                )
+                granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
                 continue
 
             logger.info("start time: " + str(datetime.now()))
@@ -318,10 +304,7 @@ class StateEstimatorFederate:
 
             if self.initial_V is None:
                 # Flat start or using average measurements
-                if (
-                    len(power_P.ids) + len(voltages.ids) + len(power_Q.ids)
-                    > len(ids) * 2
-                ):
+                if len(power_P.ids) + len(voltages.ids) + len(power_Q.ids) > len(ids) * 2:
                     self.initial_V = 1.0
                 else:
                     self.initial_V = np.mean(
@@ -378,9 +361,7 @@ def run_simulator(broker_config: BrokerConfig):
     with open("input_mapping.json") as f:
         input_mapping = json.load(f)
 
-    sfed = StateEstimatorFederate(
-        federate_name, parameters, input_mapping, broker_config
-    )
+    sfed = StateEstimatorFederate(federate_name, parameters, input_mapping, broker_config)
     sfed.run()
 
 
