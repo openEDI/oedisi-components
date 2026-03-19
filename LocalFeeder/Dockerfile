@@ -1,4 +1,5 @@
 FROM python:3.10.6-slim-bullseye
+LABEL org.opencontainers.image.authors="Joseph McKinsey <Joseph.McKinsey@nrel.gov>"
 RUN apt-get update
 RUN apt-get install -y git ssh
 RUN mkdir LocalFeeder
