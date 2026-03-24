@@ -270,4 +270,3 @@ Scenario files (under `scenarios/`) define how components are instantiated and c
 
 - **`components[].type`** must match a key in `components.json`.
 - **`links[]`** connect a source component's `dynamic_output` port to a target component's `dynamic_input` port.
-

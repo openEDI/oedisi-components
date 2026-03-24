@@ -17,13 +17,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install component dependencies
       shell: bash -l {0}
       run: |
@@ -33,14 +33,14 @@ jobs:
                     -e Components/measuring_federate \
                     -e Components/recorder \
                     -e Components/wls_federate
-    
+
     - name: Run example simulation
       shell: bash -l {0}
       run: |
         oedisi build --system scenarios/docker_system.json
         oedisi run
         python post_analysis.py
-    
+
     - name: Archive simulation results
       uses: actions/upload-artifact@v4
       if: always()
