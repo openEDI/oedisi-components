@@ -84,11 +84,10 @@ def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str])
         ).toarray()
 
 
-def primal_dual(
-    dual_update_v, muk_last, lambdak_last, epsilon, alpha, uni_Vmax, uni_Vmin, V_k
-):
+def primal_dual(dual_update_v, muk_last, lambdak_last, epsilon, alpha, uni_Vmax, uni_Vmin, V_k):
     """
-    update dual variables
+    Update dual variables.
+
     lk >> (uni_Vmin - V_k) >> uni_Vmin - V_k <= 0
     mk >> (V_k - uni_Vmax) >> V_k - uni_Vmax <=0
     """
@@ -441,9 +440,7 @@ class OMOO:
             Ppv, Qpv = np.delete(Ppv, self.slack_bus), np.delete(Qpv, self.slack_bus)
             V_hat_final = Vk_wopv + self.G @ Ppv + self.H @ Qpv
 
-            logger.debug(
-                f"Target bounds are [{self.parameters.Vmax}, {self.parameters.Vmin}]"
-            )
+            logger.debug(f"Target bounds are [{self.parameters.Vmax}, {self.parameters.Vmin}]")
             return (
                 Pk_last * self.base_power,
                 Qk_last * self.base_power,
@@ -465,9 +462,7 @@ class OMOOFederate:
         fedinfo.core_name = federate_name
         fedinfo.core_type = h.HELICS_CORE_TYPE_ZMQ
         fedinfo.core_init = "--federates=1"
-        h.helicsFederateInfoSetTimeProperty(
-            fedinfo, h.helics_property_time_delta, deltat
-        )
+        h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, deltat)
 
         self.vfed = h.helicsCreateValueFederate(federate_name, fedinfo)
         logger.info("Value federate created")
@@ -479,18 +474,10 @@ class OMOOFederate:
         self.sub_voltages_imaginary = self.vfed.register_subscription(
             input_mapping["voltages_imag"], "V"
         )
-        self.sub_power_P = self.vfed.register_subscription(
-            input_mapping["powers_real"], "W"
-        )
-        self.sub_power_Q = self.vfed.register_subscription(
-            input_mapping["powers_imag"], "W"
-        )
-        self.sub_topology = self.vfed.register_subscription(
-            input_mapping["topology"], ""
-        )
-        self.injections = self.vfed.register_subscription(
-            input_mapping["injections"], ""
-        )
+        self.sub_power_P = self.vfed.register_subscription(input_mapping["powers_real"], "W")
+        self.sub_power_Q = self.vfed.register_subscription(input_mapping["powers_imag"], "W")
+        self.sub_topology = self.vfed.register_subscription(input_mapping["topology"], "")
+        self.injections = self.vfed.register_subscription(input_mapping["injections"], "")
         self.sub_available_power = self.vfed.register_subscription(
             input_mapping["available_power"], ""
         )
@@ -502,9 +489,7 @@ class OMOOFederate:
         self.pub_voltage_angle = self.vfed.register_publication(
             "voltage_angle", h.HELICS_DATA_TYPE_STRING, ""
         )
-        self.pub_P_set = self.vfed.register_publication(
-            "P_set", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub_P_set = self.vfed.register_publication("P_set", h.HELICS_DATA_TYPE_STRING, "")
         logger.debug("algorithm_parameters")
         logger.debug(algorithm_parameters)
 
@@ -543,16 +528,14 @@ class OMOOFederate:
                 * np.array(topology.base_voltage_magnitudes.values).reshape(-1, 1)
                 / (base_power * 1000)
             )
-        self.YLL = csc_matrix(
-            np.delete(np.delete(Y, slack_bus, axis=0), slack_bus, axis=1)
-        )
+        self.YLL = csc_matrix(np.delete(np.delete(Y, slack_bus, axis=0), slack_bus, axis=1))
         self.YL0 = csc_matrix(np.delete(Y, slack_bus, axis=0)[:, slack_bus])
         self.Y = csc_matrix(Y)
         del Y
 
-        ratings = eqarray_to_xarray(
-            topology.injections.power_real
-        ) + 1j * eqarray_to_xarray(topology.injections.power_imaginary)
+        ratings = eqarray_to_xarray(topology.injections.power_real) + 1j * eqarray_to_xarray(
+            topology.injections.power_imaginary
+        )
         pv_ratings = ratings[ratings.equipment_ids.str.startswith("PVSystem")]
 
         v = measurement_to_xarray(topology.base_voltage_magnitudes)
@@ -564,25 +547,21 @@ class OMOOFederate:
             logger.debug("granted_time")
             logger.debug(granted_time)
             if not self.sub_voltages_real.is_updated():
-                granted_time = h.helicsFederateRequestTime(
-                    self.vfed, h.HELICS_TIME_MAXTIME
-                )
+                granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
                 continue
 
             voltages_real = VoltagesReal.model_validate(self.sub_voltages_real.json)
-            voltages_imag = VoltagesImaginary.model_validate(
-                self.sub_voltages_imaginary.json
+            voltages_imag = VoltagesImaginary.model_validate(self.sub_voltages_imaginary.json)
+            voltages = measurement_to_xarray(voltages_real) + 1j * measurement_to_xarray(
+                voltages_imag
             )
-            voltages = measurement_to_xarray(
-                voltages_real
-            ) + 1j * measurement_to_xarray(voltages_imag)
             logger.debug(np.max(np.abs(voltages) / v))
             assert topology.base_voltage_magnitudes.ids == list(voltages.ids.data)
 
             injections = Injection.model_validate(self.injections.json)
-            power_injections = eqarray_to_xarray(
-                injections.power_real
-            ) + 1j * eqarray_to_xarray(injections.power_imaginary)
+            power_injections = eqarray_to_xarray(injections.power_real) + 1j * eqarray_to_xarray(
+                injections.power_imaginary
+            )
             pv_injections = power_injections[
                 power_injections.equipment_ids.str.startswith("PVSystem")
             ]
@@ -594,9 +573,9 @@ class OMOOFederate:
             split_power = available_power / pv_injections.ids.groupby(
                 "equipment_ids"
             ).count().rename({"equipment_ids": "ids"})
-            available_power = split_power.loc[
-                pv_injections.equipment_ids
-            ].assign_coords(ids=pv_injections.ids)
+            available_power = split_power.loc[pv_injections.equipment_ids].assign_coords(
+                ids=pv_injections.ids
+            )
 
             pv = pd.DataFrame()
             pv["name"] = pv_ratings.equipment_ids.data
@@ -604,15 +583,13 @@ class OMOOFederate:
             pv["kVarRated"] = pv_ratings.values.real
 
             pv["avai"] = available_power
-            bus_to_index = {
-                v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)
-            }
+            bus_to_index = {v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)}
             pv["index"] = [bus_to_index[v] for v in pv_injections.ids.data]
 
             V0 = voltages[slack_bus].data
-            self.V0 = (
-                V0 / np.array(topology.base_voltage_magnitudes.values)[slack_bus]
-            ).reshape(3, -1)
+            self.V0 = (V0 / np.array(topology.base_voltage_magnitudes.values)[slack_bus]).reshape(
+                3, -1
+            )
             self.G, self.H, self.w_mag = getLinearModel(self.YLL, self.YL0, self.V0)
 
             logger.debug("PVframe")
@@ -636,9 +613,7 @@ class OMOOFederate:
                 self.w_mag,
             )
 
-            P_set, Q_set, set_power, V_hat = opf.opf_run(
-                np.abs(voltages), power_P, power_Q
-            )
+            P_set, Q_set, set_power, V_hat = opf.opf_run(np.abs(voltages), power_P, power_Q)
             power_set = P_set + 1j * Q_set
             power_factor = power_set.real / (np.abs(power_set) + 1e-7)
             pmpp = power_set.real / pv["kVarRated"]
@@ -663,9 +638,7 @@ class OMOOFederate:
             pv_settings = []
             command_list = []
             for i in range(len(power_set_xr)):
-                assert (
-                    available_total_xr.equipment_ids[i] == power_set_xr.equipment_ids[i]
-                )
+                assert available_total_xr.equipment_ids[i] == power_set_xr.equipment_ids[i]
                 if np.isclose(available_total_xr[i], 0):
                     continue
                 pv_settings.append(

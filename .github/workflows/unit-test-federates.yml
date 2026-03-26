@@ -31,6 +31,7 @@ jobs:
                     -e "Components/lindistflow_federate[dev]" \
                     -e "Components/LocalFeeder[dev]" \
                     -e "Components/measuring_federate[dev]" \
+                    -e "Components/omoo_federate[dev]" \
                     -e "Components/recorder[dev]" \
                     -e "Components/wls_federate[dev]"
 
