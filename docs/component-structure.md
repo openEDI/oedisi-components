@@ -16,7 +16,6 @@ Every component lives under `Components/<component_name>/` or in a seperate repo
 ├── pyproject.toml                  # Package metadata and dependencies
 ├── pytest.ini                      # Test runner configuration
 ├── README.md                       # Component documentation
-├── requirements.txt                # Flat pip dependencies (mirrors pyproject.toml)
 ├── src/
 │   └── <package_name>/             # Installable Python package (src-layout)
 │       ├── __init__.py             # Version and docstring
@@ -80,43 +79,13 @@ Each entry in `static_inputs`, `dynamic_inputs`, and `dynamic_outputs` has the s
 
 ### `pyproject.toml`
 
-Standard Python packaging with `setuptools` and **src-layout**.
+Standard `setuptools` src-layout packaging. See the [setuptools quickstart](https://setuptools.pypa.io/en/latest/userguide/quickstart.html) for full reference.
 
-```toml
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
-
-[project]
-name = "<component-name>"
-version = "0.1.0"
-requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [{ name = "openEDI" }]
-dependencies = [
-    "helics>=3.4.0",
-    "fastapi",
-    "uvicorn",
-    "oedisi~=3.0",
-    # ... component-specific deps
-]
-
-[project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "pytest-asyncio", "httpx", "mypy", "black", "isort"]
-
-[project.scripts]
-<name>-server = "<package_name>.server:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["<package_name>*"]
-exclude = ["tests*"]
-```
-
-**Key conventions:**
+OEDISI-specific conventions:
 - Always depend on `helics>=3.4.0`, `fastapi`, `uvicorn`, and `oedisi~=3.0`.
 - Expose a console script entry point pointing to `<package>.server:main`.
-- Use src-layout for package discovery.
+- Use `[tool.setuptools.packages.find]` with `where = ["src"]` for src-layout discovery.
+- Include a `[project.optional-dependencies] dev` group with `pytest`, `mypy`, etc.
 
 ---
 

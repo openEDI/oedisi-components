@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "openEDI", email = "info@openedi.org"}
+    {name = "McKinsey, Joseph", email = "Joseph.McKinsey@nlr.gov"}
 ]
 keywords = ["oedisi", "helics", "state-estimation", "wls"]
 

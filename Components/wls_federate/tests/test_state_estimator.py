@@ -1,5 +1,4 @@
 import os
-import sys
 
 import numpy as np
 import pytest
@@ -15,7 +14,6 @@ from oedisi.types.data_types import (
 from scipy.sparse import sparray
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-# sys.path.append(os.path.dirname(TEST_DIR))  # No longer needed with src-layout
 
 from wls_federate.state_estimator_federate import (
     AlgorithmParameters,
