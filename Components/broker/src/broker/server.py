@@ -10,7 +10,6 @@ import grequests
 import helics as h
 import requests
 import uvicorn
-import yaml
 from fastapi import BackgroundTasks, FastAPI, UploadFile
 from fastapi.exceptions import HTTPException
 from fastapi.responses import FileResponse, JSONResponse
@@ -103,7 +102,7 @@ async def upload_profiles(file: UploadFile):
                 response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload profiles")
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
         raise HTTPException(status_code=500, detail=str(err))
 
@@ -130,7 +129,7 @@ async def upload_model(file: UploadFile):
                 response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload model")
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
         raise HTTPException(status_code=500, detail=str(err))
 
@@ -159,7 +158,7 @@ def download_results():
 
     try:
         return FileResponse(path=file_path, filename=file_path, media_type="zip")
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Failed download")
 
 
@@ -168,7 +167,7 @@ def terminate_simulation():
     try:
         h.helicsCloseLibrary()
         return JSONResponse({"detail": "Helics broker sucessfully closed"}, 200)
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="Failed download ")
 
 
@@ -223,7 +222,7 @@ async def run_feeder(background_tasks: BackgroundTasks):
         background_tasks.add_task(run_simulation)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse({"detail": response}, 200)
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
         raise HTTPException(status_code=404, detail=str(err))
 

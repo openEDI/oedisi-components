@@ -1,6 +1,5 @@
 """Tests for LinDistFlow optimal power flow federate."""
 
-import numpy as np
 import pytest
 from fastapi.testclient import TestClient
 

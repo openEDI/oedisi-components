@@ -1,6 +1,5 @@
 """Tests for recorder data logging functionality."""
 
-import os
 import tempfile
 from pathlib import Path
 

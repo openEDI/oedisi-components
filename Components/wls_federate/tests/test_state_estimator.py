@@ -12,17 +12,15 @@ from oedisi.types.data_types import (
     VoltagesReal,
 )
 from scipy.sparse import sparray
-
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-
 from wls_federate.state_estimator_federate import (
     AlgorithmParameters,
     calculate_jacobian,
-    estimated_pqv,
     get_indices,
     get_y,
     residual,
 )
+
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.fixture()

@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import socket
-import sys
 import traceback
 
 import requests
@@ -58,9 +57,9 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
             json.dump(sensor_data, outfile)
 
         background_tasks.add_task(run_simulator, broker_config)
-        response = ServerReply(detail=f"Task sucessfully added.").model_dump()
+        response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
         raise HTTPException(500, str(err))
 
@@ -75,7 +74,7 @@ async def configure(component_struct: ComponentStruct):
         links[link.target_port] = f"{link.source}/{link.source_port}"
     json.dump(links, open(DefaultFileNames.INPUT_MAPPING.value, "w"))
     json.dump(params, open(DefaultFileNames.STATIC_INPUTS.value, "w"))
-    response = ServerReply(detail=f"Sucessfully updated configuration files.").model_dump()
+    response = ServerReply(detail="Sucessfully updated configuration files.").model_dump()
     return JSONResponse(response, 200)
 
 

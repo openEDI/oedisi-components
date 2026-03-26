@@ -3,7 +3,6 @@ import json
 import logging
 import os
 import socket
-import sys
 import time
 import traceback
 import zipfile
@@ -84,8 +83,8 @@ async def upload_profiles(file: UploadFile):
         else:
             HTTPException(400, "Invalid user defined profile structure. See OEDISI documentation.")
 
-    except Exception as e:
-        HTTPException(500, "Unknown error while uploading userdefined opendss profiles.")
+    except Exception:
+        raise HTTPException(500, "Unknown error while uploading userdefined opendss profiles.")
 
 
 @app.post("/model")
@@ -109,8 +108,8 @@ async def upload_model(file: UploadFile):
 
         else:
             HTTPException(400, "A valid opendss model should have a master.dss file.")
-    except Exception as e:
-        HTTPException(500, "Unknown error while uploading userdefined opendss model.")
+    except Exception:
+        raise HTTPException(500, "Unknown error while uploading userdefined opendss model.")
 
 
 @app.post("/run")
@@ -123,9 +122,9 @@ async def run_feeder(
         response = ServerReply(detail="Task sucessfully added.").model_dump()
 
         return JSONResponse(response, 200)
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
-        HTTPException(500, str(err))
+        raise HTTPException(500, str(err))
 
 
 @app.post("/configure")
@@ -138,7 +137,7 @@ async def configure(component_struct: ComponentStruct):
         links[link.target_port] = f"{link.source}/{link.source_port}"
     json.dump(links, open(DefaultFileNames.INPUT_MAPPING.value, "w"))
     json.dump(params, open(DefaultFileNames.STATIC_INPUTS.value, "w"))
-    response = ServerReply(detail=f"Sucessfully updated configuration files.").model_dump()
+    response = ServerReply(detail="Successfully updated configuration files.").model_dump()
     return JSONResponse(response, 200)
 
 

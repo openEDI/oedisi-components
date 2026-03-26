@@ -144,7 +144,6 @@ def optimal_power_flow(
 
     x = cp.Variable(variable_number)
     # Initialize the matrices
-    P = np.zeros((variable_number, variable_number))
     q_obj_vector = np.zeros(variable_number)
     A_eq = np.zeros((constraint_number, variable_number))
     b_eq = np.zeros(constraint_number)
@@ -823,7 +822,6 @@ def optimal_power_flow(
         ]
         i += 1
 
-    n_flow_s1s2 = (nbus_ABC * 3 + nbus_s1s2) + (nbus_ABC * 6 + nbus_s1s2 * 2) + nbranch_ABC * 6
     name = []
     for key, val_br in bus_info.items():
         name.append(key)

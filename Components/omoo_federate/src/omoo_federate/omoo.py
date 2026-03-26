@@ -21,7 +21,6 @@ import xarray as xr
 from oedisi.types.data_types import (
     AdmittanceMatrix,
     AdmittanceSparse,
-    Command,
     CommandList,
     Complex,
     EquipmentNodeArray,
@@ -34,8 +33,8 @@ from oedisi.types.data_types import (
     VoltagesReal,
 )
 from pydantic import BaseModel
-from scipy.sparse import coo_matrix, csc_matrix, diags, hstack, vstack
-from scipy.sparse.linalg import inv, svds
+from scipy.sparse import coo_matrix, csc_matrix, diags, hstack
+from scipy.sparse.linalg import inv
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler())
@@ -69,10 +68,10 @@ def get_indices(topology, measurement):
 
 
 def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str]):
-    if type(admittance) == AdmittanceMatrix:
+    if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
-    elif type(admittance) == AdmittanceSparse:
+    elif isinstance(admittance, AdmittanceSparse):
         node_map = {name: i for (i, name) in enumerate(ids)}
         return coo_matrix(
             (
@@ -128,7 +127,7 @@ def Proj_inverter(xt, yt, Ux, Sx):
 
     try:
         theta_t = np.arcsin(yt / np.sqrt(xt**2 + yt**2 + 1e-8))
-    except:
+    except ValueError:
         theta_t = 0
 
     if xt**2 + yt**2 <= Sx**2 and xt <= Ux:

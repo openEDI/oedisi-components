@@ -1,6 +1,5 @@
 import json
 import os
-from collections import defaultdict
 from pathlib import Path
 
 import docker
@@ -70,7 +69,7 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
                     author_names.append(author)
                     author_emails.append(None)
 
-            print(f"Image authors: {{'names': author_names, 'emails': author_emails}}")
+            print(f"Image authors: {{'names': {author_names}, 'emails': {author_emails}}}")
 
     except docker.errors.BuildError as e:
         email_msg += f"\nError building image: {e}"
@@ -99,7 +98,7 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
                 email_msg += f"\nError during push: {line['error']}"
 
         print("Image pushed successfully to Docker Hub.")
-        email_msg += f"\nImage pushed successfully to Docker Hub."
+        email_msg += "\nImage pushed successfully to Docker Hub."
 
     except docker.errors.APIError as e:
         print(f"Docker API Error during push: {e}")

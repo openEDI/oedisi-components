@@ -31,7 +31,7 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
-    except Exception as e:
+    except Exception:
         err = traceback.format_exc()
         raise HTTPException(500, str(err))
 

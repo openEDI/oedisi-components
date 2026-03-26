@@ -57,8 +57,8 @@ def calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y):
     H12[np.arange(num_knownV) * num_node + knownV] = 1
     H1 = np.concatenate((H11, H12.reshape(num_knownV, num_node)), axis=1)
     Vp = VabsK * np.exp(1j * deltaK)
-    ##### S = np.diag(Vp) @ Y.conjugate() @ Vp.conjugate()
-    ######  Take gradient with respect to V
+    # S = np.diag(Vp) @ Y.conjugate() @ Vp.conjugate()
+    # Take gradient with respect to V
     H_pow2 = scipy.sparse.diags_array(Vp) @ Y.conjugate() @ scipy.sparse.diags_array(
         np.exp(-1j * deltaK)
     ) + scipy.sparse.diags_array(np.exp(1j * deltaK) * (Y.conjugate() @ Vp.conjugate()))
@@ -98,10 +98,10 @@ def residual(X0, z, num_node, knownP, knownQ, knownV, Y):
 
 
 def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str]):
-    if type(admittance) == AdmittanceMatrix:
+    if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
-    elif type(admittance) == AdmittanceSparse:
+    elif isinstance(admittance, AdmittanceSparse):
         node_map = {name: i for (i, name) in enumerate(ids)}
         return scipy.sparse.coo_array(
             (
@@ -183,7 +183,7 @@ def state_estimator(
     )
     tol = parameters.tol
 
-    if type(initial_ang) != np.ndarray:
+    if not isinstance(initial_ang, np.ndarray):
         delta = np.full(num_node, initial_ang)
     else:
         delta = initial_ang
@@ -191,7 +191,7 @@ def state_estimator(
         num_node,
     ), f"Initial angles shape {delta.shape} does not match {num_node}"
 
-    if type(initial_V) != np.ndarray:
+    if not isinstance(initial_V, np.ndarray):
         Vabs = np.full(num_node, initial_V)
     else:
         Vabs = initial_V

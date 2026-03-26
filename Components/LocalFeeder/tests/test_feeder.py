@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 
 import localfeeder.sender_cosim as sender_cosim
 import numpy as np

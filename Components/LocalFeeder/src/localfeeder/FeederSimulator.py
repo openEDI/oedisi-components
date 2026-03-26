@@ -361,8 +361,8 @@ class FeederSimulator(object):
             dss.Text.Command(f"batchedit transformer..* wdg=2 tap={self.tap_setting}")
 
         if self.open_lines is not None:
-            for l in self.open_lines:
-                self.open_line(l)
+            for line_name in self.open_lines:
+                self.open_line(line_name)
         self._state = OpenDSSState.LOADED
 
     def disable_elements(self):
