@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omoo-federate"
+version = "0.1.0"
+description = "OEDISI OMOO Federate - Online Model-based Optimal Operation for distribution systems"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "McKinsey, Joseph", email = "Joseph.McKinsey@nlr.gov"}
+]
+keywords = ["oedisi", "helics", "omoo", "optimal-operation", "power-distribution"]
+
+dependencies = [
+    "helics>=3.4.0",
+    "pydantic",
+    "numpy",
+    "pandas",
+    "scipy",
+    "xarray",
+    "oedisi~=3.0",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",
+    "mypy>=0.981",
+    "black>=23.0",
+    "isort>=5.9",
+]
+
+[project.scripts]
+omoo-server = "omoo_federate.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["omoo_federate*"]
+exclude = ["tests*"]
