@@ -16,6 +16,7 @@ state estimation, and distributed OPF.
 | **LinDistFlow** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/lindistflow_federate/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - LinDistFlow](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-lindistflow.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
 | **LocalFeeder** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/LocalFeeder/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - LocalFeeder](https://github.com/openEDI/oedisi-example/actions/workflows/test-localfeeder.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-localfeeder.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
 | **Measuring** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/measuring_federate/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - Measuring Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-measuring.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-measuring.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
+| **OMOO** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/omoo_federate/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - OMOO Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-omoo.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-omoo.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
 | **Recorder** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/recorder/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - Recorder](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-recorder.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
 | **WLS** | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/oedisi-example/main/Components/wls_federate/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Test - WLS Federate](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-wls.yml) | [![Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml) | Joseph.McKinsey@nlr.gov |
 | [**PNNL-DOPF-ADMM**](https://github.com/openEDI/pnnl-dopf-admm) | ![Version](https://img.shields.io/badge/dynamic/toml?url=https://raw.githubusercontent.com/openEDI/pnnl-dopf-admm/main/pyproject.toml&query=$.project.version&label=version&color=blue) | [![Unit Tests](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/tests.yml/badge.svg)](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/tests.yml) | [![Verify Components](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/verify-components.yml) | [![Verify Dockerfiles](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/pnnl-dopf-admm/actions/workflows/verify-dockerfiles.yml) | tylor.slay@pnnl.gov |
@@ -30,6 +31,7 @@ This repository is organized as a Python repository containing  components for p
 - **[lindistflow_federate](Components/lindistflow_federate/README.md)** - Optimal power flow using linear distflow
 - **[localfeeder](Components/LocalFeeder/README.md)** - OpenDSS-based distribution feeder simulator
 - **[measuring_federate](Components/measuring_federate/README.md)** - Sensor simulation with noise injection
+- **[omoo_federate](Components/omoo_federate/README.md)** - Online model-based optimal operation
 - **[recorder](Components/recorder/README.md)** - Data recording for co-simulation outputs
 - **[wls_federate](Components/wls_federate/README.md)** - Weighted least squares state estimation
 
@@ -61,12 +63,14 @@ Install all components in editable mode from the repository root:
 ```bash
 # Install all components for development
 pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
-            -e Components/measuring_federate -e Components/recorder -e Components/wls_federate
+            -e Components/measuring_federate -e Components/omoo_federate \
+            -e Components/recorder -e Components/wls_federate
 
 # Or install with dev dependencies
 pip install -e "Components/broker[dev]" -e "Components/lindistflow_federate[dev]" \
             -e "Components/LocalFeeder[dev]" -e "Components/measuring_federate[dev]" \
-            -e "Components/recorder[dev]" -e "Components/wls_federate[dev]"
+            -e "Components/omoo_federate[dev]" -e "Components/recorder[dev]" \
+            -e "Components/wls_federate[dev]"
 ```
 
 ### Running Tests
@@ -120,7 +124,8 @@ pre-commit install
    **Option A: Install from repository** (recommended for development)
    ```bash
    pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
-               -e Components/measuring_federate -e Components/recorder -e Components/wls_federate
+               -e Components/measuring_federate -e Components/omoo_federate \
+               -e Components/recorder -e Components/wls_federate
    ```
 
    **Option B: Install from requirements.txt** (legacy method)
@@ -196,6 +201,12 @@ Sensor simulation with noise injection. Takes MeasurementArray inputs and output
 - Configurable per-sensor parameters
 
 This federate is instantiated as multiple sensors for each type of measurement.
+
+### **[OMOO Federate](Components/omoo_federate/README.md)**
+Online Model-based Optimal Operation for distribution systems with high PV penetration. Uses primal-dual optimization with linearized power flow sensitivity matrices for:
+- Voltage regulation via PV curtailment and reactive power control
+- Real-time optimal setpoint computation
+- Constraint enforcement (voltage limits)
 
 ### **[WLS Federate](Components/wls_federate/README.md)**
 Weighted Least Squares state estimation. Reads topology from the feeder simulation and measurements from the measuring federates, then outputs estimated voltages and power with angles.
