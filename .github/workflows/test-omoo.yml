@@ -2,7 +2,7 @@ name: Test - OMOO Federate
 
 on:
   push:
-    branches: [ main, al/restructed ]
+    branches: [ main, al/restructed, al/add-omoo-component ]
     paths:
       - 'Components/omoo_federate/**'
       - '.github/workflows/test-omoo.yml'
