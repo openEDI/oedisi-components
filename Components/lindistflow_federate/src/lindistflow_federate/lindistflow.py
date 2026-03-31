@@ -36,6 +36,7 @@ Updated:
 
 class ControlType(Enum):
     """Enum for different types of DER control modes."""
+
     WATT = 1
     VAR = 2
     WATT_VAR = 3

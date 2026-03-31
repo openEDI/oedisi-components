@@ -19,6 +19,7 @@ logger.setLevel(logging.DEBUG)
 
 class Phase(IntEnum):
     """Enumeration for electrical phases."""
+
     A = 1
     B = 2
     C = 3

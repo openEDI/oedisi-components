@@ -128,6 +128,7 @@ def get_indices(topology, measurement):
 
 class AlgorithmParameters(BaseModel):
     """Parameters for the state estimation algorithm."""
+
     model_config = {"use_enum_values": True}
 
     tol: float = 5e-7

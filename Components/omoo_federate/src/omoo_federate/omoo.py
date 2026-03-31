@@ -269,12 +269,14 @@ def pv_cost(
 
 class UnitSystem(str, Enum):
     """Enum for supported unit systems (SI or PER_UNIT)."""
+
     SI = "SI"
     PER_UNIT = "PER_UNIT"
 
 
 class OMOOParameters(BaseModel):
     """Parameters for the OMOO optimization algorithm."""
+
     Vmax: float = 1.05
     Vmin_act: float = 0.95
     Vmin: float = 0.95
@@ -311,6 +313,7 @@ def getLinearModel(YLL, YL0, V0):
 
 class OMOO:
     """Core OMOO optimization algorithm implementation."""
+
     def __init__(
         self,
         parameters: OMOOParameters,

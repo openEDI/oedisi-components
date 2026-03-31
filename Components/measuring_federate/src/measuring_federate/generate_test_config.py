@@ -211,6 +211,7 @@ SLACK_BUS = [
 
 class MeasurementConfig(BaseModel):
     """Configuration for the measurement federate."""
+
     name: str
     additive_noise_stddev: float
     multiplicative_noise_stddev: float

@@ -17,6 +17,7 @@ logger.setLevel(logging.INFO)
 
 class MeasurementConfig(BaseModel):
     """Configuration for the measurement federate."""
+
     name: str
     additive_noise_stddev: float = 0.0
     multiplicative_noise_stddev: float = 0.0
@@ -71,6 +72,7 @@ def apply(f, measurement_array: MeasurementArray):
 
 class MeasurementRelay:
     """Relay for simulation measurements with noise injection."""
+
     def __init__(self, config: MeasurementConfig, input_mapping, broker_config: BrokerConfig):
         """Initialize the measurement relay federate."""
         self.rng = np.random.default_rng(12345)

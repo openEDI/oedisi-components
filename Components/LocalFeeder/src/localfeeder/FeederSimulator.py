@@ -86,6 +86,7 @@ class FeederConfig(BaseModel):
 
 class FeederMapping(BaseModel):
     """Mapping of static inputs and input mappings for the feeder."""
+
     static_inputs: FeederConfig
     input_mapping: dict[str, str]
 

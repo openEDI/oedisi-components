@@ -18,6 +18,7 @@ logger.setLevel(logging.INFO)
 
 class Recorder:
     """HELICS recorder federate."""
+
     def __init__(
         self,
         name,

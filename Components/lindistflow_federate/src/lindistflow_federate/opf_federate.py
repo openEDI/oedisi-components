@@ -25,6 +25,7 @@ logger.setLevel(logging.DEBUG)
 
 class StaticConfig:
     """Static configuration for the OPF federate."""
+
     name: str
     deltat: float
     control_type: lindistflow.ControlType
@@ -33,6 +34,7 @@ class StaticConfig:
 
 class Subscriptions:
     """Container for HELICS subscriptions."""
+
     voltages_mag: VoltagesMagnitude
     injections: Injection
     topology: Topology
@@ -40,6 +42,7 @@ class Subscriptions:
 
 class EchoFederate:
     """Federate for executing optimal power flow based on system state."""
+
     def __init__(self, broker_config: BrokerConfig | None = None) -> None:
         """Initialize the OPF federate, loading configurations and registering with HELICS."""
         self.sub = Subscriptions()
