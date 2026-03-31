@@ -1,3 +1,5 @@
+"""HELICS federate for LinDistFlow-based optimal power flow."""
+
 import json
 import logging
 from datetime import datetime
@@ -22,6 +24,7 @@ logger.setLevel(logging.DEBUG)
 
 
 class StaticConfig:
+    """Static configuration for the OPF federate."""
     name: str
     deltat: float
     control_type: lindistflow.ControlType
@@ -29,13 +32,16 @@ class StaticConfig:
 
 
 class Subscriptions:
+    """Container for HELICS subscriptions."""
     voltages_mag: VoltagesMagnitude
     injections: Injection
     topology: Topology
 
 
 class EchoFederate:
+    """Federate for executing optimal power flow based on system state."""
     def __init__(self, broker_config: BrokerConfig | None = None) -> None:
+        """Initialize the OPF federate, loading configurations and registering with HELICS."""
         self.sub = Subscriptions()
         self.load_static_inputs()
         self.load_input_mapping()
@@ -45,16 +51,19 @@ class EchoFederate:
         self.register_publication()
 
     def load_component_definition(self) -> None:
+        """Load component definition from JSON file."""
         path = Path(__file__).parent / "component_definition.json"
         with open(path, encoding="UTF-8") as file:
             self.component_config = json.load(file)
 
     def load_input_mapping(self):
+        """Load input mapping for subscriptions from JSON file."""
         path = Path(__file__).parent / "input_mapping.json"
         with open(path, encoding="UTF-8") as file:
             self.inputs = json.load(file)
 
     def load_static_inputs(self):
+        """Load static configuration inputs from JSON file."""
         self.static = StaticConfig()
         path = Path(__file__).parent / "static_inputs.json"
         with open(path, encoding="UTF-8") as file:
@@ -66,6 +75,7 @@ class EchoFederate:
         self.static.pf_flag = config["pf_flag"]
 
     def initialize(self, broker_config: BrokerConfig | None) -> None:
+        """Initialize HELICS federate and configure broker connection."""
         self.info = h.helicsCreateFederateInfo()
 
         if broker_config is not None:
@@ -76,29 +86,24 @@ class EchoFederate:
         self.info.core_type = h.HELICS_CORE_TYPE_ZMQ
         self.info.core_init = "--federates=1"
 
-        h.helicsFederateInfoSetTimeProperty(
-            self.info, h.helics_property_time_delta, self.static.deltat
-        )
+        h.helicsFederateInfoSetTimeProperty(self.info, h.helics_property_time_delta, self.static.deltat)
 
         self.fed = h.helicsCreateValueFederate(self.static.name, self.info)
 
     def register_subscription(self) -> None:
+        """Register HELICS subscriptions for topology, voltages, and injections."""
         self.sub.topology = self.fed.register_subscription(self.inputs["topology"], "")
-        self.sub.voltages_mag = self.fed.register_subscription(
-            self.inputs["voltages_magnitude"], ""
-        )
+        self.sub.voltages_mag = self.fed.register_subscription(self.inputs["voltages_magnitude"], "")
         self.sub.injections = self.fed.register_subscription(self.inputs["injections"], "")
 
     def register_publication(self) -> None:
-        self.pub_commands = self.fed.register_publication(
-            "change_commands", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        """Register HELICS publications for commands and voltages."""
+        self.pub_commands = self.fed.register_publication("change_commands", h.HELICS_DATA_TYPE_STRING, "")
 
-        self.pub_voltages = self.fed.register_publication(
-            "opf_voltages_magnitude", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub_voltages = self.fed.register_publication("opf_voltages_magnitude", h.HELICS_DATA_TYPE_STRING, "")
 
     def run(self) -> None:
+        """Run the main execution loop for data exchange and OPF calculation."""
         logger.info(f"Federate connected: {datetime.now()}")
         self.fed.enter_executing_mode()
         granted_time = h.helicsFederateRequestTime(self.fed, h.HELICS_TIME_MAXTIME)
@@ -156,13 +161,9 @@ class EchoFederate:
                                     )
                                 )
                             elif self.static.control_type == lindistflow.ControlType.VAR:
-                                commands.append(
-                                    Command(obj_name=eqid, obj_property="kVAR", val=setpoint)
-                                )
+                                commands.append(Command(obj_name=eqid, obj_property="kVAR", val=setpoint))
                             elif self.static.control_type == lindistflow.ControlType.WATT_VAR:
-                                commands.append(
-                                    Command(obj_name=eqid, obj_property="kVA", val=setpoint)
-                                )
+                                commands.append(Command(obj_name=eqid, obj_property="kVA", val=setpoint))
 
             logger.info(commands)
             if commands:
@@ -174,6 +175,7 @@ class EchoFederate:
         self.stop()
 
     def stop(self) -> None:
+        """Finalize and disconnect the federate from HELICS."""
         h.helicsFederateDisconnect(self.fed)
         h.helicsFederateFree(self.fed)
         h.helicsCloseLibrary()

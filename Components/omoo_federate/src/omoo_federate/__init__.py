@@ -1,5 +1,4 @@
-"""
-OEDISI OMOO Federate - Online Model-based Optimal Operation.
+"""OEDISI OMOO Federate - Online Model-based Optimal Operation.
 
 This component provides:
 - Primal-dual optimization for voltage regulation

@@ -1,6 +1,7 @@
-"""
+"""Module for grid area information processing.
+
 Created on Sun March 10 12:58:46 2023
-@author: poud579 & Rabayet
+@author: poud579 & Rabayet.
 """
 
 import logging
@@ -13,6 +14,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def graph_process(branch_info: dict):
+    """Process branch information into a NetworkX graph."""
     graph = nx.Graph()
     edges = []
     for b in branch_info:
@@ -24,6 +26,7 @@ def graph_process(branch_info: dict):
 
 
 def area_info(branch_info: dict, bus_info: dict, source_bus: str):
+    """Collect and summarize information for a specific grid area."""
     # System's base definition
     mult_pv = 1.0
     mult_sec_pv = 1.0
@@ -34,7 +37,7 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
 
     area_info_swt = {"area_cen": {}}
 
-    # area_info_swt['area_cen']['edges'] = [] # include switches that are opened i.e., [['54', '94'], ['151', '300']]
+    # area_info_swt['area_cen']['edges'] = [] # include switches that are opened i.e., [['54',...
     area_info_swt["area_cen"]["edges"] = open_switches
     area_info_swt["area_cen"]["source_bus"] = source_bus
     area_info_swt["area_cen"]["vsrc"] = v_source
@@ -61,7 +64,7 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
     sump = 0
     sumq = 0
     sumpv = 0
-    for key, val_bus in bus_info.items():
+    for key, _val_bus in bus_info.items():
         if key in area:
             if bus_info[key]["kv"] > primary_kv_level:
                 bus_info_area_i[key] = {}
@@ -69,16 +72,10 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
                 bus_info_area_i[key]["phases"] = bus_info[key]["phases"]
                 bus_info_area_i[key]["kv"] = bus_info[key]["kv"]
                 bus_info_area_i[key]["s_rated"] = (
-                    bus_info[key]["pv"][0][0]
-                    + bus_info[key]["pv"][1][0]
-                    + bus_info[key]["pv"][2][0]
+                    bus_info[key]["pv"][0][0] + bus_info[key]["pv"][1][0] + bus_info[key]["pv"][2][0]
                 )
-                bus_info_area_i[key]["pv"] = [
-                    [pv[0] * mult_pv, pv[1] * mult_pv] for pv in bus_info[key]["pv"]
-                ]
-                bus_info_area_i[key]["pq"] = [
-                    [pq[0] * mult_load, pq[1] * mult_load] for pq in bus_info[key]["pq"]
-                ]
+                bus_info_area_i[key]["pv"] = [[pv[0] * mult_pv, pv[1] * mult_pv] for pv in bus_info[key]["pv"]]
+                bus_info_area_i[key]["pq"] = [[pq[0] * mult_load, pq[1] * mult_load] for pq in bus_info[key]["pq"]]
                 sump += bus_info_area_i[key]["pq"][0][0]
                 sump += bus_info_area_i[key]["pq"][1][0]
                 sump += bus_info_area_i[key]["pq"][2][0]
@@ -90,7 +87,7 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
                 sumpv += bus_info_area_i[key]["pv"][2][0]
                 idx += 1
 
-    for key, val_bus in bus_info.items():
+    for key, _val_bus in bus_info.items():
         if key in area:
             if bus_info[key]["kv"] < primary_kv_level:
                 bus_info_area_i[key] = {}
@@ -115,12 +112,8 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
                 branch_sw_data_area_i[key] = {}
                 branch_sw_data_area_i[key]["idx"] = idx
                 branch_sw_data_area_i[key]["type"] = branch_info[key]["type"]
-                branch_sw_data_area_i[key]["from"] = bus_info_area_i[branch_info[key]["fr_bus"]][
-                    "idx"
-                ]
-                branch_sw_data_area_i[key]["to"] = bus_info_area_i[branch_info[key]["to_bus"]][
-                    "idx"
-                ]
+                branch_sw_data_area_i[key]["from"] = bus_info_area_i[branch_info[key]["fr_bus"]]["idx"]
+                branch_sw_data_area_i[key]["to"] = bus_info_area_i[branch_info[key]["to_bus"]]["idx"]
                 branch_sw_data_area_i[key]["fr_bus"] = branch_info[key]["fr_bus"]
                 branch_sw_data_area_i[key]["to_bus"] = branch_info[key]["to_bus"]
                 branch_sw_data_area_i[key]["phases"] = branch_info[key]["phases"]
@@ -137,12 +130,8 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
                 branch_sw_data_area_i[key] = {}
                 branch_sw_data_area_i[key]["idx"] = idx
                 branch_sw_data_area_i[key]["type"] = branch_info[key]["type"]
-                branch_sw_data_area_i[key]["from"] = bus_info_area_i[branch_info[key]["fr_bus"]][
-                    "idx"
-                ]
-                branch_sw_data_area_i[key]["to"] = bus_info_area_i[branch_info[key]["to_bus"]][
-                    "idx"
-                ]
+                branch_sw_data_area_i[key]["from"] = bus_info_area_i[branch_info[key]["fr_bus"]]["idx"]
+                branch_sw_data_area_i[key]["to"] = bus_info_area_i[branch_info[key]["to_bus"]]["idx"]
                 branch_sw_data_area_i[key]["fr_bus"] = branch_info[key]["fr_bus"]
                 branch_sw_data_area_i[key]["to_bus"] = branch_info[key]["to_bus"]
                 branch_sw_data_area_i[key]["phases"] = branch_info[key]["phases"]
@@ -157,5 +146,6 @@ def area_info(branch_info: dict, bus_info: dict, source_bus: str):
 
 
 def check_network_radiality(branch_info_cen, bus_info_cen, bus_info):
+    """Check if the network topology is radial."""
     if not len(bus_info_cen) - len(branch_info_cen) == 1:
         logger.debug("Network is not Radial. Please check the network data")

@@ -1,5 +1,4 @@
-"""
-OEDISI Recorder - Data recording federate for HELICS co-simulation outputs.
+"""OEDISI Recorder - Data recording federate for HELICS co-simulation outputs.
 
 This component provides:
 - HELICS subscription data recording

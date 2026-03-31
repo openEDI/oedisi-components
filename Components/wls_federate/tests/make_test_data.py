@@ -1,3 +1,5 @@
+"""Utility to generate test data for the WLS federate."""
+
 import os
 from pathlib import Path
 
@@ -13,11 +15,13 @@ from oedisi.types.data_types import (
 
 
 def load_timestep(filename, timestep):
+    """Load a specific timestep from a feather file."""
     df = pd.read_feather(filename).drop("time", axis=1)
     return {"ids": list(df.columns), "values": list(df.iloc[timestep, :])}
 
 
 def write_test_data(outputsdir, targetdir, timestep):
+    """Write test data for a specific timestep to a target directory."""
     topology = Topology.model_validate_json((outputsdir / "topology.json").read_text())
     power_real = load_timestep(outputsdir / "measured_power_real.feather", timestep)
     power_imag = load_timestep(outputsdir / "measured_power_imag.feather", timestep)

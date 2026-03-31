@@ -1,3 +1,5 @@
+"""Server for LinDistFlow federate."""
+
 import json
 import os
 import socket
@@ -16,6 +18,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     host_ip = "127.0.0.1"
     try:
@@ -31,6 +34,7 @@ def read_root():
 
 @app.post("/run")
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
+    """Run the federate model."""
     print(broker_config)
     federate = EchoFederate(broker_config)
     try:
@@ -44,6 +48,7 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
 
 @app.post("/configure")
 async def configure(component_struct: ComponentStruct):
+    """Configure the federate."""
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name

@@ -84,7 +84,7 @@ warn_required_dynamic_aliases = true
 warn_untyped_fields = true
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py310"
 
 [tool.ruff.lint]
@@ -98,14 +98,7 @@ select = [
     "B",   # flake8-bugbear
 ]
 ignore = [
-    "D100", "D101", "D102", "D103", "D104", "D105", "D107",
-    "D203", "D205", "D212", "D213", "D401", "D415",
-    "E203", # conflict with formatter
-    "E501", # line too long (pervasive in this codebase)
-    "B007", # unused loop control variable (pervasive)
-    "B008", # do not perform function calls in argument defaults (pervasive)
-    "B904", # raise ... from err (pervasive in server exception handling)
-    "B028", # stacklevel=2 (minor)
+    "D203", "D213",
 ]
 
 [tool.ruff.lint.pydocstyle]

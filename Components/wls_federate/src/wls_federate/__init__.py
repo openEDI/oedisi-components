@@ -1,5 +1,4 @@
-"""
-OEDISI WLS Federate - Weighted least squares state estimation for power systems.
+"""OEDISI WLS Federate - Weighted least squares state estimation for power systems.
 
 This component provides:
 - Weighted least squares state estimation

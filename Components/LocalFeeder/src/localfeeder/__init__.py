@@ -1,5 +1,4 @@
-"""
-OEDISI LocalFeeder - OpenDSS-based power distribution feeder simulator.
+"""OEDISI LocalFeeder - OpenDSS-based power distribution feeder simulator.
 
 This component provides:
 - OpenDSS integration for power flow simulation

@@ -1,3 +1,5 @@
+"""Tests for the LocalFeeder component."""
+
 import logging
 import os
 
@@ -21,6 +23,7 @@ from oedisi.types.data_types import (
 
 @pytest.fixture(scope="session", autouse=True)
 def init_federate_simulation():
+    """Fixture to initialize the federate simulation."""
     federate_config = FeederConfig(
         **{
             "use_smartds": False,
@@ -41,6 +44,7 @@ def init_federate_simulation():
 
 @pytest.fixture()
 def federate_config():
+    """Fixture for standard FeederConfig."""
     return FeederConfig(
         **{
             "use_smartds": False,
@@ -59,6 +63,7 @@ def federate_config():
 
 @pytest.fixture()
 def edge_cases_config():
+    """Fixture for edge case FeederConfig."""
     return FeederConfig(
         **{
             "use_smartds": False,
@@ -76,6 +81,7 @@ def edge_cases_config():
 
 
 def plot_y_matrix(Y):
+    """Utility to plot the Y matrix using plotille."""
     Y_max = np.max(np.abs(Y))
 
     width = Y.shape[0] // 2
@@ -90,6 +96,7 @@ def plot_y_matrix(Y):
 
 
 def test_ordering(federate_config):
+    """Test the ordering of simulation steps and matrix lookups."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     Y = sim.get_y_matrix()
@@ -119,12 +126,14 @@ def test_ordering(federate_config):
 
 
 def rtheta_to_xy(r, theta):
+    """Convert polar coordinates to Cartesian."""
     x = np.array(r * np.cos(theta))
     y = np.array(r * np.sin(theta))
     return x, y
 
 
 def test_voltages(federate_config):
+    """Test voltage calculations across different run modes."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     startup(sim)
@@ -191,6 +200,7 @@ def test_voltages(federate_config):
 
 
 def test_xarray_translation():
+    """Test translation from xarray to power types."""
     x = xr.DataArray(
         [0 + 1j, 1 + 2j, 2 + 3j, 3 + 4j],
         dims=("ids",),
@@ -206,6 +216,7 @@ def test_xarray_translation():
 
 
 def test_simulation(federate_config):
+    """Test the full simulation flow."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     startup(sim)
@@ -219,6 +230,7 @@ def test_simulation(federate_config):
 
 
 def startup(sim):
+    """Utility to verify initial simulation state."""
     assert sim._feeder_file is not None
     assert sim._AllNodeNames is not None
     assert sim._circuit is not None
@@ -226,6 +238,7 @@ def startup(sim):
 
 
 def getting_and_concatentating_data(sim):
+    """Test data retrieval and concatenation utility."""
     PQ_load = sim.get_PQs_load(static=True)
     PQ_PV = sim.get_PQs_pv(static=True)
     PQ_gen = sim.get_PQs_gen(static=True)
@@ -239,15 +252,13 @@ def getting_and_concatentating_data(sim):
 
     ids = xr.DataArray(sim._AllNodeNames, coords={"ids": sim._AllNodeNames})
     PQ_injections_all = (
-        agg_to_ids(PQ_load, ids)
-        + agg_to_ids(PQ_PV, ids)
-        + agg_to_ids(PQ_gen, ids)
-        + agg_to_ids(PQ_cap, ids)
+        agg_to_ids(PQ_load, ids) + agg_to_ids(PQ_PV, ids) + agg_to_ids(PQ_gen, ids) + agg_to_ids(PQ_cap, ids)
     )
     assert sorted(list(PQ_injections_all.ids.data)) == sorted(sim._AllNodeNames)
 
 
 def initial_data(sim, federate_config):
+    """Test initial data retrieval from the simulator."""
     initial_data = sender_cosim.get_initial_data(sim, federate_config)
     # Plot magnitudes
     fig = plotille.Figure()
@@ -292,6 +303,7 @@ def initial_data(sim, federate_config):
 
 
 def plot_complex_array(data, label="Voltages"):
+    """Utility to plot complex arrays (magnitude and angle)."""
     print("Index vs Complex Magnitude")
     fig = plotille.Figure()
     fig.width = 60
@@ -326,14 +338,13 @@ def plot_complex_array(data, label="Voltages"):
 
 
 def simulation_middle(sim, Y):
+    """Test simulation state in the middle of a run."""
     # this one may need to be properly ordered
     logging.info(f"Current directory : {os.getcwd()}")
     sim.solve(0, 0)
 
     current_data = sender_cosim.get_current_data(sim, Y)
-    assert len(current_data.injections.power_real.values) == len(
-        current_data.injections.power_real.ids
-    )
+    assert len(current_data.injections.power_real.values) == len(current_data.injections.power_real.ids)
 
     current_data_again = sender_cosim.get_current_data(sim, Y)
     assert np.allclose(current_data_again.feeder_voltages, current_data.feeder_voltages)
@@ -360,15 +371,12 @@ def simulation_middle(sim, Y):
 
     plot_complex_array(diff.data, label="Calculated - Injected")
 
-    bad_bus_names = sender_cosim.where_power_unbalanced(
-        current_data.PQ_injections_all, current_data.calculated_power
-    )
+    bad_bus_names = sender_cosim.where_power_unbalanced(current_data.PQ_injections_all, current_data.calculated_power)
     assert len(bad_bus_names) == 0
 
 
-def equipment_indices_on_equipment_node_array(
-    equipment_node_array: EquipmentNodeArray, equipment_type: str
-):
+def equipment_indices_on_equipment_node_array(equipment_node_array: EquipmentNodeArray, equipment_type: str):
+    """Utility to filter equipment indices by type."""
     return map(
         lambda iv: iv[0],
         filter(
@@ -379,6 +387,7 @@ def equipment_indices_on_equipment_node_array(
 
 
 def test_controls(federate_config):
+    """Test control commands on the feeder simulator."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     Y = sim.get_y_matrix()
@@ -386,13 +395,9 @@ def test_controls(federate_config):
     sim.solve(8, 0)
     sim.just_solve()
     current_data = sender_cosim.get_current_data(sim, Y)
-    assert len(current_data.injections.power_real.values) == len(
-        current_data.injections.power_real.ids
-    )
+    assert len(current_data.injections.power_real.values) == len(current_data.injections.power_real.ids)
 
-    bad_bus_names = sender_cosim.where_power_unbalanced(
-        current_data.PQ_injections_all, current_data.calculated_power
-    )
+    bad_bus_names = sender_cosim.where_power_unbalanced(current_data.PQ_injections_all, current_data.calculated_power)
     assert len(bad_bus_names) == 0
 
     # Find first with equipment type = PVSystem
@@ -430,16 +435,11 @@ def test_controls(federate_config):
     print(new_power_real.values[pv_system_index])
     print(new_power_real.ids[pv_system_index])
     assert np.abs(new_power_real.values[pv_system_index] - power_real.values[pv_system_index]) > 1
-    (bad_indices,) = np.where(
-        np.abs(np.array(new_power_real.values) - np.array(power_real.values)) > 1
-    )
+    (bad_indices,) = np.where(np.abs(np.array(new_power_real.values) - np.array(power_real.values)) > 1)
 
     for i in bad_indices:
-        print(f"Old: {power_real.equipment_ids[i]} {power_real.ids[i]} " f"{power_real.values[i]}")
-        print(
-            f"New: {new_power_real.equipment_ids[i]} {new_power_real.ids[i]} "
-            f"{new_power_real.values[i]}"
-        )
+        print(f"Old: {power_real.equipment_ids[i]} {power_real.ids[i]} {power_real.values[i]}")
+        print(f"New: {new_power_real.equipment_ids[i]} {new_power_real.ids[i]} {new_power_real.values[i]}")
 
     assert bad_indices == [pv_system_index]
     # Run another time step. What happens?
@@ -452,6 +452,7 @@ def test_controls(federate_config):
 
 
 def test_inv_control(federate_config):
+    """Test inverter control logic."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     test_inverter_data = InverterControl(
@@ -474,9 +475,9 @@ def test_inv_control(federate_config):
 
     new_voltages = sim.get_voltages_actual()
 
-    assert float(
-        np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))
-    ) > 0.01 * float(np.abs(old_voltages.loc["113.1"]))
+    assert float(np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))) > 0.01 * float(
+        np.abs(old_voltages.loc["113.1"])
+    )
 
     sim.apply_inverter_control(test_inverter_data)
     sim.just_solve()
@@ -503,6 +504,7 @@ def test_inv_control(federate_config):
 
 
 def test_inv_control_full(federate_config):
+    """Test full inverter control functionality."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     test_inverter_data = InverterControl(
@@ -523,16 +525,17 @@ def test_inv_control_full(federate_config):
 
     new_voltages = sim.get_voltages_actual()
 
-    assert float(
-        np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))
-    ) > 0.01 * float(np.abs(old_voltages.loc["113.1"]))
+    assert float(np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))) > 0.01 * float(
+        np.abs(old_voltages.loc["113.1"])
+    )
 
-    assert float(
-        np.sum(np.abs(new_voltages.loc["87.3"] - old_voltages.loc["87.3"]))
-    ) > 0.01 * float(np.abs(old_voltages.loc["87.3"]))
+    assert float(np.sum(np.abs(new_voltages.loc["87.3"] - old_voltages.loc["87.3"]))) > 0.01 * float(
+        np.abs(old_voltages.loc["87.3"])
+    )
 
 
 def test_inv_combined_control(federate_config):
+    """Test combined inverter control modes."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
 
@@ -561,16 +564,17 @@ def test_inv_combined_control(federate_config):
 
     new_voltages = sim.get_voltages_actual()
 
-    assert float(
-        np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))
-    ) > 0.01 * float(np.abs(old_voltages.loc["113.1"]))
+    assert float(np.sum(np.abs(new_voltages.loc["113.1"] - old_voltages.loc["113.1"]))) > 0.01 * float(
+        np.abs(old_voltages.loc["113.1"])
+    )
 
-    assert float(
-        np.sum(np.abs(new_voltages.loc["87.3"] - old_voltages.loc["87.3"]))
-    ) > 0.01 * float(np.abs(old_voltages.loc["87.3"]))
+    assert float(np.sum(np.abs(new_voltages.loc["87.3"] - old_voltages.loc["87.3"]))) > 0.01 * float(
+        np.abs(old_voltages.loc["87.3"])
+    )
 
 
 def test_pv_setpoints(federate_config):
+    """Test setting PV output values."""
     logging.info("Loading sim")
     sim = FeederSimulator(federate_config)
     sim.change_obj(
@@ -611,16 +615,19 @@ def test_pv_setpoints(federate_config):
 
 
 def test_incidence_matrix(federate_config):
+    """Test incidence matrix retrieval."""
     sim = FeederSimulator(federate_config)
     incidences = sim.get_incidences()
 
     core_bus_names = set(name.split(".")[0] for name in sim._AllNodeNames)
-    assert all(
-        bus_name.split(".")[0] in core_bus_names for bus_name in incidences.from_equipment
-    ), f"Could not find the following buses: {list(filter(lambda bus_name: bus_name.split('.')[0] not in core_bus_names, incidences.from_equipment))}"
-    assert all(
-        bus_name.split(".")[0] in core_bus_names for bus_name in incidences.to_equipment
-    ), f"Could not find the following buses: {list(filter(lambda bus_name: bus_name.split('.')[0] not in core_bus_names, incidences.to_equipment))}"
+    assert all(bus_name.split(".")[0] in core_bus_names for bus_name in incidences.from_equipment), (
+        f"Could not find the following buses: "
+        f"{list(filter(lambda b: b.split('.')[0] not in core_bus_names, incidences.from_equipment))}"
+    )
+    assert all(bus_name.split(".")[0] in core_bus_names for bus_name in incidences.to_equipment), (
+        f"Could not find the following buses: "
+        f"{list(filter(lambda b: b.split('.')[0] not in core_bus_names, incidences.to_equipment))}"
+    )
     assert len(incidences.from_equipment) == len(incidences.to_equipment)
     if incidences.equipment_type is not None:
         assert len(incidences.equipment_type) == len(incidences.from_equipment)
@@ -629,6 +636,7 @@ def test_incidence_matrix(federate_config):
 
 
 def test_edge_case(edge_cases_config):
+    """Test simulation edge cases."""
     sim = FeederSimulator(edge_cases_config)
     sim.snapshot_run()
     sim.get_PQs_gen(static=True)

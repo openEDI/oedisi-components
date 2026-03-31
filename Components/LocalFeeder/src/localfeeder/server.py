@@ -1,10 +1,11 @@
+"""Server for LocalFeeder federate."""
+
 import asyncio
 import json
 import logging
 import os
 import socket
 import time
-import traceback
 import zipfile
 
 import uvicorn
@@ -25,13 +26,17 @@ base_path = os.getcwd()
 
 @app.middleware("http")
 async def timeout_middleware(request: Request, call_next):
+    """Middleware to enforce request timeouts."""
     try:
         return await asyncio.wait_for(call_next(request), timeout=REQUEST_TIMEOUT_SEC)
     except asyncio.TimeoutError:
         endpoint = str(request.url).replace(str(request.base_url), "").replace("/", "")
         if endpoint == "sensor":
             response = ServerReply(
-                detail="Request processing time exceeded limit. Upload a model and associated profiles before simulation before starting the simulation."
+                detail=(
+                    "Request processing time exceeded limit. Upload a model and associated profiles "
+                    "before simulation before starting the simulation."
+                )
             ).model_dump()
             return JSONResponse(response, 504)
         else:
@@ -41,6 +46,7 @@ async def timeout_middleware(request: Request, call_next):
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     host_ip = socket.gethostbyname(hostname)
     response = HeathCheck(hostname=hostname, host_ip=host_ip).model_dump()
@@ -50,6 +56,7 @@ def read_root():
 
 @app.get("/sensor")
 async def sensor():
+    """Endpoint to retrieve sensor data."""
     logging.info(os.getcwd())
     sensor_path = os.path.join(base_path, "sensors", "sensors.json")
     while not os.path.exists(sensor_path):
@@ -62,6 +69,7 @@ async def sensor():
 
 @app.post("/profiles")
 async def upload_profiles(file: UploadFile):
+    """Endpoint to upload power profiles."""
     try:
         data = file.file.read()
         if not file.filename.endswith(".zip"):
@@ -83,12 +91,13 @@ async def upload_profiles(file: UploadFile):
         else:
             HTTPException(400, "Invalid user defined profile structure. See OEDISI documentation.")
 
-    except Exception:
-        raise HTTPException(500, "Unknown error while uploading userdefined opendss profiles.")
+    except Exception as err:
+        raise HTTPException(500, "Unknown error while uploading userdefined opendss profiles.") from err
 
 
 @app.post("/model")
 async def upload_model(file: UploadFile):
+    """Endpoint to upload OpenDSS models."""
     try:
         data = file.file.read()
         if not file.filename.endswith(".zip"):
@@ -108,27 +117,26 @@ async def upload_model(file: UploadFile):
 
         else:
             HTTPException(400, "A valid opendss model should have a master.dss file.")
-    except Exception:
-        raise HTTPException(500, "Unknown error while uploading userdefined opendss model.")
+    except Exception as err:
+        raise HTTPException(500, "Unknown error while uploading userdefined opendss model.") from err
 
 
 @app.post("/run")
-async def run_feeder(
-    broker_config: BrokerConfig, background_tasks: BackgroundTasks
-):  # :BrokerConfig
+async def run_feeder(broker_config: BrokerConfig, background_tasks: BackgroundTasks):  # :BrokerConfig
+    """Run the feeder simulator."""
     logging.info(broker_config)
     try:
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
 
         return JSONResponse(response, 200)
-    except Exception:
-        err = traceback.format_exc()
-        raise HTTPException(500, str(err))
+    except Exception as err:
+        raise HTTPException(500, str(err)) from err
 
 
 @app.post("/configure")
 async def configure(component_struct: ComponentStruct):
+    """Configure the feeder simulator."""
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name

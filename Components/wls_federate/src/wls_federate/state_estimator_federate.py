@@ -1,5 +1,4 @@
-"""
-Basic State Estimation Federate
+"""Basic State Estimation Federate.
 
 Uses weighted least squares to estimate the voltage angles.
 
@@ -86,6 +85,7 @@ def calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y):
 
 
 def residual(X0, z, num_node, knownP, knownQ, knownV, Y):
+    """Calculate the residual for the WLS optimization."""
     delta, Vabs = X0[:num_node], X0[num_node:]
     h = estimated_pqv(knownP, knownQ, knownV, Y, delta, Vabs, num_node)
     logger.debug("X0")
@@ -98,6 +98,7 @@ def residual(X0, z, num_node, knownP, knownQ, knownV, Y):
 
 
 def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
+    """Calculate the admittance matrix (Y)."""
     if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
@@ -115,17 +116,18 @@ def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
 
 
 def matrix_to_numpy(admittance: list[list[Complex]]):
-    """Convert list of list of our Complex type into a numpy matrix"""
+    """Convert list of list of our Complex type into a numpy matrix."""
     return np.array([[x[0] + 1j * x[1] for x in row] for row in admittance])
 
 
 def get_indices(topology, measurement):
-    """Get list of indices in the topology for each index of the input measurement"""
+    """Get list of indices in the topology for each index of the input measurement."""
     inv_map = {v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)}
     return [inv_map[v] for v in measurement.ids]
 
 
 class AlgorithmParameters(BaseModel):
+    """Parameters for the state estimation algorithm."""
     model_config = {"use_enum_values": True}
 
     tol: float = 5e-7
@@ -142,8 +144,9 @@ def state_estimator(
     initial_V=1,
     slack_index=0,
 ):
-    """Estimates voltage magnitude and angle from topology, partial power injections
-    P + Q i, and lossy partial voltage magnitude.
+    """Estimate voltage magnitude and angle from topology.
+
+    Uses partial power injections P + Q i, and lossy partial voltage magnitude.
 
     Parameters
     ----------
@@ -187,9 +190,7 @@ def state_estimator(
         delta = np.full(num_node, initial_ang)
     else:
         delta = initial_ang
-    assert delta.shape == (
-        num_node,
-    ), f"Initial angles shape {delta.shape} does not match {num_node}"
+    assert delta.shape == (num_node,), f"Initial angles shape {delta.shape} does not match {num_node}"
 
     if not isinstance(initial_V, np.ndarray):
         Vabs = np.full(num_node, initial_V)
@@ -225,7 +226,7 @@ def state_estimator(
 
 
 class StateEstimatorFederate:
-    """State estimator federate. Wraps state_estimation with pubs and subs"""
+    """State estimator federate. Wraps state_estimation with pubs and subs."""
 
     def __init__(
         self,
@@ -234,6 +235,7 @@ class StateEstimatorFederate:
         input_mapping,
         broker_config: BrokerConfig,
     ):
+        """Initialize the state estimator federate."""
         """Initializes federate with name and remaps input into subscriptions"""
         deltat = 0.1
 
@@ -254,21 +256,15 @@ class StateEstimatorFederate:
         logger.info("Value federate created")
 
         # Register the publication #
-        self.sub_voltages_magnitude = self.vfed.register_subscription(
-            input_mapping["voltages_magnitude"], "V"
-        )
+        self.sub_voltages_magnitude = self.vfed.register_subscription(input_mapping["voltages_magnitude"], "V")
         self.sub_power_P = self.vfed.register_subscription(input_mapping["powers_real"], "W")
         self.sub_power_Q = self.vfed.register_subscription(input_mapping["powers_imaginary"], "W")
         self.sub_topology = self.vfed.register_subscription(input_mapping["topology"], "")
-        self.pub_voltage_mag = self.vfed.register_publication(
-            "voltage_mag", h.HELICS_DATA_TYPE_STRING, ""
-        )
-        self.pub_voltage_angle = self.vfed.register_publication(
-            "voltage_angle", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub_voltage_mag = self.vfed.register_publication("voltage_mag", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_voltage_angle = self.vfed.register_publication("voltage_angle", h.HELICS_DATA_TYPE_STRING, "")
 
     def run(self):
-        """Enter execution and exchange data"""
+        """Enter execution and exchange data."""
         # Enter execution mode #
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
@@ -284,9 +280,7 @@ class StateEstimatorFederate:
         if not isinstance(topology.admittance, AdmittanceMatrix) and not isinstance(
             topology.admittance, AdmittanceSparse
         ):
-            raise TypeError(
-                "Weighted Least Squares algorithm expects AdmittanceMatrix/Sparse as input"
-            )
+            raise TypeError("Weighted Least Squares algorithm expects AdmittanceMatrix/Sparse as input")
 
         for i in range(len(ids)):
             if ids[i] == topology.slack_bus[0]:
@@ -310,8 +304,7 @@ class StateEstimatorFederate:
                     self.initial_V = 1.0
                 else:
                     self.initial_V = np.mean(
-                        np.array(voltages.values)
-                        / np.array(topology.base_voltage_magnitudes.values)[knownV]
+                        np.array(voltages.values) / np.array(topology.base_voltage_magnitudes.values)[knownV]
                     )
             if self.initial_ang is None:
                 self.initial_ang = np.array(topology.base_voltage_angles.values)
@@ -329,21 +322,17 @@ class StateEstimatorFederate:
             # self.initial_V = voltage_magnitudes
             # self.initial_ang = voltage_angles
             self.pub_voltage_mag.publish(
-                VoltagesMagnitude(
-                    values=list(voltage_magnitudes), ids=ids, time=voltages.time
-                ).model_dump_json()
+                VoltagesMagnitude(values=list(voltage_magnitudes), ids=ids, time=voltages.time).model_dump_json()
             )
             self.pub_voltage_angle.publish(
-                VoltagesAngle(
-                    values=list(voltage_angles), ids=ids, time=voltages.time
-                ).model_dump_json()
+                VoltagesAngle(values=list(voltage_angles), ids=ids, time=voltages.time).model_dump_json()
             )
             logger.info("end time: " + str(datetime.now()))
 
         self.destroy()
 
     def destroy(self):
-        """Finalize and destroy the federates"""
+        """Finalize and destroy the federates."""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
 
@@ -352,6 +341,7 @@ class StateEstimatorFederate:
 
 
 def run_simulator(broker_config: BrokerConfig):
+    """Entry point for running the WLS state estimator simulator."""
     with open("static_inputs.json") as f:
         config = json.load(f)
         federate_name = config["name"]

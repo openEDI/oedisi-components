@@ -1,3 +1,5 @@
+"""Measuring federate for OEDISI co-simulation."""
+
 import json
 import logging
 from datetime import datetime
@@ -14,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 
 class MeasurementConfig(BaseModel):
+    """Configuration for the measurement federate."""
     name: str
     additive_noise_stddev: float = 0.0
     multiplicative_noise_stddev: float = 0.0
@@ -22,12 +25,13 @@ class MeasurementConfig(BaseModel):
 
 
 def get_indices(labelled_array, indices):
-    """Get list of indices in the topology for each index of the labelled array"""
+    """Get list of indices in the topology for each index of the labelled array."""
     inv_map = {v: i for i, v in enumerate(indices)}
     return [inv_map[v] for v in labelled_array.ids]
 
 
 def reindex(measurement_array: MeasurementArray, indices):
+    """Reindex a measurement array to match a list of indices."""
     inv_map = {v: i for i, v in enumerate(measurement_array.ids)}
     if isinstance(measurement_array, EquipmentNodeArray):
         return measurement_array.__class__(
@@ -47,6 +51,7 @@ def reindex(measurement_array: MeasurementArray, indices):
 
 
 def apply(f, measurement_array: MeasurementArray):
+    """Apply a function to all values in a measurement array."""
     if isinstance(measurement_array, EquipmentNodeArray):
         return measurement_array.__class__(
             values=list(map(f, measurement_array.values)),
@@ -65,7 +70,9 @@ def apply(f, measurement_array: MeasurementArray):
 
 
 class MeasurementRelay:
+    """Relay for simulation measurements with noise injection."""
     def __init__(self, config: MeasurementConfig, input_mapping, broker_config: BrokerConfig):
+        """Initialize the measurement relay federate."""
         self.rng = np.random.default_rng(12345)
         # deltat = 60.
 
@@ -79,9 +86,7 @@ class MeasurementRelay:
 
         logger.debug(config.name)
 
-        h.helicsFederateInfoSetTimeProperty(
-            fedinfo, h.helics_property_time_delta, config.run_freq_time_step
-        )
+        h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, config.run_freq_time_step)
 
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
         logger.info("Value federate created")
@@ -89,16 +94,16 @@ class MeasurementRelay:
         # Register the publication #
         self.sub_measurement = self.vfed.register_subscription(input_mapping["subscription"], "")
 
-        # TODO: find better way to determine what the name of this federate instance is than looking at the subscription
-        self.pub_measurement = self.vfed.register_publication(
-            "publication", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        # TODO: find better way to determine what the name of this federate instance is
+        # than looking at the subscription
+        self.pub_measurement = self.vfed.register_publication("publication", h.HELICS_DATA_TYPE_STRING, "")
 
         self.additive_noise_stddev = config.additive_noise_stddev
         self.multiplicative_noise_stddev = config.multiplicative_noise_stddev
         self.measurement_file = config.measurement_file
 
     def transform(self, measurement_array: MeasurementArray, unique_ids):
+        """Apply noise transformation to the measurement array."""
         new_array = reindex(measurement_array, unique_ids)
         return apply(
             lambda x: (1 + self.rng.normal(scale=self.multiplicative_noise_stddev)) * x
@@ -107,6 +112,7 @@ class MeasurementRelay:
         )
 
     def run(self):
+        """Run the measurement relay loop."""
         # Enter execution mode #
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
@@ -134,6 +140,7 @@ class MeasurementRelay:
         self.destroy()
 
     def destroy(self):
+        """Clean up and disconnect the federate."""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
         h.helicsFederateFree(self.vfed)
@@ -141,6 +148,7 @@ class MeasurementRelay:
 
 
 def run_simulator(broker_config: BrokerConfig):
+    """Entry point to run the measuring federate simulator."""
     with open("static_inputs.json") as f:
         config = MeasurementConfig(**json.load(f))
 

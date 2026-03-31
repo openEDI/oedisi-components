@@ -1,3 +1,5 @@
+"""Adapter for converting OEDISI types to LinDistFlow internal formats."""
+
 import logging
 from enum import IntEnum
 
@@ -16,15 +18,18 @@ logger.setLevel(logging.DEBUG)
 
 
 class Phase(IntEnum):
+    """Enumeration for electrical phases."""
     A = 1
     B = 2
     C = 3
 
     def __repr__(self):
+        """String representation of the phase."""
         return self.value
 
 
 def init_branch() -> dict:
+    """Initialize a branch data structure."""
     branch = {}
     branch["fr_bus"] = ""
     branch["to_bus"] = ""
@@ -35,6 +40,7 @@ def init_branch() -> dict:
 
 
 def init_bus() -> dict:
+    """Initialize a bus data structure."""
     bus = {}
     bus["phases"] = []
     bus["kv"] = 0
@@ -44,6 +50,7 @@ def init_bus() -> dict:
 
 
 def index_info(branch: dict, bus: dict) -> tuple[dict, dict]:
+    """Index branch and bus information for mathematical modeling."""
     for i, name in enumerate(bus):
         bus[name]["idx"] = i
 
@@ -63,6 +70,7 @@ def index_info(branch: dict, bus: dict) -> tuple[dict, dict]:
 
 
 def extract_voltages(bus: dict, voltages: VoltagesMagnitude) -> dict:
+    """Extract voltage magnitudes from OEDISI types into internal bus dict."""
     for id, voltage in zip(voltages.ids, voltages.values, strict=False):
         [name, _] = id.split(".")
 
@@ -74,6 +82,7 @@ def extract_voltages(bus: dict, voltages: VoltagesMagnitude) -> dict:
 
 
 def pack_voltages(voltages: dict, time: int) -> VoltagesMagnitude:
+    """Pack internal voltage dict into OEDISI VoltagesMagnitude type."""
     ids = []
     values = []
     for key, value in voltages.items():
@@ -90,6 +99,7 @@ def pack_voltages(voltages: dict, time: int) -> VoltagesMagnitude:
 
 
 def extract_powers(bus: dict, real: PowersReal, imag: PowersImaginary) -> dict:
+    """Extract real and imaginary powers from OEDISI types into internal bus dict."""
     for id, eq, power in zip(real.ids, real.equipment_ids, real.values, strict=False):
         [name, phase] = id.split(".")
 
@@ -123,6 +133,7 @@ def extract_powers(bus: dict, real: PowersReal, imag: PowersImaginary) -> dict:
 
 
 def extract_injection(bus: dict, powers: Injection) -> dict:
+    """Extract power injections from OEDISI Injection type into internal bus dict."""
     real = powers.power_real
     imag = powers.power_imaginary
 
@@ -164,6 +175,7 @@ def extract_injection(bus: dict, powers: Injection) -> dict:
 
 
 def extract_info(topology: Topology) -> tuple[dict, dict]:
+    """Extract branch and bus information from OEDISI Topology."""
     branch_info = {}
     bus_info = {}
     from_equip = topology.admittance.from_equipment

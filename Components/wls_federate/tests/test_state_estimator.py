@@ -1,3 +1,5 @@
+"""Tests for the WLS state estimator federate."""
+
 import shutil
 from pathlib import Path
 
@@ -24,11 +26,13 @@ from wls_federate.state_estimator_federate import (
 
 @pytest.fixture()
 def parameters():
+    """Fixture for standard AlgorithmParameters."""
     return AlgorithmParameters()
 
 
 @pytest.fixture()
 def ieee123data(tmp_path):
+    """Fixture for IEEE123 test data."""
     source = Path(__file__).parent / "ieee123data"
     dest = tmp_path / "ieee123data"
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -37,6 +41,7 @@ def ieee123data(tmp_path):
 
 @pytest.fixture()
 def small_smartds_no_tap_time_3(tmp_path):
+    """Fixture for small SmartDS test data (no tap, time 3)."""
     source = Path(__file__).parent / "small_smartds_no_tap_time_3"
     dest = tmp_path / "small_smartds_no_tap_time_3"
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -45,6 +50,7 @@ def small_smartds_no_tap_time_3(tmp_path):
 
 @pytest.fixture()
 def small_smartds_no_tap_time_40(tmp_path):
+    """Fixture for small SmartDS test data (no tap, time 40)."""
     source = Path(__file__).parent / "small_smartds_no_tap_time_40"
     dest = tmp_path / "small_smartds_no_tap_time_40"
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -53,6 +59,7 @@ def small_smartds_no_tap_time_40(tmp_path):
 
 @pytest.fixture()
 def small_smartds_tap_time_3(tmp_path):
+    """Fixture for small SmartDS test data (tap, time 3)."""
     source = Path(__file__).parent / "small_smartds_tap_time_3"
     dest = tmp_path / "small_smartds_tap_time_3"
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -61,6 +68,7 @@ def small_smartds_tap_time_3(tmp_path):
 
 @pytest.fixture()
 def small_smartds_tap_time_40(tmp_path):
+    """Fixture for small SmartDS test data (tap, time 40)."""
     source = Path(__file__).parent / "small_smartds_tap_time_40"
     dest = tmp_path / "small_smartds_tap_time_40"
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -77,11 +85,13 @@ DATA_NAMES = [
 
 
 def get_topology(directory):
+    """Helper to load topology from a directory."""
     with open(Path(directory) / "topology.json") as f:
         return Topology.model_validate_json(f.read())
 
 
 def get_measurements(directory):
+    """Helper to load measurements from a directory."""
     with open(Path(directory) / "power_real.json") as f:
         power_real = PowersReal.model_validate_json(f.read())
     with open(Path(directory) / "power_imag.json") as f:
@@ -93,6 +103,7 @@ def get_measurements(directory):
 
 @pytest.fixture()
 def sparse_topology(tmp_path):
+    """Fixture for sparse topology test data."""
     source = Path(__file__).parent / "ieee123data" / "sparse_topology.json"
     dest = tmp_path / "sparse_topology.json"
     shutil.copy(source, dest)
@@ -101,6 +112,7 @@ def sparse_topology(tmp_path):
 
 
 def get_actuals(directory):
+    """Helper to load actual voltage values from a directory."""
     with open(Path(directory) / "voltage_real.json") as f:
         voltage_real = VoltagesReal.model_validate_json(f.read())
     with open(Path(directory) / "voltage_imaginary.json") as f:
@@ -109,6 +121,7 @@ def get_actuals(directory):
 
 
 def inner_args(parameters, topology, measurements):
+    """Helper to prepare arguments for state estimation algorithms."""
     P, Q, V = measurements
     knownP = get_indices(topology, P)
     knownQ = get_indices(topology, Q)
@@ -127,15 +140,14 @@ def inner_args(parameters, topology, measurements):
 
     Y = get_y(topology.admittance, topology.base_voltage_magnitudes.ids)
 
-    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (
-        base_power * 1000
-    )
+    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (base_power * 1000)
     initial_ang = np.array(topology.base_voltage_angles.values)
     X0 = np.concatenate((initial_ang, np.full(num_node, 1)))
     return X0, z, num_node, knownP, knownQ, knownV, Y
 
 
 def test_calculate_jacobian(parameters, ieee123data):
+    """Test Jacobian matrix calculation."""
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
     X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
@@ -147,6 +159,7 @@ def test_calculate_jacobian(parameters, ieee123data):
 
 
 def test_get_y_sparse(sparse_topology):
+    """Test sparse admittance matrix retrieval."""
     base_voltages = np.array(sparse_topology.base_voltage_magnitudes.values)
     base_power = 100
     ids = sparse_topology.base_voltage_magnitudes.ids
@@ -154,18 +167,15 @@ def test_get_y_sparse(sparse_topology):
     assert Y.shape == (len(ids), len(ids))
     assert isinstance(Y, sparray), f"Y has type {type(Y)}"
 
-    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (
-        base_power * 1000
-    )
+    Y = (scipy.sparse.diags_array(base_voltages) @ Y @ scipy.sparse.diags_array(base_voltages)) / (base_power * 1000)
     assert Y.shape == (len(ids), len(ids))
     assert isinstance(Y, sparray), f"Y has type {type(Y)}"
 
 
 def test_calculate_jacobian_sparse(parameters, sparse_topology, ieee123data):
+    """Test Jacobian calculation with sparse matrices."""
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, sparse_topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, sparse_topology, measurements)
     assert isinstance(Y, sparray), f"Y has type {type(Y)}"
     H = calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y)
     assert H.shape == (len(knownP) + len(knownQ) + len(knownV), num_node * 2)
@@ -173,6 +183,7 @@ def test_calculate_jacobian_sparse(parameters, sparse_topology, ieee123data):
 
 
 def test_residual(parameters, ieee123data):
+    """Test residual calculation."""
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
     X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
@@ -183,10 +194,9 @@ def test_residual(parameters, ieee123data):
 
 
 def test_residual_sparse(parameters, sparse_topology, ieee123data):
+    """Test residual calculation with sparse matrices."""
     measurements = get_measurements(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, sparse_topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, sparse_topology, measurements)
     h = residual(X0, z, num_node, knownP, knownQ, knownV, Y)
     assert h.shape == (len(knownP) + len(knownQ) + len(knownV),)
     assert isinstance(h, np.ndarray), f"h has type {type(h)}"
@@ -195,6 +205,7 @@ def test_residual_sparse(parameters, sparse_topology, ieee123data):
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
 def test_residuals_against_actuals(parameters, input_data, tmp_path):
+    """Test that residuals are near zero when starting from actual values."""
     source = Path(__file__).parent / input_data
     dest = tmp_path / input_data
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -202,9 +213,7 @@ def test_residuals_against_actuals(parameters, input_data, tmp_path):
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
-    worse_X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, topology, measurements
-    )
+    worse_X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
     voltage_real, voltage_imag = actuals
     true_voltages = np.array(voltage_real.values) + 1j * np.array(voltage_imag.values)
     true_voltages /= np.array(topology.base_voltage_magnitudes.values)
@@ -215,9 +224,7 @@ def test_residuals_against_actuals(parameters, input_data, tmp_path):
     power_real_ids = list(map(lambda x: "P_" + x, measurements[0].ids))
     power_imag_ids = list(map(lambda x: "Q_" + x, measurements[1].ids))
     ids = voltage_ids + power_real_ids + power_imag_ids
-    assert len(ids) == len(
-        h
-    ), f"Residuals are of length {len(h)} whereas there are {len(ids)} measurements"
+    assert len(ids) == len(h), f"Residuals are of length {len(h)} whereas there are {len(ids)} measurements"
 
     # baseline_difference = np.abs(
     #     residual(worse_X0, z, num_node, knownP, knownQ, knownV, Y)
@@ -236,6 +243,7 @@ def test_residuals_against_actuals(parameters, input_data, tmp_path):
 
 
 def get_mean_relative_error(topology, solution, actuals):
+    """Calculate mean relative error between estimated and actual voltages."""
     vmagestDecen, vangestDecen = (
         solution[len(solution) // 2 :],
         solution[: len(solution) // 2],
@@ -251,12 +259,11 @@ def get_mean_relative_error(topology, solution, actuals):
     true_voltage = np.array(voltage_real.values) + 1j * np.array(voltage_imag.values)
     estimated_voltage = voltage_mag * np.exp(1j * voltage_ang)
 
-    return np.abs(
-        (estimated_voltage - true_voltage) / np.array(topology.base_voltage_magnitudes.values)
-    ).mean()
+    return np.abs((estimated_voltage - true_voltage) / np.array(topology.base_voltage_magnitudes.values)).mean()
 
 
 def get_mean_angle_error(topology, solution, actuals):
+    """Calculate mean angle error between estimated and actual voltages."""
     vmagestDecen, vangestDecen = (
         solution[len(solution) // 2 :],
         solution[: len(solution) // 2],
@@ -277,6 +284,7 @@ def get_mean_angle_error(topology, solution, actuals):
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
 def test_least_squares_call(parameters, input_data, tmp_path):
+    """Test full WLS state estimation using least squares solver."""
     source = Path(__file__).parent / input_data
     dest = tmp_path / input_data
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -305,12 +313,11 @@ def test_least_squares_call(parameters, input_data, tmp_path):
     assert mean_rel_error < 0.1, f"Max relative error too high: {mean_rel_error}"
 
     mean_angle_error = get_mean_angle_error(topology, solution, actuals)
-    assert (
-        mean_angle_error < 3 * np.pi / 180
-    ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+    assert mean_angle_error < 3 * np.pi / 180, f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
 def test_compare_initial_conditions(parameters, ieee123data, sparse_topology):
+    """Compare dense and sparse initial conditions for consistency."""
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
     X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
@@ -334,6 +341,7 @@ def test_compare_initial_conditions(parameters, ieee123data, sparse_topology):
 
 
 def test_compare_jacobian_residuals_vs_sparse(parameters, ieee123data, sparse_topology):
+    """Compare dense and sparse Jacobian/residual calculations."""
     topology = get_topology(ieee123data)
     measurements = get_measurements(ieee123data)
     X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, topology, measurements)
@@ -341,9 +349,7 @@ def test_compare_jacobian_residuals_vs_sparse(parameters, ieee123data, sparse_to
     H = calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y)
     res = residual(X0, z, num_node, knownP, knownQ, knownV, Y)
 
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, sparse_topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, sparse_topology, measurements)
     H_sparse = calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y)
     res_sparse = residual(X0, z, num_node, knownP, knownQ, knownV, Y)
 
@@ -352,11 +358,10 @@ def test_compare_jacobian_residuals_vs_sparse(parameters, ieee123data, sparse_to
 
 
 def test_least_squares_call_sparse(parameters, sparse_topology, ieee123data):
+    """Test solver performance with sparse matrix configurations."""
     measurements = get_measurements(ieee123data)
     actuals = get_actuals(ieee123data)
-    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(
-        parameters, sparse_topology, measurements
-    )
+    X0, z, num_node, knownP, knownQ, knownV, Y = inner_args(parameters, sparse_topology, measurements)
 
     ls_result = scipy.optimize.least_squares(
         residual,
@@ -377,13 +382,12 @@ def test_least_squares_call_sparse(parameters, sparse_topology, ieee123data):
     assert mean_rel_error < 0.1, f"Max relative error too high: {mean_rel_error}"
 
     mean_angle_error = get_mean_angle_error(sparse_topology, solution, actuals)
-    assert (
-        mean_angle_error < 3 * np.pi / 180
-    ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+    assert mean_angle_error < 3 * np.pi / 180, f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
 def test_least_squares_with_perfect_initalization(parameters, input_data, tmp_path):
+    """Test solver convergence when starting from perfect initialization."""
     source = Path(__file__).parent / input_data
     dest = tmp_path / input_data
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -419,13 +423,12 @@ def test_least_squares_with_perfect_initalization(parameters, input_data, tmp_pa
     assert mean_rel_error < 1e-4, f"Max relative error too high: {mean_rel_error}"
 
     mean_angle_error = get_mean_angle_error(topology, solution, actuals)
-    assert (
-        mean_angle_error < 1 * np.pi / 180
-    ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+    assert mean_angle_error < 1 * np.pi / 180, f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
 def test_wls_agreement_with_yuqi(parameters, input_data, tmp_path):
+    """Test WLS results against known baseline values (Yuqi)."""
     source = Path(__file__).parent / input_data
     dest = tmp_path / input_data
     shutil.copytree(source, dest, dirs_exist_ok=True)
@@ -469,23 +472,18 @@ def test_wls_agreement_with_yuqi(parameters, input_data, tmp_path):
     mean_angle_error = np.mean(np.abs(np.angle(true_voltage) - np.angle(estimate_voltage)))
 
     if input_data == "small_smartds_tap_time_3":
-        assert (
-            np.abs(mean_mag_error - 0.0273) < 0.00001
-        ), f"Max relative error too high: {mean_mag_error}"
-        assert np.abs(
-            mean_angle_error - 0.0022
-        ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+        assert np.abs(mean_mag_error - 0.0273) < 0.00001, f"Max relative error too high: {mean_mag_error}"
+        assert np.abs(mean_angle_error - 0.0022), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
     elif input_data == "small_smartds_tap_time_40":
-        assert (
-            np.abs(mean_mag_error - 0.0307) < 0.00001
-        ), f"Max relative error too high: {mean_mag_error}"
-        assert (
-            np.abs(mean_angle_error - 0.1656) < 0.00001
-        ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+        assert np.abs(mean_mag_error - 0.0307) < 0.00001, f"Max relative error too high: {mean_mag_error}"
+        assert np.abs(mean_angle_error - 0.1656) < 0.00001, (
+            f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
+        )
 
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
 def test_mean_absolute_error_least_squares(parameters, input_data, tmp_path):
+    """Verify that mean absolute error remains within acceptable limits."""
     source = Path(__file__).parent / input_data
     dest = tmp_path / input_data
     shutil.copytree(source, dest, dirs_exist_ok=True)

@@ -1,8 +1,9 @@
+"""Server for measuring federate."""
+
 import json
 import logging
 import os
 import socket
-import traceback
 
 import requests
 import uvicorn
@@ -19,6 +20,7 @@ is_kubernetes_env = os.environ["SERVICE_NAME"] if "SERVICE_NAME" in os.environ e
 
 
 def build_url(host: str, port: int, enpoint: list):
+    """Build URL for inter-component communication."""
     if is_kubernetes_env:
         SERVICE_NAME = os.environ["SERVICE_NAME"]
         url = f"http://{host}.{SERVICE_NAME}:{port}/"
@@ -30,6 +32,7 @@ def build_url(host: str, port: int, enpoint: list):
 
 @app.get("/")
 async def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     try:
         host_ip = socket.gethostbyname(hostname)
@@ -41,6 +44,7 @@ async def read_root():
 
 @app.post("/run")
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
+    """Run the federate model."""
     logging.info(broker_config)
     feeder_host = broker_config.feeder_host
     feeder_port = broker_config.feeder_port
@@ -59,13 +63,13 @@ async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTas
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
-    except Exception:
-        err = traceback.format_exc()
-        raise HTTPException(500, str(err))
+    except Exception as err:
+        raise HTTPException(500, str(err)) from err
 
 
 @app.post("/configure")
 async def configure(component_struct: ComponentStruct):
+    """Configure the federate."""
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name

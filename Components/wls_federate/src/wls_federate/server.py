@@ -1,7 +1,8 @@
+"""Server for WLS state estimator federate."""
+
 import json
 import os
 import socket
-import traceback
 
 import uvicorn
 from fastapi import BackgroundTasks, FastAPI, HTTPException
@@ -16,6 +17,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     host_ip = socket.gethostbyname(hostname)
     response = HeathCheck(hostname=hostname, host_ip=host_ip).model_dump()
@@ -24,18 +26,19 @@ def read_root():
 
 @app.post("/run")
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
+    """Run the federate model."""
     print(broker_config)
     try:
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
-    except Exception:
-        err = traceback.format_exc()
-        HTTPException(500, str(err))
+    except Exception as err:
+        raise HTTPException(500, str(err)) from err
 
 
 @app.post("/configure")
 async def configure(component_struct: ComponentStruct):
+    """Configure the federate."""
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name

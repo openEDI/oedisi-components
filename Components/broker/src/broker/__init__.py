@@ -1,5 +1,4 @@
-"""
-OEDISI Broker - Central orchestration service for HELICS co-simulation federates.
+"""OEDISI Broker - Central orchestration service for HELICS co-simulation federates.
 
 This component provides:
 - FastAPI REST API for federate coordination

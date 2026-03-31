@@ -1,8 +1,9 @@
+"""Recorder server for OEDISI co-simulation data collection."""
+
 import json
 import logging
 import os
 import socket
-import traceback
 
 import uvicorn
 from fastapi import BackgroundTasks, FastAPI, HTTPException
@@ -17,6 +18,7 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     try:
         host_ip = socket.gethostbyname(hostname)
@@ -28,13 +30,17 @@ def read_root():
     return JSONResponse(response, 200)
 
 
-def find_filenames(path_to_dir=os.getcwd(), suffix=".feather"):
+def find_filenames(path_to_dir=None, suffix=".feather"):
+    """Find filenames with a specific suffix in a directory."""
+    if path_to_dir is None:
+        path_to_dir = os.getcwd()
     filenames = os.listdir(path_to_dir)
     return [filename for filename in filenames if filename.endswith(suffix)]
 
 
 @app.get("/download")
 def download_results():
+    """Download simulation results as feather files."""
     file_list = find_filenames()
     if file_list:
         return FileResponse(path=file_list[0], filename=file_list[0], media_type="feather")
@@ -44,18 +50,19 @@ def download_results():
 
 @app.post("/run")
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
+    """Start the simulation in a background task."""
     logging.info(broker_config)
     try:
         background_tasks.add_task(run_simulator, broker_config)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse(response, 200)
-    except Exception:
-        err = traceback.format_exc()
-        HTTPException(500, str(err))
+    except Exception as err:
+        raise HTTPException(500, str(err)) from err
 
 
 @app.post("/configure")
 async def configure(component_struct: ComponentStruct):
+    """Configure the recorder component and its links."""
     component = component_struct.component
     params = component.parameters
     params["name"] = component.name

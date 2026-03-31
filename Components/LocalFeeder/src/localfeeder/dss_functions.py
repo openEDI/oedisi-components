@@ -21,11 +21,7 @@ def get_loads(dss, circuit):
         cktElement = dss.CktElement
         buses = cktElement.BusNames()
         bus = buses[0].split(".")
-        datum["kVar"] = (
-            float(datum["kW"])
-            / float(datum["PF"])
-            * math.sqrt(1 - float(datum["PF"]) * float(datum["PF"]))
-        )
+        datum["kVar"] = float(datum["kW"]) / float(datum["PF"]) * math.sqrt(1 - float(datum["PF"]) * float(datum["PF"]))
         datum["bus1"] = bus[0]
         datum["numPhases"] = dss.CktElement.NumPhases()
         datum["phases"] = bus[1:]
@@ -161,7 +157,6 @@ def get_voltages(circuit):
     AllNodeNames = circuit.YNodeOrder()
     node_number = len(AllNodeNames)
     name_voltage_dict = {
-        AllNodeNames[ii]: complex(temp_Vbus[ii * 2], temp_Vbus[ii * 2 + 1])
-        for ii in range(node_number)
+        AllNodeNames[ii]: complex(temp_Vbus[ii * 2], temp_Vbus[ii * 2 + 1]) for ii in range(node_number)
     }
     return name_voltage_dict

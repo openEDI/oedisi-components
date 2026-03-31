@@ -54,7 +54,10 @@ def permutation(from_list, to_list):
 
 
 class FeederConfig(BaseModel):
-    """JSON configuration. Special cases S3 sources right now."""
+    """JSON configuration for the feeder simulator.
+
+    Special cases S3 sources right now.
+    """
 
     name: str
     use_smartds: bool = False
@@ -82,6 +85,7 @@ class FeederConfig(BaseModel):
 
 
 class FeederMapping(BaseModel):
+    """Mapping of static inputs and input mappings for the feeder."""
     static_inputs: FeederConfig
     input_mapping: dict[str, str]
 
@@ -159,15 +163,16 @@ class FeederSimulator:
         assert self._state == OpenDSSState.SNAPSHOT_RUN, f"{self._state}"
 
     def forcast_pv(self, steps: int) -> list:
-        """
-        Forecasts day ahead PV generation for the OpenDSS feeder. The OpenDSS file is run and the
-        average irradiance is computed over all PV systems for each time step. This average irradiance
-        is used to compute the individual PV system power output
+        """Forecast day-ahead PV generation for the OpenDSS feeder.
+
+        The OpenDSS file is run and the average irradiance is computed over all
+        PV systems for each time step. This average irradiance is used to
+        compute the individual PV system power output.
         """
         cmd = f"Set stepsize={self._run_freq_sec} Number=1"
         dss.Text.Command(cmd)
         forecast = []
-        for k in range(steps):
+        for _k in range(steps):
             dss.Solution.Solve()
 
             # names of PV systems and forecasted power output
@@ -203,6 +208,7 @@ class FeederSimulator:
         self._state = OpenDSSState.SNAPSHOT_RUN
 
     def reenable(self):
+        """Re-enable all circuit elements in OpenDSS."""
         dss.Text.Command("Batchedit Load..* enabled=yes")
         dss.Text.Command("Batchedit Vsource..* enabled=yes")
         dss.Text.Command("Batchedit Isource..* enabled=yes")
@@ -222,9 +228,7 @@ class FeederSimulator:
         sensor_location = self._sensor_location
 
         for obj in bucket.objects.filter(Prefix=opendss_location):
-            output_location = os.path.join(
-                "opendss", obj.key.replace(opendss_location, "").strip("/")
-            )
+            output_location = os.path.join("opendss", obj.key.replace(opendss_location, "").strip("/"))
             os.makedirs(os.path.dirname(output_location), exist_ok=True)
             bucket.download_file(obj.key, output_location)
 
@@ -249,9 +253,7 @@ class FeederSimulator:
 
         else:
             for obj in bucket.objects.filter(Prefix=profile_location):
-                output_location = os.path.join(
-                    "profiles", obj.key.replace(profile_location, "").strip("/")
-                )
+                output_location = os.path.join("profiles", obj.key.replace(profile_location, "").strip("/"))
                 os.makedirs(os.path.dirname(output_location), exist_ok=True)
                 bucket.download_file(obj.key, output_location)
 
@@ -345,9 +347,7 @@ class FeederSimulator:
             self._circuit.SetActiveElement("Vsource." + Source)
             Bus = dss.CktElement.BusNames()[0].upper()
             for phase in range(1, dss.CktElement.NumPhases() + 1):
-                self._source_indexes.append(
-                    self._AllNodeNames.index(Bus.upper() + "." + str(phase))
-                )
+                self._source_indexes.append(self._AllNodeNames.index(Bus.upper() + "." + str(phase)))
 
         self.setup_vbase()
 
@@ -444,28 +444,20 @@ class FeederSimulator:
         assert self._state == OpenDSSState.DISABLED_RUN, f"{self._state}"
         hour = 0
         second = 0
-        dss.Text.Command(
-            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} " f"stepsize=0"
-        )
+        dss.Text.Command(f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} stepsize=0")
         dss.Text.Command("solve")
         self._state = OpenDSSState.DISABLED_SOLVE
 
     def just_solve(self):
         """Solvesolve without setting time or anything. Useful for commands."""
-        assert (
-            self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN
-        ), f"{self._state}"
+        assert self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN, f"{self._state}"
         dss.Text.Command("solve number=1")
 
     def solve(self, hour, second):
         """Solve at specified time. Must not be unloaded or disabled."""
-        assert (
-            self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN
-        ), f"{self._state}"
+        assert self._state != OpenDSSState.UNLOADED and self._state != OpenDSSState.DISABLED_RUN, f"{self._state}"
 
-        dss.Text.Command(
-            f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} " f"stepsize=0"
-        )
+        dss.Text.Command(f"set mode=yearly loadmult=1 number=1 hour={hour} sec={second} stepsize=0")
         dss.Text.Command("solve number=1")
         self._state = OpenDSSState.SOLVE_AT_TIME
 
@@ -626,15 +618,11 @@ class FeederSimulator:
 
     def _get_voltages(self):
         """Get powers and put in order of self._AllNodeNames."""
-        assert (
-            self._state != OpenDSSState.DISABLED_RUN and self._state != OpenDSSState.UNLOADED
-        ), f"{self._state}"
+        assert self._state != OpenDSSState.DISABLED_RUN and self._state != OpenDSSState.UNLOADED, f"{self._state}"
         name_voltage_dict = get_voltages(self._circuit)
         res_feeder_voltages = np.zeros((len(self._AllNodeNames)), dtype=np.complex128)
         for voltage_name in name_voltage_dict.keys():
-            res_feeder_voltages[self._name_index_dict[voltage_name]] = name_voltage_dict[
-                voltage_name
-            ]
+            res_feeder_voltages[self._name_index_dict[voltage_name]] = name_voltage_dict[voltage_name]
 
         return xr.DataArray(res_feeder_voltages, {"ids": list(name_voltage_dict.keys())})
 
@@ -652,16 +640,14 @@ class FeederSimulator:
         """
         assert self._state != OpenDSSState.UNLOADED, f"{self._state}"
         for entry in change_commands:
-            dss.Circuit.SetActiveElement(
-                entry.obj_name
-            )  # make the required element as active element
+            dss.Circuit.SetActiveElement(entry.obj_name)  # make the required element as active element
             # dss.CktElement.Properties(entry.obj_property).Val = entry.val
             # dss.Properties.Value(entry.obj_property, str(entry.val))
             properties = dss.CktElement.AllPropertyNames()
             element_name = dss.CktElement.Name()
-            assert entry.obj_property.lower() in map(
-                lambda x: x.lower(), properties
-            ), f"{entry.obj_property} not in {properties} for {element_name}"
+            assert entry.obj_property.lower() in map(lambda x: x.lower(), properties), (
+                f"{entry.obj_property} not in {properties} for {element_name}"
+            )
             dss.Text.Command(f"{entry.obj_name}.{entry.obj_property}={entry.val}")
 
     def create_inverter(self, pvsystem_set: set[str]):
@@ -688,8 +674,7 @@ class FeederSimulator:
         This only works with the legacy InvControl settings
         """
         assert all(
-            pvsystem not in self._pvsystem_to_inverter and pvsystem in self._pvsystems
-            for pvsystem in pvsystem_set
+            pvsystem not in self._pvsystem_to_inverter and pvsystem in self._pvsystems for pvsystem in pvsystem_set
         ), f"PVsystem(s) {pvsystem_set} is already assigned inverter or may not exist"
         name = f"InvControl.invgenerated{self._inverter_counter}"
         # May need PVsystemlist
@@ -731,20 +716,12 @@ class FeederSimulator:
     def set_properties_to_inverter(self, inverter: str, inv_control: InverterControl):
         """Modify a legacy InvControl object."""
         if inv_control.vvcontrol is not None:
-            vvc_curve = self.create_xy_curve(
-                inv_control.vvcontrol.voltage, inv_control.vvcontrol.reactive_response
-            )
+            vvc_curve = self.create_xy_curve(inv_control.vvcontrol.voltage, inv_control.vvcontrol.reactive_response)
             dss.Text.Command(f"{inverter}.vvc_curve1={vvc_curve.split('.')[1]}")
             dss.Text.Command(f"{inverter}.deltaQ_factor={inv_control.vvcontrol.deltaq_factor}")
-            dss.Text.Command(
-                f"{inverter}.VarChangeTolerance={inv_control.vvcontrol.varchangetolerance}"
-            )
-            dss.Text.Command(
-                f"{inverter}.VoltageChangeTolerance={inv_control.vvcontrol.voltagechangetolerance}"
-            )
-            dss.Text.Command(
-                f"{inverter}.VV_RefReactivePower={inv_control.vvcontrol.vv_refreactivepower}"
-            )
+            dss.Text.Command(f"{inverter}.VarChangeTolerance={inv_control.vvcontrol.varchangetolerance}")
+            dss.Text.Command(f"{inverter}.VoltageChangeTolerance={inv_control.vvcontrol.voltagechangetolerance}")
+            dss.Text.Command(f"{inverter}.VV_RefReactivePower={inv_control.vvcontrol.vv_refreactivepower}")
         if inv_control.vwcontrol is not None:
             vw_curve = self.create_xy_curve(
                 inv_control.vwcontrol.voltage,
@@ -758,7 +735,7 @@ class FeederSimulator:
             dss.Text.Command(f"{inverter}.Mode = {inv_control.mode.value}")
 
     def set_pv_output(self, pv_system, p, q):
-        """Sets the P and Q values for a PV system in OpenDSS"""
+        """Sets the P and Q values for a PV system in OpenDSS."""
         max_pv = self.get_max_pv_available(pv_system)
         # pf = q / ((p**2 + q **2)**0.5)
 
@@ -782,6 +759,7 @@ class FeederSimulator:
         self.change_obj(command)
 
     def get_max_pv_available(self, pv_system):
+        """Calculate maximum available power for a PV system."""
         irradiance = None
         pmpp = None
         flag = dss.PVsystems.First()
@@ -795,6 +773,7 @@ class FeederSimulator:
         return irradiance * pmpp
 
     def get_available_pv(self):
+        """Get total available PV power across the feeder."""
         pv_names = []
         powers = []
         flag = dss.PVsystems.First()
@@ -833,18 +812,16 @@ class FeederSimulator:
         else:
             pvsystem_set = set(inv_control.pvsystem_list)
         inverter_set = set(
-            self._pvsystem_to_inverter[pvsystem]
-            for pvsystem in pvsystem_set
-            if pvsystem in self._pvsystem_to_inverter
+            self._pvsystem_to_inverter[pvsystem] for pvsystem in pvsystem_set if pvsystem in self._pvsystem_to_inverter
         )
         if len(inverter_set) == 1:
             (inverter,) = inverter_set
         else:
             inverter = self.create_inverter(pvsystem_set)
 
-        assert (
-            self._inverter_to_pvsystems[inverter] == pvsystem_set
-        ), f"{self._inverter_to_pvsystems[inverter]} does not match {pvsystem_set} for {inverter}"
+        assert self._inverter_to_pvsystems[inverter] == pvsystem_set, (
+            f"{self._inverter_to_pvsystems[inverter]} does not match {pvsystem_set} for {inverter}"
+        )
 
         self.set_properties_to_inverter(inverter, inv_control)
         return inverter
@@ -864,9 +841,7 @@ class FeederSimulator:
                 # dicts are insert-ordered in >=3.7
                 names = list(dict.fromkeys(bus_names))
                 if len(names) != 2:
-                    logging.info(
-                        f"Line {line} has {len(names)} terminals, skipping in incidence matrix"
-                    )
+                    logging.info(f"Line {line} has {len(names)} terminals, skipping in incidence matrix")
                     continue
             from_bus, to_bus = names
             from_list.append(from_bus.upper())
@@ -880,9 +855,7 @@ class FeederSimulator:
                 bus_names = map(lambda x: x.split(".")[0], names)
                 names = list(dict.fromkeys(bus_names))
                 if len(names) != 2:
-                    logging.info(
-                        f"Transformer {transformer} has {len(names)} terminals, skipping in incidence matrix"
-                    )
+                    logging.info(f"Transformer {transformer} has {len(names)} terminals, skipping in incidence matrix")
                     continue
             from_bus, to_bus = names
             from_list.append(from_bus.upper())

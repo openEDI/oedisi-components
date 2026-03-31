@@ -1,5 +1,4 @@
-"""
-OEDISI Measuring Federate - Sensor/measurement simulation with noise injection.
+"""OEDISI Measuring Federate - Sensor/measurement simulation with noise injection.
 
 This component provides:
 - Sensor/measurement relay functionality

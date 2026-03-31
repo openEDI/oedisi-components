@@ -1,5 +1,4 @@
-"""
-OEDISI LinDistFlow Federate - Optimal power flow using linear distflow formulation.
+"""OEDISI LinDistFlow Federate - Optimal power flow using linear distflow formulation.
 
 This component provides:
 - Three-phase power flow analysis using linear distflow

@@ -1,9 +1,10 @@
+"""Broker server for OEDISI co-simulation orchestration."""
+
 import json
 import logging
 import os
 import socket
 import time
-import traceback
 import zipfile
 
 import grequests
@@ -24,15 +25,14 @@ logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI()
 
-is_kubernetes_env = (
-    os.environ["KUBERNETES_SERVICE_NAME"] if "KUBERNETES_SERVICE_NAME" in os.environ else None
-)
+is_kubernetes_env = os.environ["KUBERNETES_SERVICE_NAME"] if "KUBERNETES_SERVICE_NAME" in os.environ else None
 
 WIRING_DIAGRAM_FILENAME = "system.json"
 WIRING_DIAGRAM: WiringDiagram | None = None
 
 
 def build_url(host: str, port: int, enpoint: list):
+    """Build URL for a component endpoint."""
     if is_kubernetes_env:
         KUBERNETES_SERVICE_NAME = os.environ["KUBERNETES_SERVICE_NAME"]
         url = f"http://{host}.{KUBERNETES_SERVICE_NAME}:{port}/"
@@ -42,12 +42,16 @@ def build_url(host: str, port: int, enpoint: list):
     return url
 
 
-def find_filenames(path_to_dir=os.getcwd(), suffix=".feather"):
+def find_filenames(path_to_dir=None, suffix=".feather"):
+    """Find filenames with a specific suffix in a directory."""
+    if path_to_dir is None:
+        path_to_dir = os.getcwd()
     filenames = os.listdir(path_to_dir)
     return [filename for filename in filenames if filename.endswith(suffix)]
 
 
 def read_settings():
+    """Read broker and component settings."""
     broker_host = socket.gethostname()
     try:
         broker_ip = socket.gethostbyname(broker_host)
@@ -60,15 +64,14 @@ def read_settings():
         for component in WIRING_DIAGRAM.components:
             component_map[component.host] = component.container_port
     else:
-        logger.info(
-            "Use the '/configure' setpoint to setup up the WiringDiagram before making requests other enpoints"
-        )
+        logger.info("Use the '/configure' setpoint to setup up the WiringDiagram before making requests other enpoints")
 
     return component_map, broker_ip, api_port
 
 
 @app.get("/")
 def read_root():
+    """Health check endpoint."""
     hostname = socket.gethostname()
     try:
         host_ip = socket.gethostbyname(hostname)
@@ -82,6 +85,7 @@ def read_root():
 
 @app.post("/profiles")
 async def upload_profiles(file: UploadFile):
+    """Upload profiles to the feeder component."""
     try:
         component_map, _, _ = read_settings()
         for hostname in component_map:
@@ -102,13 +106,13 @@ async def upload_profiles(file: UploadFile):
                 response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload profiles")
-    except Exception:
-        err = traceback.format_exc()
-        raise HTTPException(status_code=500, detail=str(err))
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=str(err)) from err
 
 
 @app.post("/model")
 async def upload_model(file: UploadFile):
+    """Upload a model to the feeder component."""
     try:
         component_map, _, _ = read_settings()
         for hostname in component_map:
@@ -129,13 +133,13 @@ async def upload_model(file: UploadFile):
                 response = ServerReply(detail=r.text).model_dump()
                 return JSONResponse(response, r.status_code)
         raise HTTPException(status_code=404, detail="Unable to upload model")
-    except Exception:
-        err = traceback.format_exc()
-        raise HTTPException(status_code=500, detail=str(err))
+    except Exception as err:
+        raise HTTPException(status_code=500, detail=str(err)) from err
 
 
 @app.get("/results")
 def download_results():
+    """Download simulation results from recorders."""
     component_map, _, _ = read_settings()
 
     for hostname in component_map:
@@ -158,30 +162,36 @@ def download_results():
 
     try:
         return FileResponse(path=file_path, filename=file_path, media_type="zip")
-    except Exception:
-        raise HTTPException(status_code=404, detail="Failed download")
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Failed download") from err
 
 
 @app.get("/terminate")
 def terminate_simulation():
+    """Terminate the HELICS simulation."""
     try:
         h.helicsCloseLibrary()
         return JSONResponse({"detail": "Helics broker sucessfully closed"}, 200)
-    except Exception:
-        raise HTTPException(status_code=404, detail="Failed download ")
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Failed download ") from err
 
 
 def _get_feeder_info(component_map: dict):
+    """Get host and port for the feeder component."""
     for host in component_map:
         if host == "feeder":
             return host, component_map[host]
 
 
 def run_simulation():
+    """Run the HELICS simulation orchestration."""
     component_map, broker_ip, api_port = read_settings()
     feeder_host, feeder_port = _get_feeder_info(component_map)
     logger.info(f"{broker_ip}, {api_port}")
-    initstring = f"-f {len(component_map)-1} --name=mainbroker --loglevel=trace --local_interface={broker_ip} --localport=23404"
+    initstring = (
+        f"-f {len(component_map) - 1} --name=mainbroker --loglevel=trace "
+        f"--local_interface={broker_ip} --localport=23404"
+    )
     logger.info(f"Broker initaialization string: {initstring}")
     broker = h.helicsCreateBroker("zmq", "", initstring)
 
@@ -218,17 +228,18 @@ def run_simulation():
 
 @app.post("/run")
 async def run_feeder(background_tasks: BackgroundTasks):
+    """Start the simulation in a background task."""
     try:
         background_tasks.add_task(run_simulation)
         response = ServerReply(detail="Task sucessfully added.").model_dump()
         return JSONResponse({"detail": response}, 200)
-    except Exception:
-        err = traceback.format_exc()
-        raise HTTPException(status_code=404, detail=str(err))
+    except Exception as err:
+        raise HTTPException(status_code=404, detail=str(err)) from err
 
 
 @app.post("/configure")
 async def configure(wiring_diagram: WiringDiagram):
+    """Configure all components in the wiring diagram."""
     global WIRING_DIAGRAM
     WIRING_DIAGRAM = wiring_diagram
 
@@ -252,14 +263,13 @@ async def configure(wiring_diagram: WiringDiagram):
 
 @app.get("/status/")
 async def status():
+    """Get the current status of the HELICS broker."""
     try:
         name_2_timedata = {}
         connected = h.helicsBrokerIsConnected(app.state.broker)
         if connected:
             for time_data in get_time_data(app.state.broker):
-                if (time_data.name not in name_2_timedata) or (
-                    name_2_timedata[time_data.name] != time_data
-                ):
+                if (time_data.name not in name_2_timedata) or (name_2_timedata[time_data.name] != time_data):
                     name_2_timedata[time_data.name] = time_data
         return {"connected": connected, "timedata": name_2_timedata, "error": False}
     except AttributeError as e:

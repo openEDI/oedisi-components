@@ -16,6 +16,7 @@ class TestOMOOHealthCheck:
     """Test OMOO federate health check endpoint."""
 
     def test_root_endpoint_returns_health_info(self, client):
+        """Test the root endpoint returns health information."""
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -27,6 +28,7 @@ class TestOMOOConfiguration:
     """Test OMOO configuration endpoint."""
 
     def test_configure_endpoint_exists(self, client):
+        """Test the configure endpoint responds correctly."""
         response = client.post("/configure", json={})
         assert response.status_code in [200, 422]
 
@@ -35,6 +37,7 @@ class TestOMOOImports:
     """Test that OMOO classes can be imported."""
 
     def test_omoo_class_importable(self):
+        """Test that OMOO classes can be successfully imported."""
         from omoo_federate import OMOO, OMOOFederate, OMOOParameters
 
         assert OMOO is not None
@@ -42,6 +45,7 @@ class TestOMOOImports:
         assert OMOOParameters is not None
 
     def test_default_parameters(self):
+        """Test the default model parameters for OMOO."""
         from omoo_federate import OMOOParameters
 
         params = OMOOParameters()

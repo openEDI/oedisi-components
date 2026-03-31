@@ -1,3 +1,5 @@
+"""Recorder federate for logging simulation results to Feather and CSV."""
+
 import json
 import logging
 from datetime import datetime
@@ -15,6 +17,7 @@ logger.setLevel(logging.INFO)
 
 
 class Recorder:
+    """HELICS recorder federate."""
     def __init__(
         self,
         name,
@@ -23,6 +26,7 @@ class Recorder:
         input_mapping,
         broker_config: BrokerConfig,
     ):
+        """Initialize the recorder federate."""
         self.rng = np.random.default_rng(12345)
         deltat = 0.01
         # deltat = 60.
@@ -49,6 +53,7 @@ class Recorder:
         self.csv_filename = csv_filename
 
     def run(self):
+        """Run the recorder execution loop."""
         # Enter execution mode #
         self.vfed.enter_initializing_mode()
         self.vfed.enter_executing_mode()
@@ -70,10 +75,7 @@ class Recorder:
                 json_data = self.sub.json
                 json_data["time"] = granted_time
                 measurement = MeasurementArray(**self.sub.json)
-                measurement_dict = {
-                    key: value
-                    for key, value in zip(measurement.ids, measurement.values, strict=False)
-                }
+                measurement_dict = {key: value for key, value in zip(measurement.ids, measurement.values, strict=False)}
                 measurement_dict["time"] = measurement.time.strftime("%Y-%m-%d %H:%M:%S")
                 logger.debug(measurement.time)
 
@@ -100,6 +102,7 @@ class Recorder:
         self.destroy()
 
     def destroy(self):
+        """Clean up and disconnect the federate."""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
         h.helicsFederateFree(self.vfed)
@@ -107,6 +110,7 @@ class Recorder:
 
 
 def run_simulator(broker_config: BrokerConfig):
+    """Entry point for running the recorder simulator."""
     with open("static_inputs.json") as f:
         config = json.load(f)
         name = config["name"]

@@ -137,18 +137,12 @@ def get_initial_data(sim: FeederSimulator, config: FeederConfig):
     if config.use_sparse_admittance:
         admittancematrix = sparse_to_admittance_sparse(Y, unique_ids)
     else:
-        admittancematrix = AdmittanceMatrix(
-            admittance_matrix=numpy_to_y_matrix(Y.toarray()), ids=unique_ids
-        )
+        admittancematrix = AdmittanceMatrix(admittance_matrix=numpy_to_y_matrix(Y.toarray()), ids=unique_ids)
 
-    slack_ids = [
-        sim._AllNodeNames[i] for i in range(sim._source_indexes[0], sim._source_indexes[-1] + 1)
-    ]
+    slack_ids = [sim._AllNodeNames[i] for i in range(sim._source_indexes[0], sim._source_indexes[-1] + 1)]
 
     base_voltages = sim.get_base_voltages()
-    base_voltagemagnitude = VoltagesMagnitude(
-        values=list(np.abs(base_voltages).data), ids=list(base_voltages.ids.data)
-    )
+    base_voltagemagnitude = VoltagesMagnitude(values=list(np.abs(base_voltages).data), ids=list(base_voltages.ids.data))
 
     # We have to do snapshot run so we can re-enable things properly.
     # Technically we don't have to solve.
@@ -218,10 +212,7 @@ def get_current_data(sim: FeederSimulator, Y):
         },
     )
     PQ_injections_all = (
-        agg_to_ids(PQ_load, ids)
-        + agg_to_ids(PQ_PV, ids)
-        + agg_to_ids(PQ_gen, ids)
-        + agg_to_ids(PQ_cap, ids)
+        agg_to_ids(PQ_load, ids) + agg_to_ids(PQ_PV, ids) + agg_to_ids(PQ_gen, ids) + agg_to_ids(PQ_cap, ids)
     )
 
     PQ_injections_all = PQ_injections_all.assign_coords(
@@ -274,49 +265,27 @@ def go_cosim(
     h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, deltat)
     vfed = h.helicsCreateValueFederate(config.name, fedinfo)
 
-    pub_voltages_real = h.helicsFederateRegisterPublication(
-        vfed, "voltages_real", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_voltages_imag = h.helicsFederateRegisterPublication(
-        vfed, "voltages_imag", h.HELICS_DATA_TYPE_STRING, ""
-    )
+    pub_voltages_real = h.helicsFederateRegisterPublication(vfed, "voltages_real", h.HELICS_DATA_TYPE_STRING, "")
+    pub_voltages_imag = h.helicsFederateRegisterPublication(vfed, "voltages_imag", h.HELICS_DATA_TYPE_STRING, "")
     pub_voltages_magnitude = h.helicsFederateRegisterPublication(
         vfed, "voltages_magnitude", h.HELICS_DATA_TYPE_STRING, ""
     )
-    pub_powers_real = h.helicsFederateRegisterPublication(
-        vfed, "powers_real", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_powers_imag = h.helicsFederateRegisterPublication(
-        vfed, "powers_imag", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_topology = h.helicsFederateRegisterPublication(
-        vfed, "topology", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_injections = h.helicsFederateRegisterPublication(
-        vfed, "injections", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_available_power = h.helicsFederateRegisterPublication(
-        vfed, "available_power", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_load_y_matrix = h.helicsFederateRegisterPublication(
-        vfed, "load_y_matrix", h.HELICS_DATA_TYPE_STRING, ""
-    )
-    pub_pv_forecast = h.helicsFederateRegisterPublication(
-        vfed, "pv_forecast", h.HELICS_DATA_TYPE_STRING, ""
-    )
+    pub_powers_real = h.helicsFederateRegisterPublication(vfed, "powers_real", h.HELICS_DATA_TYPE_STRING, "")
+    pub_powers_imag = h.helicsFederateRegisterPublication(vfed, "powers_imag", h.HELICS_DATA_TYPE_STRING, "")
+    pub_topology = h.helicsFederateRegisterPublication(vfed, "topology", h.HELICS_DATA_TYPE_STRING, "")
+    pub_injections = h.helicsFederateRegisterPublication(vfed, "injections", h.HELICS_DATA_TYPE_STRING, "")
+    pub_available_power = h.helicsFederateRegisterPublication(vfed, "available_power", h.HELICS_DATA_TYPE_STRING, "")
+    pub_load_y_matrix = h.helicsFederateRegisterPublication(vfed, "load_y_matrix", h.HELICS_DATA_TYPE_STRING, "")
+    pub_pv_forecast = h.helicsFederateRegisterPublication(vfed, "pv_forecast", h.HELICS_DATA_TYPE_STRING, "")
 
     command_set_key = (
-        "unused/change_commands"
-        if "change_commands" not in input_mapping
-        else input_mapping["change_commands"]
+        "unused/change_commands" if "change_commands" not in input_mapping else input_mapping["change_commands"]
     )
     sub_command_set = vfed.register_subscription(command_set_key, "")
     sub_command_set.set_default("[]")
     sub_command_set.option["CONNECTION_OPTIONAL"] = True
 
-    inv_control_key = (
-        "unused/inv_control" if "" not in input_mapping else input_mapping["inv_control"]
-    )
+    inv_control_key = "unused/inv_control" if "" not in input_mapping else input_mapping["inv_control"]
     sub_invcontrol = vfed.register_subscription(inv_control_key, "")
     sub_invcontrol.set_default("[]")
     sub_invcontrol.option["CONNECTION_OPTIONAL"] = True
@@ -342,8 +311,7 @@ def go_cosim(
     logger.info("Evaluating the forecasted PV")
     forecast_data = sim.forcast_pv(int(config.number_of_timesteps))
     PVforecast = [
-        MeasurementArray(**xarray_to_dict(forecast), units="kW").model_dump_json()
-        for forecast in forecast_data
+        MeasurementArray(**xarray_to_dict(forecast), units="kW").model_dump_json() for forecast in forecast_data
     ]
     pub_pv_forecast.publish(json.dumps(PVforecast))
 
@@ -353,9 +321,7 @@ def go_cosim(
 
     while request_time < int(config.number_of_timesteps):
         granted_time = h.helicsFederateRequestTime(vfed, request_time)
-        assert (
-            granted_time <= request_time + deltat
-        ), f"granted_time: {granted_time} past {request_time}"
+        assert granted_time <= request_time + deltat, f"granted_time: {granted_time} past {request_time}"
         if granted_time >= request_time - deltat:
             request_time += 1
 
@@ -378,13 +344,8 @@ def go_cosim(
         for pv_set in pv_sets:
             sim.set_pv_output(pv_set[0].split(".")[1], pv_set[1], pv_set[2])
 
-        current_hour = (
-            24 * (floored_timestamp.date() - initial_timestamp.date()).days + floored_timestamp.hour
-        )
-        logger.info(
-            f"Solve at hour {current_hour} second "
-            f"{60*floored_timestamp.minute + floored_timestamp.second}"
-        )
+        current_hour = 24 * (floored_timestamp.date() - initial_timestamp.date()).days + floored_timestamp.hour
+        logger.info(f"Solve at hour {current_hour} second {60 * floored_timestamp.minute + floored_timestamp.second}")
 
         sim.snapshot_run()
         sim.solve(
@@ -394,9 +355,7 @@ def go_cosim(
 
         current_data = get_current_data(sim, initial_data.Y)
 
-        bad_bus_names = where_power_unbalanced(
-            current_data.PQ_injections_all, current_data.calculated_power
-        )
+        bad_bus_names = where_power_unbalanced(current_data.PQ_injections_all, current_data.calculated_power)
         if len(bad_bus_names) > 0:
             raise ValueError(
                 f"""
@@ -410,10 +369,7 @@ def go_cosim(
             """
             )
 
-        logger.debug(
-            f"Publish load {current_data.feeder_voltages.ids.data[0]} "
-            f"{current_data.feeder_voltages.data[0]}"
-        )
+        logger.debug(f"Publish load {current_data.feeder_voltages.ids.data[0]} {current_data.feeder_voltages.data[0]}")
         voltage_magnitudes = np.abs(current_data.feeder_voltages)
         pub_voltages_magnitude.publish(
             VoltagesMagnitude(
@@ -456,9 +412,7 @@ def go_cosim(
 
         if config.use_sparse_admittance:
             pub_load_y_matrix.publish(
-                sparse_to_admittance_sparse(
-                    current_data.load_y_matrix, sim._AllNodeNames
-                ).model_dump_json()
+                sparse_to_admittance_sparse(current_data.load_y_matrix, sim._AllNodeNames).model_dump_json()
             )
         else:
             pub_load_y_matrix.publish(

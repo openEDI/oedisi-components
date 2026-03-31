@@ -1,3 +1,5 @@
+"""Workflow runner for building and pushing Docker images."""
+
 import json
 import os
 from pathlib import Path
@@ -19,6 +21,7 @@ TAG = os.environ["RELEASE_TAG"]
 
 
 def collect_components():
+    """Collect components from components.json and build their Docker images."""
     # Simulate collecting components
     print("Collecting components...")
     components = json.load(open("components.json"))  # Load components from a JSON file
@@ -39,6 +42,7 @@ def collect_components():
 
 
 def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
+    """Build and push a Docker image to Docker Hub."""
     client = docker.from_env()
     REPOSITORY_NAME = f"{DOCKERHUB_USERNAME_AL}/{image_name}:{tag}".lower()
     email_msg = f"Building Docker image: {REPOSITORY_NAME} from directory {docker_file_path}"

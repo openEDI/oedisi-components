@@ -1,5 +1,4 @@
-"""
-OMOO - Online Model-based Optimal Operation
+"""OMOO - Online Model-based Optimal Operation.
 
 Primal-dual optimization approach for voltage regulation in distribution systems
 with high PV penetration. Uses linearized power flow sensitivity matrices.
@@ -41,6 +40,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def eqarray_to_xarray(eq: EquipmentNodeArray):
+    """Convert EquipmentNodeArray to xarray.DataArray."""
     return xr.DataArray(
         eq.values,
         dims=("eqnode",),
@@ -52,21 +52,25 @@ def eqarray_to_xarray(eq: EquipmentNodeArray):
 
 
 def measurement_to_xarray(eq: MeasurementArray):
+    """Convert MeasurementArray to xarray.DataArray."""
     return xr.DataArray(eq.values, coords={"ids": eq.ids})
 
 
 def matrix_to_numpy(admittance: list[list[Complex]]):
+    """Convert list of list of Complex types into a numpy matrix."""
     """Convert list of list of our Complex type into a numpy matrix"""
     return np.array([[x[0] + 1j * x[1] for x in row] for row in admittance])
 
 
 def get_indices(topology, measurement):
+    """Get list of indices in the topology for each index of the input measurement."""
     """Get list of indices in the topology for each index of the input measurement"""
     inv_map = {v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)}
     return [inv_map[v] for v in measurement.ids]
 
 
 def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
+    """Calculate the admittance matrix (Y)."""
     if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
@@ -84,6 +88,7 @@ def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
 
 
 def primal_dual(dual_update_v, muk_last, lambdak_last, epsilon, alpha, uni_Vmax, uni_Vmin, V_k):
+    """Update dual variables for primal-dual optimization."""
     """
     Update dual variables.
 
@@ -109,6 +114,7 @@ def primal_dual(dual_update_v, muk_last, lambdak_last, epsilon, alpha, uni_Vmax,
 
 
 def Proj_inverter(xt, yt, Ux, Sx):
+    """Project inverter power settings into feasible region."""
     """
     xt, yt: real, imag parts of PV power
     Ux = max available power currently
@@ -120,7 +126,7 @@ def Proj_inverter(xt, yt, Ux, Sx):
     theta = np.arcsin(qx / Sx)
 
     if xt < 0:
-        warnings.warn("real power is negative")
+        warnings.warn("real power is negative", stacklevel=2)
         print(xt)
 
     try:
@@ -168,6 +174,7 @@ def cost_fun(
     alpha,
     tot_cost_v,
 ):
+    """Calculate the cost function and gradients for optimization."""
     alph = 0.1
     cost_Q = 1 * alph
     cost_P = 1 * alph
@@ -196,12 +203,7 @@ def cost_fun(
 
     P, Q = upk, uqk
     Pck_v = pv_avail_v - P  # Curtailment
-    tot_cost_v += (
-        cost_P * Pck_v**2
-        + cost_Q * Q**2
-        + q_dev * (Q_set_v - Qk_v) ** 2
-        + p_dev * (P_set_v - Pk_v) ** 2
-    )
+    tot_cost_v += cost_P * Pck_v**2 + cost_Q * Q**2 + q_dev * (Q_set_v - Qk_v) ** 2 + p_dev * (P_set_v - Pk_v) ** 2
     return P, Q, Pck_v, tot_cost_v, dLp_pp, dLq_pp
 
 
@@ -221,6 +223,7 @@ def pv_cost(
     pv_set_point_real,
     pv_set_point_imag,
 ):
+    """Calculate the total PV cost and gradients across all PV systems."""
     tot_cost_v = 0.0
     Pk_current = np.zeros(len(pv_index))
     Qk_current = np.zeros(len(pv_index))
@@ -265,11 +268,13 @@ def pv_cost(
 
 
 class UnitSystem(str, Enum):
+    """Enum for supported unit systems (SI or PER_UNIT)."""
     SI = "SI"
     PER_UNIT = "PER_UNIT"
 
 
 class OMOOParameters(BaseModel):
+    """Parameters for the OMOO optimization algorithm."""
     Vmax: float = 1.05
     Vmin_act: float = 0.95
     Vmin: float = 0.95
@@ -282,10 +287,10 @@ class OMOOParameters(BaseModel):
 
 
 def getLinearModel(YLL, YL0, V0):
-    """
-    Calculates linear sensitivity matrices G, H, w_mag.
+    """Calculate linear sensitivity matrices G, H, w_mag.
+
     Based on equation (3) from:
-    [Decentralized Low-Rank State Estimation for Power Distribution Systems]
+    [Decentralized Low-Rank State Estimation for Power Distribution Systems].
     """
     Nnode = YLL.shape[0]
     YLLi = inv(YLL)
@@ -305,6 +310,7 @@ def getLinearModel(YLL, YL0, V0):
 
 
 class OMOO:
+    """Core OMOO optimization algorithm implementation."""
     def __init__(
         self,
         parameters: OMOOParameters,
@@ -318,6 +324,7 @@ class OMOO:
         H,
         w_mag,
     ):
+        """Initialize OMOO with system parameters and topology."""
         self.parameters = parameters
         self.topology = topology
         self.num_node = len(topology.base_voltage_magnitudes.ids)
@@ -337,6 +344,7 @@ class OMOO:
         self.pv_index = pv_frame["index"].values.tolist()
 
     def opf_run(self, V, P_wopv, Q_wopv):
+        """Run the optimal power flow iteration."""
         if self.parameters.units == UnitSystem.SI:
             vmagTrue = np.array(V.values)
         elif self.parameters.units == UnitSystem.PER_UNIT:
@@ -385,7 +393,7 @@ class OMOO:
             uni_Vmax = np.ones(N_node) * self.parameters.Vmax
             uni_Vmin = np.ones(N_node) * self.parameters.Vmin
 
-            for jj in range(self.parameters.ratio_t_k):
+            for _jj in range(self.parameters.ratio_t_k):
                 # Updating P, Q
                 Pk_last, Qk_last, _, _, _ = pv_cost(
                     self.G,
@@ -432,9 +440,7 @@ class OMOO:
             for pp, pv_ii in enumerate(self.pv_index):
                 pv_avail_v = self.pv_frame.iloc[pp]["avai"] / self.base_power
                 pv_capacity_v = self.pv_frame.iloc[pp]["kVarRated"] / self.base_power
-                Pk_last[pp], Qk_last[pp] = Proj_inverter(
-                    Pk_last[pp], Qk_last[pp], pv_avail_v, pv_capacity_v
-                )
+                Pk_last[pp], Qk_last[pp] = Proj_inverter(Pk_last[pp], Qk_last[pp], pv_avail_v, pv_capacity_v)
                 Ppv[pv_ii], Qpv[pv_ii] = Pk_last[pp], Qk_last[pp]
             Ppv, Qpv = np.delete(Ppv, self.slack_bus), np.delete(Qpv, self.slack_bus)
             V_hat_final = Vk_wopv + self.G @ Ppv + self.H @ Qpv
@@ -449,10 +455,10 @@ class OMOO:
 
 
 class OMOOFederate:
-    """OMOO federate. Wraps optimal_pf with pubs and subs"""
+    """OMOO federate. Wraps optimal_pf with pubs and subs."""
 
     def __init__(self, federate_name, algorithm_parameters, input_mapping):
-        """Initializes federate with name and remaps input into subscriptions"""
+        """Initializes federate with name and remaps input into subscriptions."""
         deltat = 0.1
 
         self.algorithm_parameters = algorithm_parameters
@@ -467,33 +473,23 @@ class OMOOFederate:
         logger.info("Value federate created")
 
         # Register subscriptions
-        self.sub_voltages_real = self.vfed.register_subscription(
-            input_mapping["voltages_real"], "V"
-        )
-        self.sub_voltages_imaginary = self.vfed.register_subscription(
-            input_mapping["voltages_imag"], "V"
-        )
+        self.sub_voltages_real = self.vfed.register_subscription(input_mapping["voltages_real"], "V")
+        self.sub_voltages_imaginary = self.vfed.register_subscription(input_mapping["voltages_imag"], "V")
         self.sub_power_P = self.vfed.register_subscription(input_mapping["powers_real"], "W")
         self.sub_power_Q = self.vfed.register_subscription(input_mapping["powers_imag"], "W")
         self.sub_topology = self.vfed.register_subscription(input_mapping["topology"], "")
         self.injections = self.vfed.register_subscription(input_mapping["injections"], "")
-        self.sub_available_power = self.vfed.register_subscription(
-            input_mapping["available_power"], ""
-        )
+        self.sub_available_power = self.vfed.register_subscription(input_mapping["available_power"], "")
 
         # Register publications
-        self.pub_voltage_mag = self.vfed.register_publication(
-            "voltage_mag", h.HELICS_DATA_TYPE_STRING, ""
-        )
-        self.pub_voltage_angle = self.vfed.register_publication(
-            "voltage_angle", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub_voltage_mag = self.vfed.register_publication("voltage_mag", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_voltage_angle = self.vfed.register_publication("voltage_angle", h.HELICS_DATA_TYPE_STRING, "")
         self.pub_P_set = self.vfed.register_publication("P_set", h.HELICS_DATA_TYPE_STRING, "")
         logger.debug("algorithm_parameters")
         logger.debug(algorithm_parameters)
 
     def run(self):
-        """Enter execution and exchange data"""
+        """Enter execution and exchange data."""
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
 
@@ -551,9 +547,7 @@ class OMOOFederate:
 
             voltages_real = VoltagesReal.model_validate(self.sub_voltages_real.json)
             voltages_imag = VoltagesImaginary.model_validate(self.sub_voltages_imaginary.json)
-            voltages = measurement_to_xarray(voltages_real) + 1j * measurement_to_xarray(
-                voltages_imag
-            )
+            voltages = measurement_to_xarray(voltages_real) + 1j * measurement_to_xarray(voltages_imag)
             logger.debug(np.max(np.abs(voltages) / v))
             assert topology.base_voltage_magnitudes.ids == list(voltages.ids.data)
 
@@ -561,20 +555,14 @@ class OMOOFederate:
             power_injections = eqarray_to_xarray(injections.power_real) + 1j * eqarray_to_xarray(
                 injections.power_imaginary
             )
-            pv_injections = power_injections[
-                power_injections.equipment_ids.str.startswith("PVSystem")
-            ]
+            pv_injections = power_injections[power_injections.equipment_ids.str.startswith("PVSystem")]
             _, pv_injections = xr.align(pv_ratings, pv_injections)
-            available_power = measurement_to_xarray(
-                MeasurementArray.model_validate(self.sub_available_power.json)
-            )
+            available_power = measurement_to_xarray(MeasurementArray.model_validate(self.sub_available_power.json))
 
-            split_power = available_power / pv_injections.ids.groupby(
-                "equipment_ids"
-            ).count().rename({"equipment_ids": "ids"})
-            available_power = split_power.loc[pv_injections.equipment_ids].assign_coords(
-                ids=pv_injections.ids
+            split_power = available_power / pv_injections.ids.groupby("equipment_ids").count().rename(
+                {"equipment_ids": "ids"}
             )
+            available_power = split_power.loc[pv_injections.equipment_ids].assign_coords(ids=pv_injections.ids)
 
             pv = pd.DataFrame()
             pv["name"] = pv_ratings.equipment_ids.data
@@ -586,9 +574,7 @@ class OMOOFederate:
             pv["index"] = [bus_to_index[v] for v in pv_injections.ids.data]
 
             V0 = voltages[slack_bus].data
-            self.V0 = (V0 / np.array(topology.base_voltage_magnitudes.values)[slack_bus]).reshape(
-                3, -1
-            )
+            self.V0 = (V0 / np.array(topology.base_voltage_magnitudes.values)[slack_bus]).reshape(3, -1)
             self.G, self.H, self.w_mag = getLinearModel(self.YLL, self.YL0, self.V0)
 
             logger.debug("PVframe")
@@ -616,20 +602,20 @@ class OMOOFederate:
             power_set = P_set + 1j * Q_set
             power_factor = power_set.real / (np.abs(power_set) + 1e-7)
             pmpp = power_set.real / pv["kVarRated"]
-            assert np.all(
-                np.abs(power_factor) <= 1
-            ), f"Invalid power factor at index {np.argmax(np.abs(power_factor) > 1)}: {power_factor[np.argmax(np.abs(power_factor) > 1)]}"
-            assert np.all(
-                (pmpp <= 1) & (pmpp >= 0)
-            ), f"Invalid pmpp at index {np.argmax((pmpp > 1) | (pmpp < 0))}: {pmpp[np.argmax((pmpp > 1) | (pmpp < 0))]}"
+            assert np.all(np.abs(power_factor) <= 1), (
+                f"Invalid power factor at index {np.argmax(np.abs(power_factor) > 1)}: "
+                f"{power_factor[np.argmax(np.abs(power_factor) > 1)]}"
+            )
+            assert np.all((pmpp <= 1) & (pmpp >= 0)), (
+                f"Invalid pmpp at index {np.argmax((pmpp > 1) | (pmpp < 0))}: "
+                f"{pmpp[np.argmax((pmpp > 1) | (pmpp < 0))]}"
+            )
 
             te = time.time()
-            logger.debug(f"OMOO takes {(te-ts)/60} (min)")
+            logger.debug(f"OMOO takes {(te - ts) / 60} (min)")
 
             power_set_xr = (
-                xr.DataArray(power_set, coords={"equipment_ids": pv.loc[:, "name"]})
-                .groupby("equipment_ids")
-                .sum()
+                xr.DataArray(power_set, coords={"equipment_ids": pv.loc[:, "name"]}).groupby("equipment_ids").sum()
             )
 
             available_total_xr = available_power.groupby("equipment_ids").sum()
@@ -661,7 +647,7 @@ class OMOOFederate:
         self.destroy()
 
     def destroy(self):
-        """Finalize and destroy the federates"""
+        """Finalize and destroy the federates."""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
 
