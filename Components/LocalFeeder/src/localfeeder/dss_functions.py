@@ -17,7 +17,7 @@ def get_loads(dss, circuit):
             "PF": load.PF(),
             "Delta_conn": load.IsDelta(),
         }
-        _ = circuit.SetActiveElement("Load.%s" % datum["name"])
+        _ = circuit.SetActiveElement(f"Load.{datum['name']}")
         cktElement = dss.CktElement
         buses = cktElement.BusNames()
         bus = buses[0].split(".")
