@@ -1,3 +1,4 @@
+# This reusable workflow is intended for use by submodules, not for the components within this repository.
 name: Reusable Lint and Format
 
 on:

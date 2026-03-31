@@ -41,11 +41,7 @@ jobs:
         sed -i 's/kVA=50/kVA=200/g; s/Pmpp=50/Pmpp=200/g' Components/LocalFeeder/opendss/IEEE123Pv.dss
         oedisi build --system scenarios/omoo_system.json
         oedisi run
-        if [[ -f opf_analysis.py ]]; then
-          python opf_analysis.py
-        else
-          echo "opf_analysis.py not found; skipping analysis step"
-        fi
+        python opf_analysis.py
     - name: Archive logs
       uses: actions/upload-artifact@v4
       if: always()

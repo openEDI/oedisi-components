@@ -56,7 +56,7 @@ async def sensor():
         time.sleep(1)
         logging.info(f"waiting {sensor_path}")
     logging.info("success")
-    data = json.load(open(sensor_path, "r"))
+    data = json.load(open(sensor_path))
     return data
 
 
@@ -141,10 +141,10 @@ async def configure(component_struct: ComponentStruct):
     return JSONResponse(response, 200)
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
-
-
 def main():
     """Entry point for localfeeder-server console script."""
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5678")))
+
+
+if __name__ == "__main__":
+    main()

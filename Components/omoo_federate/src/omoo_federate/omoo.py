@@ -12,7 +12,6 @@ import time
 import warnings
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Union
 
 import helics as h
 import numpy as np
@@ -56,18 +55,18 @@ def measurement_to_xarray(eq: MeasurementArray):
     return xr.DataArray(eq.values, coords={"ids": eq.ids})
 
 
-def matrix_to_numpy(admittance: List[List[Complex]]):
-    "Convert list of list of our Complex type into a numpy matrix"
+def matrix_to_numpy(admittance: list[list[Complex]]):
+    """Convert list of list of our Complex type into a numpy matrix"""
     return np.array([[x[0] + 1j * x[1] for x in row] for row in admittance])
 
 
 def get_indices(topology, measurement):
-    "Get list of indices in the topology for each index of the input measurement"
+    """Get list of indices in the topology for each index of the input measurement"""
     inv_map = {v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)}
     return [inv_map[v] for v in measurement.ids]
 
 
-def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str]):
+def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
     if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
@@ -136,8 +135,8 @@ def Proj_inverter(xt, yt, Ux, Sx):
 
     else:  # theta_t is current p, q angle
         if abs(theta_t) > theta:
-            x2 = xt * Sx / cmath.sqrt((xt**2 + yt**2))
-            y2 = yt * Sx / cmath.sqrt((xt**2 + yt**2))
+            x2 = xt * Sx / cmath.sqrt(xt**2 + yt**2)
+            y2 = yt * Sx / cmath.sqrt(xt**2 + yt**2)
 
         if abs(theta_t) <= theta:
             if np.abs(yt) > cmath.sqrt(Sx**2 - Ux**2):
@@ -279,7 +278,7 @@ class OMOOParameters(BaseModel):
     nu: float = 0.016
     ratio_t_k: int = 1000
     units: UnitSystem = UnitSystem.PER_UNIT
-    base_power: Optional[float] = 100.0
+    base_power: float | None = 100.0
 
 
 def getLinearModel(YLL, YL0, V0):
@@ -450,10 +449,10 @@ class OMOO:
 
 
 class OMOOFederate:
-    "OMOO federate. Wraps optimal_pf with pubs and subs"
+    """OMOO federate. Wraps optimal_pf with pubs and subs"""
 
     def __init__(self, federate_name, algorithm_parameters, input_mapping):
-        "Initializes federate with name and remaps input into subscriptions"
+        """Initializes federate with name and remaps input into subscriptions"""
         deltat = 0.1
 
         self.algorithm_parameters = algorithm_parameters
@@ -494,7 +493,7 @@ class OMOOFederate:
         logger.debug(algorithm_parameters)
 
     def run(self):
-        "Enter execution and exchange data"
+        """Enter execution and exchange data"""
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
 
@@ -662,7 +661,7 @@ class OMOOFederate:
         self.destroy()
 
     def destroy(self):
-        "Finalize and destroy the federates"
+        """Finalize and destroy the federates"""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
 

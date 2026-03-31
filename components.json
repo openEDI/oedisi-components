@@ -5,5 +5,5 @@
     "StateEstimatorComponent": "Components/wls_federate/component_definition.json",
     "OMOOComponent": "Components/omoo_federate/component_definition.json",
     "Feeder": "Components/LocalFeeder/component_definition.json",
-    "OptimalPowerFlow": "Components/lindistflow_federate/component_definition.json"
+    "LinDistFlowComponent": "Components/lindistflow_federate/component_definition.json"
 }

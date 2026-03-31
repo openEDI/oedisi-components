@@ -65,7 +65,7 @@
         },
         {
             "name": "lindistflow",
-            "type": "OptimalPowerFlow",
+            "type": "LinDistFlowComponent",
             "parameters": {
                 "deltat": 0.1,
                 "pf_flag": true,

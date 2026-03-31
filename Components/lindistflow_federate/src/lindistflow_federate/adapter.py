@@ -1,6 +1,5 @@
 import logging
 from enum import IntEnum
-from typing import Tuple
 
 import numpy as np
 from oedisi.types.data_types import (
@@ -44,7 +43,7 @@ def init_bus() -> dict:
     return bus
 
 
-def index_info(branch: dict, bus: dict) -> Tuple[dict, dict]:
+def index_info(branch: dict, bus: dict) -> tuple[dict, dict]:
     for i, name in enumerate(bus):
         bus[name]["idx"] = i
 
@@ -64,7 +63,7 @@ def index_info(branch: dict, bus: dict) -> Tuple[dict, dict]:
 
 
 def extract_voltages(bus: dict, voltages: VoltagesMagnitude) -> dict:
-    for id, voltage in zip(voltages.ids, voltages.values):
+    for id, voltage in zip(voltages.ids, voltages.values, strict=False):
         [name, _] = id.split(".")
 
         if name not in bus:
@@ -91,7 +90,7 @@ def pack_voltages(voltages: dict, time: int) -> VoltagesMagnitude:
 
 
 def extract_powers(bus: dict, real: PowersReal, imag: PowersImaginary) -> dict:
-    for id, eq, power in zip(real.ids, real.equipment_ids, real.values):
+    for id, eq, power in zip(real.ids, real.equipment_ids, real.values, strict=False):
         [name, phase] = id.split(".")
 
         if name not in bus:
@@ -106,7 +105,7 @@ def extract_powers(bus: dict, real: PowersReal, imag: PowersImaginary) -> dict:
             bus[name]["eqid"] = eq
             bus[name]["pq"][phase][0] = -power * 1000
 
-    for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values):
+    for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values, strict=False):
         [name, phase] = id.split(".")
 
         if name not in bus:
@@ -127,7 +126,7 @@ def extract_injection(bus: dict, powers: Injection) -> dict:
     real = powers.power_real
     imag = powers.power_imaginary
 
-    for id, eq, power in zip(real.ids, real.equipment_ids, real.values):
+    for id, eq, power in zip(real.ids, real.equipment_ids, real.values, strict=False):
         [name, phase] = id.split(".")
 
         if name not in bus:
@@ -145,7 +144,7 @@ def extract_injection(bus: dict, powers: Injection) -> dict:
             bus[name]["eqid"] = eq
             bus[name]["pq"][phase][0] = -power * 1000
 
-    for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values):
+    for id, eq, power in zip(imag.ids, imag.equipment_ids, imag.values, strict=False):
         [name, phase] = id.split(".")
 
         if name not in bus:
@@ -164,14 +163,14 @@ def extract_injection(bus: dict, powers: Injection) -> dict:
     return bus
 
 
-def extract_info(topology: Topology) -> Tuple[dict, dict]:
+def extract_info(topology: Topology) -> tuple[dict, dict]:
     branch_info = {}
     bus_info = {}
     from_equip = topology.admittance.from_equipment
     to_equip = topology.admittance.to_equipment
     admittance = topology.admittance.admittance_list
 
-    for fr_eq, to_eq, y in zip(from_equip, to_equip, admittance):
+    for fr_eq, to_eq, y in zip(from_equip, to_equip, admittance, strict=False):
         [from_name, from_phase] = fr_eq.split(".")
         type = "LINE"
         if from_name.find("OPEN") != -1:

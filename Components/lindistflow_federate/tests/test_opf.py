@@ -43,13 +43,3 @@ class TestLinDistFlowOptimization:
         # Basic import test
         assert EchoFederate is not None
         assert hasattr(EchoFederate, "__init__")
-
-
-# TODO: Add comprehensive tests for:
-# - Linear distflow algorithm (lindistflow.py)
-# - Three-phase power flow calculations
-# - Adapter functions (adapter.py)
-# - Optimization with cvxpy
-# - Network graph operations with networkx
-# - Area/zone management (area.py)
-# - Integration with HELICS

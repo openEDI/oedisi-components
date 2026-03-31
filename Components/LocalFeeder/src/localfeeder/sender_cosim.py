@@ -4,7 +4,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 import helics as h
 import numpy as np
@@ -41,7 +41,7 @@ def numpy_to_y_matrix(array: npt.NDArray[np.complex64]):
     return [[(element.real, element.imag) for element in row] for row in array]
 
 
-def sparse_to_admittance_sparse(array: coo_matrix, unique_ids: List[str]):
+def sparse_to_admittance_sparse(array: coo_matrix, unique_ids: list[str]):
     """Convert coo sparse array to AdmittanceSparse type."""
     return AdmittanceSparse(
         from_equipment=[unique_ids[i] for i in array.row],
@@ -74,18 +74,18 @@ def xarray_to_powers(data, **kwargs):
 def concat_measurement_arrays(*ps: MeasurementArray):
     """Concatenate list of measurements into one."""
     accuracy = None
-    if all((p.accuracy is not None for p in ps)):
+    if all(p.accuracy is not None for p in ps):
         accuracy = [e for p in ps for e in p.accuracy]
 
     assert all(ps[0].units == p.units for p in ps)
 
     bad_data_threshold = None
-    if all((p.bad_data_threshold is not None for p in ps)):
+    if all(p.bad_data_threshold is not None for p in ps):
         bad_data_threshold = [e for p in ps for e in p.bad_data_threshold]
 
     assert all(ps[0].time == p.time for p in ps)
 
-    if all((isinstance(p, EquipmentNodeArray) for p in ps)):
+    if all(isinstance(p, EquipmentNodeArray) for p in ps):
         equipment_ids = [e for p in ps for e in p.equipment_ids]
 
         return ps[0].__class__(
@@ -251,7 +251,7 @@ def where_power_unbalanced(PQ_injections_all, calculated_power, tol=1):
 def go_cosim(
     sim: FeederSimulator,
     config: FeederConfig,
-    input_mapping: Dict[str, str],
+    input_mapping: dict[str, str],
     broker_config: BrokerConfig,
 ):
     """Run HELICS federate with FeederSimulation.

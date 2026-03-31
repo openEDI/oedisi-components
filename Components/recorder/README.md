@@ -104,15 +104,6 @@ Both files contain the same data with columns:
 - `{subscription_2}` - Second subscribed variable
 - ... (one column per subscription)
 
-### Feather Format Benefits
-
-Apache Feather format provides:
-- **Fast I/O**: 10-100x faster than CSV
-- **Compact**: Efficient columnar compression
-- **Type-safe**: Preserves data types exactly
-- **Cross-language**: Readable by Python, R, Julia, etc.
-- **Memory-efficient**: Optimized for DataFrame operations
-
 ## Testing
 
 Run tests from the component directory:
@@ -153,38 +144,6 @@ Type checking:
 mypy .
 ```
 
-### File Structure
-
-```
-recorder/
-├── __init__.py              # Package initialization
-├── record_subscription.py   # Main Recorder class (132 lines)
-├── server.py                # FastAPI REST server
-├── component_definition.json
-├── pyproject.toml
-├── requirements.txt
-├── pytest.ini
-├── mypy.ini
-└── tests/
-    ├── __init__.py
-    └── test_recorder.py
-```
-
-## Use Cases
-
-1. **Results Analysis**: Record simulation outputs for post-processing
-2. **Validation**: Capture data for algorithm validation
-3. **Visualization**: Export data for plotting and analysis tools
-4. **Archival**: Store simulation results efficiently
-5. **Comparison**: Compare results across simulation runs
-
-## Performance Considerations
-
-- **Memory**: Data is accumulated in memory during simulation, written at end
-- **Subscriptions**: More subscriptions = more memory usage
-- **Time steps**: Longer simulations = more data points
-- **Feather vs CSV**: Feather is much faster for large datasets
-
 ## Docker
 
 Build the Docker image:
@@ -201,4 +160,4 @@ Mount a volume for output files to persist data.
 
 ## License
 
-MIT License - see [LICENSE.md](../../LICENSE.md) for details.
+BSD 3-Clause License - see [LICENSE.md](../../LICENSE.md) for details.

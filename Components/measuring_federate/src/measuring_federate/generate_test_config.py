@@ -1,5 +1,4 @@
 from random import sample, seed
-from typing import List
 
 from pydantic import BaseModel
 
@@ -212,9 +211,9 @@ class MeasurementConfig(BaseModel):
     name: str
     additive_noise_stddev: float
     multiplicative_noise_stddev: float
-    voltage_ids: List[str]
-    real_power_ids: List[str]
-    reactive_power_ids: List[str]
+    voltage_ids: list[str]
+    real_power_ids: list[str]
+    reactive_power_ids: list[str]
 
 
 if __name__ == "__main__":

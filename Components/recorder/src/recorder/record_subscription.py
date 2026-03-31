@@ -71,7 +71,8 @@ class Recorder:
                 json_data["time"] = granted_time
                 measurement = MeasurementArray(**self.sub.json)
                 measurement_dict = {
-                    key: value for key, value in zip(measurement.ids, measurement.values)
+                    key: value
+                    for key, value in zip(measurement.ids, measurement.values, strict=False)
                 }
                 measurement_dict["time"] = measurement.time.strftime("%Y-%m-%d %H:%M:%S")
                 logger.debug(measurement.time)

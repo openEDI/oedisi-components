@@ -8,9 +8,9 @@ version = "0.1.0"
 description = "OEDISI OMOO Federate - Online Model-based Optimal Operation for distribution systems"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = {text = "BSD-3-Clause"}
 authors = [
-    {name = "McKinsey, Joseph", email = "Joseph.McKinsey@nlr.gov"}
+    {name = "Alliance for Sustainable Energy, LLC"}
 ]
 keywords = ["oedisi", "helics", "omoo", "optimal-operation", "power-distribution"]
 
@@ -34,8 +34,7 @@ dev = [
     "pytest-asyncio>=0.21",
     "httpx>=0.24",
     "mypy>=0.981",
-    "black>=23.0",
-    "isort>=5.9",
+    "ruff>=0.7.0",
 ]
 
 [project.scripts]

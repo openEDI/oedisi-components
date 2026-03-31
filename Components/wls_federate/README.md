@@ -170,43 +170,6 @@ wls_federate/
 ├── state_estimator_federate.py # Main WLS implementation (389 lines)
 ├── server.py                  # FastAPI REST server
 ├── component_definition.json
-├── pyproject.toml
-├── requirements.txt
-├── pytest.ini
-├── mypy.ini
-├── .gitignore
-└── tests/
-    ├── __init__.py
-    ├── test_state_estimator.py (530 lines)
-    ├── make_test_data.py
-    ├── ieee123data/
-    └── small_smartds_*_v1.0.0/
-```
-
-## Performance Considerations
-
-### Sparse Matrices
-
-For large power systems, the Jacobian matrix H is sparse:
-- Use `scipy.sparse` for efficient storage
-- Sparse solvers reduce computational complexity
-- Memory usage: O(n) instead of O(n²)
-
-### Convergence
-
-- **Initial Guess**: Flat start (V=1.0∠0°) usually sufficient
-- **Iterations**: Typically 3-5 iterations for convergence
-- **Bad Data**: Large residuals indicate measurement errors
-- **Ill-conditioning**: May occur with poor measurement placement
-
-## Use Cases
-
-1. **State Estimation**: Estimate system state from measurements
-2. **Observability Analysis**: Determine if system is observable
-3. **Bad Data Detection**: Identify faulty sensors
-4. **Sensor Placement**: Optimize sensor locations
-5. **Real-time Monitoring**: Track system state during operation
-
 ## References
 
 - Classical WLS state estimation for power systems
@@ -228,4 +191,4 @@ docker run -p 5683:5683 -e PORT=5683 oedisi-wls-federate
 
 ## License
 
-MIT License - see [LICENSE.md](../../LICENSE.md) for details.
+BSD 3-Clause License - see [LICENSE.md](../../LICENSE.md) for details.

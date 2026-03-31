@@ -21,7 +21,7 @@ TAG = os.environ["RELEASE_TAG"]
 def collect_components():
     # Simulate collecting components
     print("Collecting components...")
-    components = json.load(open("components.json", "r"))  # Load components from a JSON file
+    components = json.load(open("components.json"))  # Load components from a JSON file
     for component_name, component_path in components.items():
         try:
             print(f"Building image for component {component_name}...")
@@ -107,7 +107,7 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
         print(f"An unexpected error occurred: {e}")
         email_msg += f"An unexpected error occurred: {e}"
 
-    for name, email in zip(author_names, author_emails):
+    for name, email in zip(author_names, author_emails, strict=False):
         if not email:
             print(f"Skipping author '{name}' - no email available")
             continue
@@ -144,5 +144,5 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
 
 
 if __name__ == "__main__":
-    os.system("docker login -u {} -p {}".format(DOCKERHUB_USERNAME_AL, DOCKERHUB_API_KEY_AL))
+    os.system(f"docker login -u {DOCKERHUB_USERNAME_AL} -p {DOCKERHUB_API_KEY_AL}")
     collect_components()

@@ -22,7 +22,7 @@ class MeasurementConfig(BaseModel):
 
 
 def get_indices(labelled_array, indices):
-    "Get list of indices in the topology for each index of the labelled array"
+    """Get list of indices in the topology for each index of the labelled array"""
     inv_map = {v: i for i, v in enumerate(indices)}
     return [inv_map[v] for v in labelled_array.ids]
 
@@ -120,7 +120,7 @@ class MeasurementRelay:
             else:
                 measurement = MeasurementArray.model_validate(json_data)
 
-            with open(self.measurement_file, "r") as fp:
+            with open(self.measurement_file) as fp:
                 self.measurement = json.load(fp)
             measurement_transformed = self.transform(measurement, self.measurement)
             logger.debug("measured transformed")

@@ -46,18 +46,18 @@ class EchoFederate:
 
     def load_component_definition(self) -> None:
         path = Path(__file__).parent / "component_definition.json"
-        with open(path, "r", encoding="UTF-8") as file:
+        with open(path, encoding="UTF-8") as file:
             self.component_config = json.load(file)
 
     def load_input_mapping(self):
         path = Path(__file__).parent / "input_mapping.json"
-        with open(path, "r", encoding="UTF-8") as file:
+        with open(path, encoding="UTF-8") as file:
             self.inputs = json.load(file)
 
     def load_static_inputs(self):
         self.static = StaticConfig()
         path = Path(__file__).parent / "static_inputs.json"
-        with open(path, "r", encoding="UTF-8") as file:
+        with open(path, encoding="UTF-8") as file:
             config = json.load(file)
 
         self.static.name = config["name"]

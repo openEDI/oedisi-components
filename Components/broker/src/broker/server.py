@@ -266,12 +266,10 @@ async def status():
         return {"reply": str(e), "error": True}
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
-    # test_function()
-    # read_settings()
-
-
 def main():
     """Entry point for broker-server console script."""
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8766")))
+
+
+if __name__ == "__main__":
+    main()

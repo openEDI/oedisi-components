@@ -71,7 +71,7 @@ class TestNoiseInjection:
 # TODO: Add comprehensive tests for:
 # - Additive noise injection with various parameters
 # - Multiplicative noise injection
-# - Combined additive and multiplicative noise
-# - Measurement relay with actual HELICS subscriptions
+# - Noise injection with various parameters
 # - Statistical properties of generated noise
-# - Integration with different measurement types
+# - Integration with HELICS subscriptions
+# - Measurement types

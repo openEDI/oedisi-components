@@ -35,11 +35,14 @@
         },
         {
             "name": "optimal_pf",
-            "type": "OptimalPowerFlow",
+            "type": "OMOOComponent",
             "parameters": {
-                "deltat": 0.1,
-                "pf_flag": true,
-                "control_type": 2
+                "algorithm_parameters": {
+                    "Vmax": 1.05,
+                    "Vmin": 0.95,
+                    "alpha": 0.5,
+                    "nu": 0.016
+                }
             }
         },
         {
@@ -164,9 +167,27 @@
         },
         {
             "source": "local_feeder",
-            "source_port": "voltages_magnitude",
+            "source_port": "voltages_real",
             "target": "optimal_pf",
-            "target_port": "voltages_magnitude"
+            "target_port": "voltages_real"
+        },
+        {
+            "source": "local_feeder",
+            "source_port": "voltages_imag",
+            "target": "optimal_pf",
+            "target_port": "voltages_imag"
+        },
+        {
+            "source": "local_feeder",
+            "source_port": "powers_real",
+            "target": "optimal_pf",
+            "target_port": "powers_real"
+        },
+        {
+            "source": "local_feeder",
+            "source_port": "powers_imag",
+            "target": "optimal_pf",
+            "target_port": "powers_imag"
         },
         {
             "source": "local_feeder",
@@ -175,10 +196,16 @@
             "target_port": "injections"
         },
         {
+            "source": "local_feeder",
+            "source_port": "available_power",
+            "target": "optimal_pf",
+            "target_port": "available_power"
+        },
+        {
             "source": "optimal_pf",
-            "source_port": "change_commands",
+            "source_port": "P_set",
             "target": "local_feeder",
-            "target_port": "change_commands"
+            "target_port": "pv_set"
         }
     ]
 }

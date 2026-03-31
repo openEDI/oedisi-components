@@ -146,20 +146,6 @@ broker/
 │   └── broker/
 │       ├── __init__.py     # Package initialization
 │       └── server.py       # Main FastAPI application (279 lines)
-├── tests/
-│   ├── __init__.py
-│   └── test_broker.py
-├── pyproject.toml
-├── requirements.txt
-├── pytest.ini
-├── mypy.ini
-├── .gitignore
-├── Dockerfile
-└── README.md
-```
-
-The component uses the standard **src-layout** structure, ensuring clean separation between source code and tests.
-
 ## Docker
 
 Build the Docker image:
@@ -174,4 +160,4 @@ docker run -p 8766:8766 -e PORT=8766 oedisi-broker
 
 ## License
 
-MIT License - see [LICENSE.md](../../LICENSE.md) for details.
+BSD 3-Clause License - see [LICENSE.md](../../LICENSE.md) for details.

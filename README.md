@@ -121,19 +121,17 @@ pre-commit install
 
 1. Install component dependencies. You can either:
 
-   **Option A: Install from repository** (recommended for development)
+   **Option A: Install all components in editable mode** (recommended for developers)
    ```bash
-   pip install -e Components/broker -e Components/lindistflow_federate -e Components/LocalFeeder \
-               -e Components/measuring_federate -e Components/omoo_federate \
-               -e Components/recorder -e Components/wls_federate
+   pip install -e Components/broker \
+               -e Components/LocalFeeder \
+               -e Components/measuring_federate \
+               -e Components/recorder \
+               -e Components/wls_federate
    ```
 
-   **Option B: Install from requirements.txt** (legacy method)
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. Install development tools (optional):
+3. **Verify Installation**
+ development tools (optional):
    ```bash
    pip install pytest mypy black isort flake8 pydocstyle pre-commit
    ```
@@ -233,7 +231,6 @@ Components/{component}/
 │   ├── __init__.py
 │   └── test_*.py
 ├── pyproject.toml               # Modern Python packaging (PEP 621)
-├── requirements.txt             # Legacy dependency specification
 ├── README.md                    # Comprehensive component documentation
 ├── pytest.ini                   # Test configuration
 ├── mypy.ini                     # Type checking configuration

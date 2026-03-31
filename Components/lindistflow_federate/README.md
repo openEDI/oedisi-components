@@ -151,26 +151,6 @@ Type checking:
 mypy .
 ```
 
-### File Structure
-
-```
-lindistflow_federate/
-├── __init__.py           # Package initialization
-├── opf_federate.py       # Main EchoFederate class
-├── lindistflow.py        # Linear distflow algorithm (945 lines)
-├── adapter.py            # Data conversion and interface (232 lines)
-├── area.py               # Zone/area management (157 lines)
-├── server.py             # FastAPI REST server
-├── component_definition.json
-├── pyproject.toml
-├── requirements.txt
-├── pytest.ini
-├── mypy.ini
-└── tests/
-    ├── __init__.py
-    └── test_opf.py
-```
-
 ## Docker
 
 Build the Docker image:
@@ -191,4 +171,4 @@ docker run -p 5000:5000 -e PORT=5000 oedisi-lindistflow
 
 ## License
 
-MIT License - see [LICENSE.md](../../LICENSE.md) for details.
+BSD 3-Clause License - see [LICENSE.md](../../LICENSE.md) for details.

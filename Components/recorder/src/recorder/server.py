@@ -68,10 +68,10 @@ async def configure(component_struct: ComponentStruct):
     return JSONResponse(response, 200)
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ["PORT"]))
-
-
 def main():
     """Entry point for recorder-server console script."""
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "5679")))
+
+
+if __name__ == "__main__":
+    main()

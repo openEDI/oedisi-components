@@ -1,4 +1,5 @@
-import os
+import shutil
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -20,8 +21,6 @@ from wls_federate.state_estimator_federate import (
     residual,
 )
 
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 @pytest.fixture()
 def parameters():
@@ -29,69 +28,82 @@ def parameters():
 
 
 @pytest.fixture()
-def ieee123data():
-    return os.path.join(TEST_DIR, "ieee123data")
+def ieee123data(tmp_path):
+    source = Path(__file__).parent / "ieee123data"
+    dest = tmp_path / "ieee123data"
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    return str(dest)
 
 
 @pytest.fixture()
-def small_smartds_no_tap_time_3():
-    return os.path.join(TEST_DIR, "small_smartds_no_tap_time_3")
+def small_smartds_no_tap_time_3(tmp_path):
+    source = Path(__file__).parent / "small_smartds_no_tap_time_3"
+    dest = tmp_path / "small_smartds_no_tap_time_3"
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    return str(dest)
 
 
 @pytest.fixture()
-def small_smartds_no_tap_time_40():
-    return os.path.join(TEST_DIR, "small_smartds_no_tap_time_40")
+def small_smartds_no_tap_time_40(tmp_path):
+    source = Path(__file__).parent / "small_smartds_no_tap_time_40"
+    dest = tmp_path / "small_smartds_no_tap_time_40"
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    return str(dest)
 
 
 @pytest.fixture()
-def small_smartds_tap_time_3():
-    return os.path.join(TEST_DIR, "small_smartds_tap_time_3")
+def small_smartds_tap_time_3(tmp_path):
+    source = Path(__file__).parent / "small_smartds_tap_time_3"
+    dest = tmp_path / "small_smartds_tap_time_3"
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    return str(dest)
 
 
 @pytest.fixture()
-def small_smartds_tap_time_40():
-    return os.path.join(TEST_DIR, "small_smartds_tap_time_3")
+def small_smartds_tap_time_40(tmp_path):
+    source = Path(__file__).parent / "small_smartds_tap_time_40"
+    dest = tmp_path / "small_smartds_tap_time_40"
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    return str(dest)
 
 
-INPUT_DATA = list(
-    map(
-        lambda x: os.path.join(TEST_DIR, x),
-        [
-            "ieee123data",
-            "small_smartds_no_tap_time_3",
-            "small_smartds_no_tap_time_40",
-            "small_smartds_tap_time_3",
-            "small_smartds_tap_time_40",
-        ],
-    )
-)
+DATA_NAMES = [
+    "ieee123data",
+    "small_smartds_no_tap_time_3",
+    "small_smartds_no_tap_time_40",
+    "small_smartds_tap_time_3",
+    "small_smartds_tap_time_40",
+]
 
 
 def get_topology(directory):
-    with open(os.path.join(directory, "topology.json")) as f:
+    with open(Path(directory) / "topology.json") as f:
         return Topology.model_validate_json(f.read())
 
 
 def get_measurements(directory):
-    with open(os.path.join(directory, "power_real.json")) as f:
+    with open(Path(directory) / "power_real.json") as f:
         power_real = PowersReal.model_validate_json(f.read())
-    with open(os.path.join(directory, "power_imag.json")) as f:
+    with open(Path(directory) / "power_imag.json") as f:
         power_imag = PowersImaginary.model_validate_json(f.read())
-    with open(os.path.join(directory, "voltage_magnitude.json")) as f:
+    with open(Path(directory) / "voltage_magnitude.json") as f:
         voltage_mag = VoltagesMagnitude.model_validate_json(f.read())
     return (power_real, power_imag, voltage_mag)
 
 
 @pytest.fixture()
-def sparse_topology():
-    with open(os.path.join(TEST_DIR, "ieee123data", "sparse_topology.json")) as f:
+def sparse_topology(tmp_path):
+    source = Path(__file__).parent / "ieee123data" / "sparse_topology.json"
+    dest = tmp_path / "sparse_topology.json"
+    shutil.copy(source, dest)
+    with open(dest) as f:
         return Topology.model_validate_json(f.read())
 
 
 def get_actuals(directory):
-    with open(os.path.join(directory, "voltage_real.json")) as f:
+    with open(Path(directory) / "voltage_real.json") as f:
         voltage_real = VoltagesReal.model_validate_json(f.read())
-    with open(os.path.join(directory, "voltage_imaginary.json")) as f:
+    with open(Path(directory) / "voltage_imaginary.json") as f:
         voltage_imag = VoltagesImaginary.model_validate_json(f.read())
     return (voltage_real, voltage_imag)
 
@@ -181,8 +193,12 @@ def test_residual_sparse(parameters, sparse_topology, ieee123data):
     assert not isinstance(h, np.matrix), f"h has type {type(h)}"
 
 
-@pytest.mark.parametrize("input_data", INPUT_DATA)
-def test_residuals_against_actuals(parameters, input_data):
+@pytest.mark.parametrize("input_data", DATA_NAMES)
+def test_residuals_against_actuals(parameters, input_data, tmp_path):
+    source = Path(__file__).parent / input_data
+    dest = tmp_path / input_data
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    input_data = str(dest)
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
@@ -259,8 +275,12 @@ def get_mean_angle_error(topology, solution, actuals):
     return np.abs(np.angle(estimated_voltage * true_voltage.conj())).mean()
 
 
-@pytest.mark.parametrize("input_data", INPUT_DATA)
-def test_least_squares_call(parameters, input_data):
+@pytest.mark.parametrize("input_data", DATA_NAMES)
+def test_least_squares_call(parameters, input_data, tmp_path):
+    source = Path(__file__).parent / input_data
+    dest = tmp_path / input_data
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    input_data = str(dest)
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
@@ -362,8 +382,12 @@ def test_least_squares_call_sparse(parameters, sparse_topology, ieee123data):
     ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
-@pytest.mark.parametrize("input_data", INPUT_DATA)
-def test_least_squares_with_perfect_initalization(parameters, input_data):
+@pytest.mark.parametrize("input_data", DATA_NAMES)
+def test_least_squares_with_perfect_initalization(parameters, input_data, tmp_path):
+    source = Path(__file__).parent / input_data
+    dest = tmp_path / input_data
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    input_data = str(dest)
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
@@ -400,8 +424,12 @@ def test_least_squares_with_perfect_initalization(parameters, input_data):
     ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
-@pytest.mark.parametrize("input_data", INPUT_DATA)
-def test_wls_agreement_with_yuqi(parameters, input_data):
+@pytest.mark.parametrize("input_data", DATA_NAMES)
+def test_wls_agreement_with_yuqi(parameters, input_data, tmp_path):
+    source = Path(__file__).parent / input_data
+    dest = tmp_path / input_data
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    input_data = str(dest)
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
@@ -456,8 +484,12 @@ def test_wls_agreement_with_yuqi(parameters, input_data):
         ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
-@pytest.mark.parametrize("input_data", INPUT_DATA)
-def test_mean_absolute_error_least_squares(parameters, input_data):
+@pytest.mark.parametrize("input_data", DATA_NAMES)
+def test_mean_absolute_error_least_squares(parameters, input_data, tmp_path):
+    source = Path(__file__).parent / input_data
+    dest = tmp_path / input_data
+    shutil.copytree(source, dest, dirs_exist_ok=True)
+    input_data = str(dest)
     topology = get_topology(input_data)
     measurements = get_measurements(input_data)
     actuals = get_actuals(input_data)
@@ -497,4 +529,5 @@ def test_mean_absolute_error_least_squares(parameters, input_data):
     mean_angle_error = np.mean(np.abs(np.angle(true_voltage * estimate_voltage.conj())))
 
     assert mean_mag_error < 0.05, f"Max relative error too high: {mean_mag_error}"
+    # Note: 0.05 tolerance is required for reliable passing with current stochastic noise levels
     assert mean_angle_error < 0.05, f"Max angle error too high: {mean_angle_error}"

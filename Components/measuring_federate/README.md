@@ -80,9 +80,10 @@ The server runs on port 5684 (configurable via `PORT` environment variable).
 
 The `MeasurementConfig` model accepts:
 - `name`: Sensor identifier
-- `seed`: Random seed for reproducibility
+- `measurement_file`: Path to the measurement mapping JSON file
 - `additive_noise_stddev`: Standard deviation for additive noise
 - `multiplicative_noise_stddev`: Standard deviation for multiplicative noise (as fraction)
+- `run_freq_time_step`: Frequency of simulation time steps (default: 1.0)
 
 Example configuration:
 ```python
@@ -90,9 +91,10 @@ from measuring_federate import MeasurementConfig
 
 config = MeasurementConfig(
     name="voltage_sensor_1",
-    seed=42,
+    measurement_file="sensors.json",
     additive_noise_stddev=0.01,      # ±0.01 units
-    multiplicative_noise_stddev=0.005 # ±0.5%
+    multiplicative_noise_stddev=0.005, # ±0.5%
+    run_freq_time_step=1.0
 )
 ```
 
@@ -116,7 +118,7 @@ from measuring_federate import MeasurementRelay, MeasurementConfig
 # Create configuration
 config = MeasurementConfig(
     name="sensor",
-    seed=123,
+    measurement_file="sensors.json",
     additive_noise_stddev=0.02,
     multiplicative_noise_stddev=0.01
 )
@@ -167,28 +169,6 @@ mypy .
 ### File Structure
 
 ```
-measuring_federate/
-├── __init__.py              # Package initialization
-├── measuring_federate.py    # Main MeasurementRelay class (162 lines)
-├── generate_test_config.py  # Configuration generator (234 lines)
-├── server.py                # FastAPI REST server
-├── component_definition.json
-├── pyproject.toml
-├── requirements.txt
-├── pytest.ini
-├── mypy.ini
-└── tests/
-    ├── __init__.py
-    └── test_measuring_federate.py
-```
-
-## Use Cases
-
-1. **State Estimation Testing**: Evaluate state estimator robustness to measurement noise
-2. **Sensor Placement Studies**: Understand impact of sensor accuracy on estimation quality
-3. **Bad Data Detection**: Test algorithms that identify faulty sensors
-4. **Uncertainty Quantification**: Propagate measurement uncertainty through analysis
-
 ## Docker
 
 Build the Docker image:
@@ -203,4 +183,4 @@ docker run -p 5684:5684 -e PORT=5684 oedisi-measuring-federate
 
 ## License
 
-MIT License - see [LICENSE.md](../../LICENSE.md) for details.
+BSD 3-Clause License - see [LICENSE.md](../../LICENSE.md) for details.

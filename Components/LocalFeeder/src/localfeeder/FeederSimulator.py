@@ -9,7 +9,6 @@ import random
 import time
 from enum import Enum
 from time import strptime
-from typing import Dict, List, Optional, Set, Tuple
 
 import boto3
 import numpy as np
@@ -62,16 +61,16 @@ class FeederConfig(BaseModel):
     user_uploads_model: bool = False
     profile_location: str
     opendss_location: str
-    existing_feeder_file: Optional[str] = None
-    sensor_location: Optional[str] = None
+    existing_feeder_file: str | None = None
+    sensor_location: str | None = None
     start_date: str
     number_of_timesteps: int
     run_freq_sec: float = 15 * 60
     start_time_index: int = 0
     topology_output: str = "topology.json"
     use_sparse_admittance: bool = False
-    tap_setting: Optional[int] = None
-    open_lines: Optional[List[str]] = None
+    tap_setting: int | None = None
+    open_lines: list[str] | None = None
 
 
 # Open Lines:
@@ -84,7 +83,7 @@ class FeederConfig(BaseModel):
 
 class FeederMapping(BaseModel):
     static_inputs: FeederConfig
-    input_mapping: Dict[str, str]
+    input_mapping: dict[str, str]
 
 
 class OpenDSSState(Enum):
@@ -99,19 +98,19 @@ class OpenDSSState(Enum):
     DISABLED = 7
 
 
-class FeederSimulator(object):
+class FeederSimulator:
     """A simple class that handles publishing the solar forecast."""
 
     # Private variables initialized later
     _feeder_file: str
-    _AllNodeNames: List[str]
-    _source_indexes: List[int]
-    _nodes_index: List[int]
-    _name_index_dict: Dict[str, int]
-    _inverter_to_pvsystems: Dict[str, Set[str]]
-    _pvsystem_to_inverter: Dict[str, str]
-    _pvsystems: Set[str]
-    _inverters: Set[str]
+    _AllNodeNames: list[str]
+    _source_indexes: list[int]
+    _nodes_index: list[int]
+    _name_index_dict: dict[str, int]
+    _inverter_to_pvsystems: dict[str, set[str]]
+    _pvsystem_to_inverter: dict[str, str]
+    _pvsystems: set[str]
+    _inverters: set[str]
     _inverter_counter: int
     _xycurve_counter: int
 
@@ -233,7 +232,7 @@ class FeederSimulator(object):
         os.makedirs(os.path.join("profiles"), exist_ok=True)
         if update_loadshape_location:
             all_profiles = set()
-            with open(os.path.join("opendss", "LoadShapes.dss"), "r") as fp_loadshapes:
+            with open(os.path.join("opendss", "LoadShapes.dss")) as fp_loadshapes:
                 for row in fp_loadshapes.readlines():
                     new_row = row.replace("../", "")
                     new_row = new_row.replace("file=", "file=../")
@@ -308,13 +307,13 @@ class FeederSimulator(object):
         """Get node names in order."""
         return self._AllNodeNames
 
-    def get_bus_coords(self) -> Dict[str, Tuple[float, float]] | None:
+    def get_bus_coords(self) -> dict[str, tuple[float, float]] | None:
         """Load bus coordinates from OpenDSS."""
         bus_path = os.path.join(os.path.dirname(self._feeder_file), "Buscoords.dss")
         if not os.path.exists(bus_path):
             self.bus_coords = None
             return self.bus_coords
-        with open(bus_path, "r") as f:
+        with open(bus_path) as f:
             bus_coord_csv = csv.reader(f, delimiter=" ")
             bus_coords = {}
             for row in bus_coord_csv:
@@ -482,9 +481,9 @@ class FeederSimulator(object):
         self._ready_to_load_power(static)
 
         all_node_names = set(self._AllNodeNames)
-        PQs: List[complex] = []
-        node_names: List[str] = []
-        pq_names: List[str] = []
+        PQs: list[complex] = []
+        node_names: list[str] = []
+        pq_names: list[str] = []
         # PQ_load = np.zeros((num_nodes), dtype=np.complex128)
         for ld in get_loads(dss, self._circuit):
             self._circuit.SetActiveElement("Load." + ld["name"])
@@ -514,9 +513,9 @@ class FeederSimulator(object):
         self._ready_to_load_power(static)
 
         all_node_names = set(self._AllNodeNames)
-        PQs: List[complex] = []
-        node_names: List[str] = []
-        pq_names: List[str] = []
+        PQs: list[complex] = []
+        node_names: list[str] = []
+        pq_names: list[str] = []
         for PV in get_pvsystems(dss):
             self._circuit.SetActiveElement("PVSystem." + PV["name"])
             current_pq_name = dss.CktElement.Name()
@@ -545,9 +544,9 @@ class FeederSimulator(object):
         self._ready_to_load_power(static)
 
         all_node_names = set(self._AllNodeNames)
-        PQs: List[complex] = []
-        node_names: List[str] = []
-        pq_names: List[str] = []
+        PQs: list[complex] = []
+        node_names: list[str] = []
+        pq_names: list[str] = []
         for gen in get_generators(dss):
             self._circuit.SetActiveElement("Generator." + gen["name"])
             current_pq_name = dss.CktElement.Name()
@@ -582,9 +581,9 @@ class FeederSimulator(object):
         self._ready_to_load_power(static)
 
         all_node_names = set(self._AllNodeNames)
-        PQs: List[complex] = []
-        node_names: List[str] = []
-        pq_names: List[str] = []
+        PQs: list[complex] = []
+        node_names: list[str] = []
+        pq_names: list[str] = []
         for cap in get_capacitors(dss):
             current_pq_name = cap["name"]
             for i, node_name in enumerate(cap["node_names"]):
@@ -639,7 +638,7 @@ class FeederSimulator(object):
 
         return xr.DataArray(res_feeder_voltages, {"ids": list(name_voltage_dict.keys())})
 
-    def change_obj(self, change_commands: List[Command]):
+    def change_obj(self, change_commands: list[Command]):
         """set/get an object property.
 
         Parameters
@@ -647,7 +646,7 @@ class FeederSimulator(object):
         change_commands: List[Command]
 
 
-        Examples
+        Examples:
         --------
         ``change_obj([Command('PVsystem.pv1','kVAr','25')])``
         """
@@ -665,7 +664,7 @@ class FeederSimulator(object):
             ), f"{entry.obj_property} not in {properties} for {element_name}"
             dss.Text.Command(f"{entry.obj_name}.{entry.obj_property}={entry.val}")
 
-    def create_inverter(self, pvsystem_set: Set[str]):
+    def create_inverter(self, pvsystem_set: set[str]):
         """Create new inverter from set of pvsystem.
 
         Parameters
@@ -674,7 +673,7 @@ class FeederSimulator(object):
              Set of pvsystems to assign to inverter. Currently only 1 or all
              can be added. This cannot be changed or deleted at present.
 
-        Returns
+        Returns:
         -------
         name of inverter with ``InvControl.`` prefix: str
 
@@ -716,7 +715,7 @@ class FeederSimulator(object):
     def create_xy_curve(self, x, y):
         """Create xy curve given two lists or arrays of floats.
 
-        Returns
+        Returns:
         -------
         name : str
         """
@@ -814,7 +813,7 @@ class FeederSimulator(object):
         ----------
         inv_control: InverterControl
 
-        Returns
+        Returns:
         -------
         name of inverter with ``InvControl.`` prefix: str
 

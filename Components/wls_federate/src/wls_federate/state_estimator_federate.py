@@ -11,7 +11,6 @@ is used to solve.
 import json
 import logging
 from datetime import datetime
-from typing import List, Optional, Union
 
 import helics as h
 import numpy as np
@@ -49,7 +48,8 @@ def estimated_pqv(knownP, knownQ, knownV, Y, deltaK, VabsK, num_node):
 def calculate_jacobian(X0, z, num_node, knownP, knownQ, knownV, Y):
     """Calculate the Jacobian matrix for the weighted least squares algorithm.
 
-    Called H in literature."""
+    Called H in literature.
+    """
     deltaK, VabsK = X0[:num_node], X0[num_node:]
     num_knownV = len(knownV)
     # Calculate original H1
@@ -97,7 +97,7 @@ def residual(X0, z, num_node, knownP, knownQ, knownV, Y):
     return z - h
 
 
-def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str]):
+def get_y(admittance: AdmittanceMatrix | AdmittanceSparse, ids: list[str]):
     if isinstance(admittance, AdmittanceMatrix):
         assert ids == admittance.ids
         return matrix_to_numpy(admittance.admittance_matrix)
@@ -114,13 +114,13 @@ def get_y(admittance: Union[AdmittanceMatrix, AdmittanceSparse], ids: List[str])
         )
 
 
-def matrix_to_numpy(admittance: List[List[Complex]]):
-    "Convert list of list of our Complex type into a numpy matrix"
+def matrix_to_numpy(admittance: list[list[Complex]]):
+    """Convert list of list of our Complex type into a numpy matrix"""
     return np.array([[x[0] + 1j * x[1] for x in row] for row in admittance])
 
 
 def get_indices(topology, measurement):
-    "Get list of indices in the topology for each index of the input measurement"
+    """Get list of indices in the topology for each index of the input measurement"""
     inv_map = {v: i for i, v in enumerate(topology.base_voltage_magnitudes.ids)}
     return [inv_map[v] for v in measurement.ids]
 
@@ -129,7 +129,7 @@ class AlgorithmParameters(BaseModel):
     model_config = {"use_enum_values": True}
 
     tol: float = 5e-7
-    base_power: Optional[float] = 100.0
+    base_power: float | None = 100.0
 
 
 def state_estimator(
@@ -225,7 +225,7 @@ def state_estimator(
 
 
 class StateEstimatorFederate:
-    "State estimator federate. Wraps state_estimation with pubs and subs"
+    """State estimator federate. Wraps state_estimation with pubs and subs"""
 
     def __init__(
         self,
@@ -234,7 +234,7 @@ class StateEstimatorFederate:
         input_mapping,
         broker_config: BrokerConfig,
     ):
-        "Initializes federate with name and remaps input into subscriptions"
+        """Initializes federate with name and remaps input into subscriptions"""
         deltat = 0.1
 
         self.algorithm_parameters = algorithm_parameters
@@ -268,7 +268,7 @@ class StateEstimatorFederate:
         )
 
     def run(self):
-        "Enter execution and exchange data"
+        """Enter execution and exchange data"""
         # Enter execution mode #
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
@@ -284,7 +284,9 @@ class StateEstimatorFederate:
         if not isinstance(topology.admittance, AdmittanceMatrix) and not isinstance(
             topology.admittance, AdmittanceSparse
         ):
-            raise "Weighted Least Squares algorithm expects AdmittanceMatrix/Sparse as input"
+            raise TypeError(
+                "Weighted Least Squares algorithm expects AdmittanceMatrix/Sparse as input"
+            )
 
         for i in range(len(ids)):
             if ids[i] == topology.slack_bus[0]:
@@ -341,7 +343,7 @@ class StateEstimatorFederate:
         self.destroy()
 
     def destroy(self):
-        "Finalize and destroy the federates"
+        """Finalize and destroy the federates"""
         h.helicsFederateDisconnect(self.vfed)
         logger.info("Federate disconnected")
 

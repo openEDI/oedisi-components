@@ -78,7 +78,6 @@ class TestRecorderDataOutput:
 # - Recording subscription data from HELICS
 # - Writing data to feather format
 # - Writing data to CSV format
-# - Time-series data aggregation
-# - Handling multiple subscriptions
-# - Performance with large datasets
-# - File naming and organization
+# - HELICS data exchange
+# - Output file format validation
+# - Large dataset handling
