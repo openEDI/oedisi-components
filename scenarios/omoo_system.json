@@ -55,7 +55,7 @@
                 "sensor_location": "gadal_ieee123/sensors.json",
                 "existing_feeder_file": "opendss/master.dss",
                 "start_date": "2017-01-01 00:00:00",
-                "number_of_timesteps": 96,
+                "number_of_timesteps": 1,
                 "run_freq_sec": 900,
                 "topology_output": "../../outputs/topology.json",
                 "tap_setting": 1
@@ -71,7 +71,7 @@
                 "sensor_location": "gadal_ieee123/sensors.json",
                 "existing_feeder_file": "opendss/master.dss",
                 "start_date": "2017-01-01 00:00:00",
-                "number_of_timesteps": 96,
+                "number_of_timesteps": 1,
                 "run_freq_sec": 900,
                 "topology_output": "topology.json",
                 "tap_setting": 1
