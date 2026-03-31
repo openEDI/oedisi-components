@@ -646,9 +646,9 @@ class FeederSimulator:
             # dss.Properties.Value(entry.obj_property, str(entry.val))
             properties = dss.CktElement.AllPropertyNames()
             element_name = dss.CktElement.Name()
-            assert entry.obj_property.lower() in map(lambda x: x.lower(), properties), (
-                f"{entry.obj_property} not in {properties} for {element_name}"
-            )
+            assert entry.obj_property.lower() in map(
+                lambda x: x.lower(), properties
+            ), f"{entry.obj_property} not in {properties} for {element_name}"
             dss.Text.Command(f"{entry.obj_name}.{entry.obj_property}={entry.val}")
 
     def create_inverter(self, pvsystem_set: set[str]):
@@ -820,9 +820,9 @@ class FeederSimulator:
         else:
             inverter = self.create_inverter(pvsystem_set)
 
-        assert self._inverter_to_pvsystems[inverter] == pvsystem_set, (
-            f"{self._inverter_to_pvsystems[inverter]} does not match {pvsystem_set} for {inverter}"
-        )
+        assert (
+            self._inverter_to_pvsystems[inverter] == pvsystem_set
+        ), f"{self._inverter_to_pvsystems[inverter]} does not match {pvsystem_set} for {inverter}"
 
         self.set_properties_to_inverter(inverter, inv_control)
         return inverter

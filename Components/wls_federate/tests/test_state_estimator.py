@@ -476,9 +476,9 @@ def test_wls_agreement_with_yuqi(parameters, input_data, tmp_path):
         assert np.abs(mean_angle_error - 0.0022), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
     elif input_data == "small_smartds_tap_time_40":
         assert np.abs(mean_mag_error - 0.0307) < 0.00001, f"Max relative error too high: {mean_mag_error}"
-        assert np.abs(mean_angle_error - 0.1656) < 0.00001, (
-            f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
-        )
+        assert (
+            np.abs(mean_angle_error - 0.1656) < 0.00001
+        ), f"Max angle error too high: {mean_angle_error * 180 / np.pi} degrees"
 
 
 @pytest.mark.parametrize("input_data", DATA_NAMES)
