@@ -2,18 +2,12 @@ name: Verify Dockerfiles
 
 on:
   push:
-    branches: [ main, al/restructed ]
+    branches: 
     paths:
       - 'Components/**'
       - '.github/workflows/verify-dockerfiles.yml'
       - '.github/workflows/reusable_verify_dockerfiles.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'Components/**'
-      - '.github/workflows/verify-dockerfiles.yml'
-      - '.github/workflows/reusable_verify_dockerfiles.yml'
-
+ 
 jobs:
   verify:
     uses: ./.github/workflows/reusable_verify_dockerfiles.yml

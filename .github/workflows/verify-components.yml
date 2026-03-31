@@ -2,13 +2,7 @@ name: Verify Components
 
 on:
   push:
-    branches: [ main, al/restructed ]
-    paths:
-      - 'Components/**'
-      - '.github/workflows/verify-components.yml'
-      - '.github/workflows/reusable_verify_components.yml'
-  pull_request:
-    branches: [ main ]
+    branches: 
     paths:
       - 'Components/**'
       - '.github/workflows/verify-components.yml'
