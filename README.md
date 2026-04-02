@@ -217,8 +217,6 @@ You can use the `oedisi` CLI tools to help debug specific components or timing.
 All the required components are defined in folders within this repo. Each component
 pulls types from `oedisi.types.data_types`.
 
-![Block diagram of simulation](sgidal-example.png)
-
 ## Component Overview
 
 Each component is a standalone Python package with its own documentation. Click the component name for detailed information:
@@ -281,17 +279,3 @@ Components/{component}/
 ├── Dockerfile                   # Container image definition
 └── component_definition.json    # OEDISI component spec (inputs/outputs)
 ```
-
-**Benefits of src-layout:**
-- Clear separation between source code and tests
-- Prevents accidental imports from development directory
-- Ensures tests run against installed package
-- Standard practice for modern Python packages
-
-## Component Definitions
-
-Components use `component_definition.json` files in each directory to define their dynamic inputs and outputs. This allows the OEDISI framework to:
-- Configure connections between federates
-- Validate wiring diagrams
-- Generate appropriate subscriptions/publications
-- Build simulation systems declaratively
