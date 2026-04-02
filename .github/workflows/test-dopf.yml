@@ -21,22 +21,16 @@ jobs:
       shell: bash -l {0}
       run: |
         pip install -e Components/broker \
-                    -e Components/lindistflow_federate \
                     -e Components/LocalFeeder \
                     -e Components/measuring_federate \
                     -e Components/recorder \
                     -e Components/omoo_federate \
-                    -e Components/wls_federate
+    
         pip install plotille
         pip install click
     - name: Run example
       shell: bash -l {0}
       run: |
-        git clone https://github.com/openEDI/oedisi-ieee123
-        mv oedisi-ieee123/profiles Components/LocalFeeder/profiles
-        mv oedisi-ieee123/qsts Components/LocalFeeder/opendss
-        # Change every kVA=50 and Pmpp=50 to kVA=200 and Pmpp=200 in Components/LocalFeeder/opendss/IEEE123Pv.dss
-        sed -i 's/kVA=50/kVA=200/g; s/Pmpp=50/Pmpp=200/g' Components/LocalFeeder/opendss/IEEE123Pv.dss
         oedisi build --system scenarios/omoo_system.json
         oedisi run
     - name: Archive logs

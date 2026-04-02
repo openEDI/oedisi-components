@@ -1,6 +1,6 @@
 {
     "directory": "omoo_federate",
-    "execute_function": "python -m omoo_federate.omoo",
+    "execute_function": "python -m src.omoo_federate.omoo",
     "static_inputs": [],
     "dynamic_inputs": [
         {

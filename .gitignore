@@ -3,6 +3,9 @@ state_estimator
 sensors
 *.log
 *.bak
+*.stream
+*.pyc
+*.egg-info/
 test_system_runner.json
 recorder_*
 local_feeder
