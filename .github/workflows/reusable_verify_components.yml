@@ -29,9 +29,13 @@ jobs:
               echo "$target missing"
               exit 1
             fi
-            components=(broker lindistflow_federate LocalFeeder measuring_federate omoo_federate recorder wls_federate)
-            for component in "${components[@]}"; do
-              target="Components/${component}/component_definition.json"
+            for component_dir in Components/*; do
+              [ -d "$component_dir" ] || continue
+              component="$(basename "$component_dir")"
+              if [ "$component" = "broker" ]; then
+                continue
+              fi
+              target="${component_dir}/component_definition.json"
               if [ -f "$target" ]; then
                 echo "$target found"
               else
@@ -53,9 +57,9 @@ jobs:
               echo "$target missing"
               exit 1
             fi
-            components=(broker lindistflow_federate LocalFeeder measuring_federate omoo_federate recorder wls_federate)
-            for component in "${components[@]}"; do
-              target="Components/${component}/README.md"
+            for component_dir in Components/*; do
+              [ -d "$component_dir" ] || continue
+              target="${component_dir}/README.md"
               if [ -f "$target" ]; then
                 echo "$target found"
               else

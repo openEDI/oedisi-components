@@ -30,9 +30,9 @@ jobs:
               exit 1
             fi
           else
-            components=(broker lindistflow_federate LocalFeeder measuring_federate recorder wls_federate)
-            for component in "${components[@]}"; do
-              target="Components/${component}/Dockerfile"
+            for component_dir in Components/*; do
+              [ -d "$component_dir" ] || continue
+              target="${component_dir}/Dockerfile"
               if [ -f "$target" ]; then
                 echo "$target found"
               else
