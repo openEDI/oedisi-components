@@ -1,8 +1,0 @@
-helics>=3.4.0
-pydantic
-cvxpy
-numpy
-networkx
-oedisi~=3.0
-fastapi
-uvicorn

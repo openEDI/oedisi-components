@@ -79,7 +79,7 @@
         },
         {
             "name": "lindistflow",
-            "type": "OptimalPowerFlow",
+            "type": "LinDistFlowComponent",
             "host": "lindistflow",
             "container_port": 5685,
             "parameters": {

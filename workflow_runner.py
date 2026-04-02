@@ -1,30 +1,30 @@
-from requests.auth import HTTPBasicAuth
-from collections import defaultdict
-from pathlib import Path
-import requests
+"""Workflow runner for building and pushing Docker images."""
+
 import json
 import os
+from pathlib import Path
 
-from dotenv import load_dotenv
-import requests
-from rich import print
 import docker
-
+import requests
+from dotenv import load_dotenv
+from requests.auth import HTTPBasicAuth
+from rich import print
 
 load_dotenv()
 
 # --- Configuration ---
-DOCKERHUB_USERNAME_AL = os.getenv("DOCKERHUB_USERNAME_AL") 
+DOCKERHUB_USERNAME_AL = os.getenv("DOCKERHUB_USERNAME_AL")
 DOCKERHUB_API_KEY_AL = os.getenv("DOCKERHUB_API_KEY_AL")
 MAILJET_API_KEY = os.environ["MAILJET_API_KEY"]
 MAILJET_API_SECRET = os.environ["MAILJET_API_SECRET"]
-TAG = os.environ["RELEASE_TAG"]                                
+TAG = os.environ["RELEASE_TAG"]
 
 
 def collect_components():
+    """Collect components from components.json and build their Docker images."""
     # Simulate collecting components
     print("Collecting components...")
-    components = json.load(open("components.json", "r"))  # Load components from a JSON file
+    components = json.load(open("components.json"))  # Load components from a JSON file
     for component_name, component_path in components.items():
         try:
             print(f"Building image for component {component_name}...")
@@ -33,27 +33,32 @@ def collect_components():
                 raise ValueError(f"Component path {component_path} is not a directory")
             if not (component_path / "Dockerfile").is_file():
                 raise ValueError(f"No Dockerfile found in {component_path}")
-            build_and_push_docker_image(component_name, component_path, )
+            build_and_push_docker_image(
+                component_name,
+                component_path,
+            )
         except Exception as e:
             print(f"An unexpected error occurred: {e}")
 
+
 def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
+    """Build and push a Docker image to Docker Hub."""
     client = docker.from_env()
     REPOSITORY_NAME = f"{DOCKERHUB_USERNAME_AL}/{image_name}:{tag}".lower()
     email_msg = f"Building Docker image: {REPOSITORY_NAME} from directory {docker_file_path}"
-    
+
     try:
         # Build the image
         image, build_logs = client.images.build(
             path=str(docker_file_path),
             tag=REPOSITORY_NAME,
-            rm=True, # Remove intermediate containers after a successful build
-            nocache=False, # Do not use cache when building the image
+            rm=True,  # Remove intermediate containers after a successful build
+            nocache=False,  # Do not use cache when building the image
         )
 
         email_msg += f"\nSuccessfully built image: {REPOSITORY_NAME}"
 
-        labels = image.attrs['Config'].get('Labels') or {}
+        labels = image.attrs["Config"].get("Labels") or {}
         author_names = []
         author_emails = []
         authors_label = labels.get("org.opencontainers.image.authors")
@@ -68,8 +73,7 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
                     author_names.append(author)
                     author_emails.append(None)
 
-            print(f"Image authors: {{'names': author_names, 'emails': author_emails}}")
-
+            print(f"Image authors: {{'names': {author_names}, 'emails': {author_emails}}}")
 
     except docker.errors.BuildError as e:
         email_msg += f"\nError building image: {e}"
@@ -88,18 +92,17 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
             repository=f"{DOCKERHUB_USERNAME_AL}/{image_name}".lower(),
             tag=TAG,
             stream=True,
-            decode=True
+            decode=True,
         )
         for line in push_logs:
-            if 'status' in line:
-                print(line['status'])
-            elif 'error' in line:
+            if "status" in line:
+                print(line["status"])
+            elif "error" in line:
                 print(f"Error during push: {line['error']}")
                 email_msg += f"\nError during push: {line['error']}"
-        
-        print("Image pushed successfully to Docker Hub.")
-        email_msg += f"\nImage pushed successfully to Docker Hub."
 
+        print("Image pushed successfully to Docker Hub.")
+        email_msg += "\nImage pushed successfully to Docker Hub."
 
     except docker.errors.APIError as e:
         print(f"Docker API Error during push: {e}")
@@ -108,7 +111,7 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
         print(f"An unexpected error occurred: {e}")
         email_msg += f"An unexpected error occurred: {e}"
 
-    for name, email in zip(author_names, author_emails):
+    for name, email in zip(author_names, author_emails, strict=False):
         if not email:
             print(f"Skipping author '{name}' - no email available")
             continue
@@ -116,16 +119,8 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
         payload = {
             "Messages": [
                 {
-                    "From": {
-                        "Email": "aadil.latif@gmail.com",
-                        "Name": "Aadil Latif"
-                    },
-                    "To": [
-                        {
-                            "Email": email,
-                            "Name": name
-                        }
-                    ],
+                    "From": {"Email": "aadil.latif@gmail.com", "Name": "Aadil Latif"},
+                    "To": [{"Email": email, "Name": name}],
                     "Subject": "OEDISI GitHub Workflow Notification",
                     "TextPart": email_msg,
                 }
@@ -153,5 +148,5 @@ def build_and_push_docker_image(image_name, docker_file_path, tag="v0.0.1"):
 
 
 if __name__ == "__main__":
-    os.system("docker login -u {} -p {}".format(DOCKERHUB_USERNAME_AL, DOCKERHUB_API_KEY_AL))
+    os.system(f"docker login -u {DOCKERHUB_USERNAME_AL} -p {DOCKERHUB_API_KEY_AL}")
     collect_components()

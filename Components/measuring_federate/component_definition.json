@@ -1,0 +1,30 @@
+{
+    "directory": "measuring_federate",
+    "execute_function": "python -m src.measuring_federate.measuring_federate",
+    "static_inputs": [
+        {
+            "type": "",
+            "port_id": "additive_noise_stddev"
+        },
+        {
+            "type": "",
+            "port_id": "multiplicative_noise_stddev"
+        },
+        {
+            "type": "",
+            "port_id": "measurement_file"
+        }
+    ],
+    "dynamic_inputs": [
+        {
+            "type": "MeasurementArray",
+            "port_id": "subscription"
+        }
+    ],
+    "dynamic_outputs": [
+        {
+            "type": "MeasurementArray",
+            "port_id": "publication"
+        }
+    ]
+}

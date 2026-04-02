@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recorder"
+version = "0.1.0"
+description = "OEDISI Recorder - Data recording federate for HELICS co-simulation outputs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "BSD-3-Clause"}
+authors = [
+    {name = "Alliance for Sustainable Energy, LLC"}
+]
+keywords = ["oedisi", "helics", "recorder", "data-logging"]
+
+dependencies = [
+    "helics>=3.4.0",
+    "pydantic",
+    "pyarrow",
+    "numpy",
+    "pandas",
+    "fastapi",
+    "uvicorn",
+    "oedisi~=3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.21",
+    "httpx>=0.24",  # for testing FastAPI
+    "mypy>=0.981",
+    "ruff>=0.7.0",
+]
+
+[project.scripts]
+recorder-server = "recorder.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["recorder*"]
+exclude = ["tests*"]

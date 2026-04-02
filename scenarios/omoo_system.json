@@ -38,7 +38,10 @@
             "type": "OMOOComponent",
             "parameters": {
                 "algorithm_parameters": {
-                    "tol": 1e-5
+                    "Vmax": 1.05,
+                    "Vmin": 0.95,
+                    "alpha": 0.5,
+                    "nu": 0.016
                 }
             }
         },
@@ -52,7 +55,7 @@
                 "sensor_location": "gadal_ieee123/sensors.json",
                 "existing_feeder_file": "opendss/master.dss",
                 "start_date": "2017-01-01 00:00:00",
-                "number_of_timesteps": 96,
+                "number_of_timesteps": 1,
                 "run_freq_sec": 900,
                 "topology_output": "../../outputs/topology.json",
                 "tap_setting": 1
@@ -68,7 +71,7 @@
                 "sensor_location": "gadal_ieee123/sensors.json",
                 "existing_feeder_file": "opendss/master.dss",
                 "start_date": "2017-01-01 00:00:00",
-                "number_of_timesteps": 96,
+                "number_of_timesteps": 1,
                 "run_freq_sec": 900,
                 "topology_output": "topology.json",
                 "tap_setting": 1
@@ -164,18 +167,6 @@
         },
         {
             "source": "local_feeder",
-            "source_port": "powers_real",
-            "target": "optimal_pf",
-            "target_port": "powers_real"
-        },
-        {
-            "source": "local_feeder",
-            "source_port": "powers_imag",
-            "target": "optimal_pf",
-            "target_port": "powers_imag"
-        },
-        {
-            "source": "local_feeder",
             "source_port": "voltages_real",
             "target": "optimal_pf",
             "target_port": "voltages_real"
@@ -185,6 +176,18 @@
             "source_port": "voltages_imag",
             "target": "optimal_pf",
             "target_port": "voltages_imag"
+        },
+        {
+            "source": "local_feeder",
+            "source_port": "powers_real",
+            "target": "optimal_pf",
+            "target_port": "powers_real"
+        },
+        {
+            "source": "local_feeder",
+            "source_port": "powers_imag",
+            "target": "optimal_pf",
+            "target_port": "powers_imag"
         },
         {
             "source": "local_feeder",

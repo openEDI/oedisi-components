@@ -1,0 +1,45 @@
+name: Reusable Verify Dockerfiles
+
+on:
+  workflow_call:
+    inputs:
+      component-root:
+        description: Optional path to a single component root (e.g. . or Components/broker)
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  verify-dockerfiles:
+    runs-on: ubuntu-latest
+    name: Verify Dockerfiles
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check Dockerfile exists
+        env:
+          COMPONENT_ROOT: ${{ inputs.component-root }}
+        run: |
+          if [ -n "$COMPONENT_ROOT" ]; then
+            target="$COMPONENT_ROOT/Dockerfile"
+            if [ -f "$target" ]; then
+              echo "$target found"
+            else
+              echo "$target missing"
+              exit 1
+            fi
+          else
+            for component_dir in Components/*; do
+              [ -d "$component_dir" ] || continue
+              target="${component_dir}/Dockerfile"
+              if [ -f "$target" ]; then
+                echo "$target found"
+              else
+                echo "$target missing"
+                exit 1
+              fi
+            done
+          fi

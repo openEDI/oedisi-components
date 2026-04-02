@@ -4,18 +4,17 @@ WORKDIR /simulation
 
 COPY scenarios/docker_system.json docker_system.json
 COPY components.json .
-COPY LocalFeeder LocalFeeder
-COPY lindistflow_federate lindistflow_federate
+COPY Components Components
 COPY README.md .
-COPY measuring_federate measuring_federate
-COPY wls_federate wls_federate
-COPY recorder recorder
-COPY omoo_federate omoo_federate
 
 RUN mkdir -p outputs build
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install -e Components/broker \
+				-e Components/lindistflow_federate \
+				-e Components/LocalFeeder \
+				-e Components/measuring_federate \
+				-e Components/recorder \
+				-e Components/wls_federate
 
 RUN oedisi build --system docker_system.json
 ENTRYPOINT ["oedisi", "run"]
