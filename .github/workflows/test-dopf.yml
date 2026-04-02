@@ -25,7 +25,7 @@ jobs:
                     -e Components/measuring_federate \
                     -e Components/recorder \
                     -e Components/omoo_federate \
-    
+
         pip install plotille
         pip install click
     - name: Run example

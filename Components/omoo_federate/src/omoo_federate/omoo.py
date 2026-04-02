@@ -674,5 +674,6 @@ def run_simulator(broker_config=None):
     sfed = OMOOFederate(federate_name, parameters, input_mapping)
     sfed.run()
 
+
 if __name__ == "__main__":
     run_simulator()
