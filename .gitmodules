@@ -1,0 +1,3 @@
+[submodule "Components/pnnl-dopf-admm"]
+	path = Components/pnnl-dopf-admm
+	url = https://github.com/openEDI/pnnl-dopf-admm
