@@ -1,12 +1,13 @@
-# oedisi-example
-
+# oedisi-components
 [![Main - Integration Tests](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml)
-[![Main - Docker Build Test](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml)
-[![Main - Unit Tests](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml)
+[![Main - Unit Tests](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-components.yml)
+[![Main - Verify Components](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-components.yml)
+[![Main - Verify Dockerfiles](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/verify-dockerfiles.yml)
 
-This example shows how to use the GADAL api to manage simulations. We also
-use it as a testing ground for the testing the combination of feeders,
-state estimation, and distributed OPF.
+This repository is an OEDISI co-simulation example composed of multiple
+federated components (feeder simulation, state estimation, OPF, recorder,
+and broker orchestration). It is also used as a CI-tested integration target
+for component compatibility.
 
 ## Component Status
 
@@ -34,6 +35,7 @@ This repository is organized as a Python repository containing  components for p
 - **[omoo_federate](Components/omoo_federate/README.md)** - Online model-based optimal operation
 - **[recorder](Components/recorder/README.md)** - Data recording for co-simulation outputs
 - **[wls_federate](Components/wls_federate/README.md)** - Weighted least squares state estimation
+- **[pnnl-dopf-admm](Components/pnnl-dopf-admm/README.md)** - Distributed OPF component (git submodule)
 
 **Each component includes:**
 - `pyproject.toml` for modern Python packaging (PEP 621)
@@ -45,16 +47,57 @@ This repository is organized as a Python repository containing  components for p
 
 ### Continuous Integration
 
-Each component has its own GitHub Actions workflow that:
-- Runs tests on Python 3.10 and 3.11
-- Performs type checking with mypy
-- Generates code coverage reports
-- Triggers on changes to component code
+Current CI coverage includes:
+- Component unit tests on Python 3.11 and 3.13
+- Integration/API and DOPF workflows using current supported environments
+- Lint and formatting checks via pre-commit
+- Component metadata and Dockerfile verification workflows
 
 Additionally:
 - **Dockerfile Verification**: Ensures all components have valid Dockerfiles
 - **Integration Tests**: End-to-end system testing
-- **Docker Build Tests**: Validates container builds
+
+## Adding A Submodule Under Components
+
+Some components can be managed in separate repositories and included here as
+git submodules under `Components/`.
+
+### Add The Submodule
+
+```bash
+git submodule add https://github.com/<org>/<repo> Components/<component-name>
+git submodule update --init --recursive
+git add .gitmodules Components/<component-name>
+git commit -m "Add <component-name> as submodule"
+```
+
+Notes:
+- Commit both `.gitmodules` and the gitlink entry at `Components/<component-name>`.
+- The submodule should include its own `README.md` and `Dockerfile`.
+- Include `component_definition.json`.
+
+### Workflows Applied To Submodules
+
+Submodules under `Components/` are validated by the same repository workflows
+as in-repo components:
+
+- `verify-components.yml` (via `reusable_verify_components.yml`)
+   - Checks `README.md` for all `Components/*` directories.
+   - Checks `component_definition.json` for all `Components/*` directories except `broker`.
+- `verify-dockerfiles.yml` (via `reusable_verify_dockerfiles.yml`)
+   - Checks `Dockerfile` for all `Components/*` directories.
+
+These reusable workflows use `actions/checkout` with `submodules: recursive`,
+so submodule contents are available during file existence checks.
+
+### Workflow Scope Clarification
+
+- Verification workflows in this repository validate submodule metadata files
+   and Dockerfile presence.
+- Unit or integration tests for submodule code are not automatically run here
+   unless explicitly added to this repository's test workflows.
+- If the submodule has its own CI (recommended), link its badges in the
+   Component Status table.
 
 ### Quick Start - Development Installation
 
@@ -252,65 +295,3 @@ Components use `component_definition.json` files in each directory to define the
 - Validate wiring diagrams
 - Generate appropriate subscriptions/publications
 - Build simulation systems declaratively
-
-# How was the example constructed?
-
-For each component, you need a `component_description.json` with
-information about the inputs and outputs of each component.
-We created component python scripts that matched these component
-descriptions and followed the GADAL API for configuration.
-
-In order to use the data types from other federates, the `oedisi.types`
-module is critical. If additional data is needed, then we recommend
-subclassing the pydantic models and adding the data in the required federates
-as needed. This ensures that others should still be able to parse your types if
-necessary. Using compatible types is usually the most difficult part of integrating
-into a system.
-
-A basic system description with the `test_system.json` is also
-needed for the simulation.
-
-In `test_full_systems.py`, we load in the various `components_description`s and
-the wiring diagram `test_system.json`. The system is initialized and then the
-`test_system_runner.json` is saved. During this process, directories are created
-for each component with the right configuration.
-
-# Results
-
-![Error plot](errors.png)
-
-![Voltage angles at time 0](voltage_angles_0.png)
-![Voltage magnitudes at time 0](voltage_magnitudes_0.png)
-
-![Voltage angles at time 95](voltage_angles_95.png)
-![Voltage magnitudes at time 95](voltage_magnitudes_95.png)
-
-# Docker Container
-
-```bash
-docker build -t oedisi-example:0.0.0 .
-```
-
-To get a docker volume pointed at the right place locally, we have to run more commands
-```bash
-mkdir outputs_build
-docker volume create --name oedisi_output --opt type=none --opt device=$(PWD)/outputs_build --opt o=bind
-```
-
-If `pwd` is unavailable on your system, then you must specify the exact path. On windows, this will end up
-being `/c/Users/.../outputs_builds/`. You must use forward slashes.
-
-Then we can run the docker image:
-```bash
-docker run --rm --mount source=oedisi_output,target=/simulation/outputs oedisi-example:0.0.0
-```
-
-You can omit the docker volume parts as well as `--mount` if you do not care about the exact outputs.
-
-## Docker Containers on M1 or M2
-
-Since HELICS does not have linux ARM builds, you have to run with
-
-```bash
-export DOCKER_DEFAULT_PLATFORM=linux/amd64
-```
