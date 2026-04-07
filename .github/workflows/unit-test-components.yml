@@ -26,7 +26,8 @@ jobs:
           'measuring_federate',
           'omoo_federate',
           'recorder',
-          'wls_federate'
+          'wls_federate',
+          'pnnl-dsse-ekf'
         ]
         include:
           - component: broker
@@ -43,9 +44,16 @@ jobs:
             package: recorder
           - component: wls_federate
             package: wls_federate
+          - component: pnnl-dsse-ekf
+            package: ekf_federate
+        exclude:
+          - python-version: '3.11'
+            component: 'pnnl-dsse-ekf'
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

@@ -1,3 +1,21 @@
 [submodule "Components/pnnl-dopf-admm"]
 	path = Components/pnnl-dopf-admm
 	url = https://github.com/openEDI/pnnl-dopf-admm
+[submodule "Components/pnnl-hub-voltage"]
+	path = Components/pnnl-hub-voltage
+	url = https://github.com/openEDI/pnnl-hub-voltage
+[submodule "Components/pnnl-hub-control"]
+	path = Components/pnnl-hub-control
+	url = https://github.com/openEDI/pnnl-hub-control
+[submodule "Components/pnnl-hub-power"]
+	path = Components/pnnl-hub-power
+	url = https://github.com/openEDI/pnnl-hub-power
+[submodule "Components/pnnl-dsse-ekf"]
+	path = Components/pnnl-dsse-ekf
+	url = https://github.com/openEDI/pnnl-dsse-ekf
+[submodule "Components/pnnl-imputation-ffnn"]
+	path = Components/pnnl-imputation-ffnn
+	url = https://github.com/openEDI/pnnl-imputation-ffnn
+[submodule "Components/pnnl-profiler-sdv"]
+	path = Components/pnnl-profiler-sdv
+	url = https://github.com/openEDI/pnnl-profiler-sdv
