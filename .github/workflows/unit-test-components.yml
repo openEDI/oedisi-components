@@ -26,7 +26,9 @@ jobs:
           'measuring_federate',
           'omoo_federate',
           'recorder',
-          'wls_federate'
+          'wls_federate',
+          'nlpdopf',
+          'nlpdsse'
         ]
         include:
           - component: broker
@@ -43,9 +45,20 @@ jobs:
             package: recorder
           - component: wls_federate
             package: wls_federate
+          - component: nlpdopf
+            package: nlpdopf
+          - component: nlpdsse
+            package: nlpdsse
+        exclude:
+          - python-version: '3.11'
+            component: 'nlpdopf'
+          - python-version: '3.11'
+            component: 'nlpdsse'
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5

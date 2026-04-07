@@ -34,7 +34,7 @@ jobs:
             for component_dir in Components/*; do
               [ -d "$component_dir" ] || continue
               component="$(basename "$component_dir")"
-              if [ "$component" = "broker" ]; then
+              if [ "$component" = "broker" ] || [ "$component" = "nlpdopf" ] || [ "$component" = "nlpdsse" ]; then
                 continue
               fi
               target="${component_dir}/component_definition.json"
