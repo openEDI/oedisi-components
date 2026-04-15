@@ -218,7 +218,7 @@ def main() -> None:
             submodule_path = Path(target.pyproject_path).parent
             submodule_release_tag = latest_release_tag(submodule_path)
             if submodule_release_tag:
-                version = fetch_local_pyproject_version_at_tag(submodule_path, submodule_release_tag)
+                version = submodule_release_tag
             else:
                 version = NO_VERSION_FOUND_AT_TAG
         else:
