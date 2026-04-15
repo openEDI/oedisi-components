@@ -2,9 +2,9 @@ name: RunExample
 
 on:
   push:
-    branches: [ main, al/restructed ]
-  pull_request:
-    branches: [ main ]
+    paths:
+      - 'Components/**'
+
 
 jobs:
   run-example:
