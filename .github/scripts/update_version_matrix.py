@@ -3,22 +3,18 @@
 from __future__ import annotations
 
 import csv
-import json
 import os
 import re
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote
-from urllib.request import Request, urlopen
 
 import tomllib
 
 COMPONENTS_DIR = Path("Components")
 GITMODULES_PATH = Path(".gitmodules")
 CSV_PATH = Path("version_matrix.csv")
-WORKING_TREE_REF = "WORKING_TREE"
 NO_VERSION_FOUND_IN_WORKING_TREE = "NO VERSION FOUND IN WORKING TREE"
 NO_VERSION_FOUND_AT_TAG = "NO VERSION FOUND AT TAG"
 
@@ -32,56 +28,6 @@ class RepoTarget:
     component: str
     pyproject_path: str
     is_submodule: bool
-
-
-def github_api_json(path: str, token: str | None) -> object:
-    """Call GitHub API and parse JSON payload."""
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
-    request = Request(f"https://api.github.com{path}", headers=headers)
-    with urlopen(request) as response:  # nosec B310 - trusted GitHub API URL
-        return json.loads(response.read().decode("utf-8"))
-
-
-def github_api_raw(path: str, token: str | None) -> str:
-    """Call GitHub API and return raw text payload."""
-    headers = {
-        "Accept": "application/vnd.github.raw",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-
-    request = Request(f"https://api.github.com{path}", headers=headers)
-    with urlopen(request) as response:  # nosec B310 - trusted GitHub API URL
-        return response.read().decode("utf-8")
-
-
-def latest_release_tag(owner: str, repo: str, token: str | None) -> str | None:
-    """Get latest published release tag, or fallback to most recent git tag."""
-    release_path = f"/repos/{owner}/{repo}/releases/latest"
-    try:
-        response = github_api_json(release_path, token)
-    except HTTPError as error:
-        if error.code != 404:
-            raise
-    else:
-        if isinstance(response, dict) and response.get("tag_name"):
-            return str(response["tag_name"])
-
-    tags_path = f"/repos/{owner}/{repo}/tags?per_page=1"
-    tags = github_api_json(tags_path, token)
-    if isinstance(tags, list) and tags:
-        first = tags[0]
-        if isinstance(first, dict) and first.get("name"):
-            return str(first["name"])
-
-    return None
 
 
 def extract_version_from_pyproject(pyproject_text: str) -> str:
@@ -106,19 +52,35 @@ def read_local_pyproject_version(pyproject_path: str) -> str:
         return NO_VERSION_FOUND_IN_WORKING_TREE
 
 
-def fetch_pyproject_version_at_tag(
-    owner: str,
-    repo: str,
-    pyproject_path: str,
-    release_tag: str,
-    token: str | None,
-) -> str:
-    """Fetch pyproject.toml for a specific release tag and parse project.version."""
-    encoded_path = quote(pyproject_path)
-    encoded_tag = quote(release_tag)
-    api_path = f"/repos/{owner}/{repo}/contents/{encoded_path}?ref={encoded_tag}"
-    text = github_api_raw(api_path, token)
-    return extract_version_from_pyproject(text)
+def run_git_command(repo_path: Path, args: list[str]) -> str:
+    """Run a git command in repo_path and return stdout."""
+    result = subprocess.run(
+        ["git", *args],
+        cwd=repo_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def latest_release_tag(repo_path: Path) -> str | None:
+    """Return latest local git tag in repo_path, or None when no tags exist."""
+    try:
+        tags_output = run_git_command(repo_path, ["tag", "--sort=-version:refname"])
+    except subprocess.CalledProcessError:
+        return None
+
+    tags = [line.strip() for line in tags_output.splitlines() if line.strip()]
+    if not tags:
+        return None
+    return tags[0]
+
+
+def fetch_local_pyproject_version_at_tag(repo_path: Path, release_tag: str) -> str:
+    """Read pyproject.toml at a local git tag and parse project.version."""
+    pyproject_text = run_git_command(repo_path, ["show", f"{release_tag}:pyproject.toml"])
+    return extract_version_from_pyproject(pyproject_text)
 
 
 def parse_submodule_mapping() -> dict[str, tuple[str, str]]:
@@ -242,14 +204,12 @@ def write_records(records: dict[tuple[str, str, str, str], dict[str, str]]) -> N
 
 def main() -> None:
     """Update matrix: monorepo from working tree, submodules from latest tags."""
-    token = os.environ.get("GITHUB_TOKEN", "").strip() or None
-
     monorepo_owner = os.environ.get("MONOREPO_OWNER", "").strip()
     monorepo_name = os.environ.get("MONOREPO_NAME", "").strip()
     if not monorepo_owner or not monorepo_name:
         raise RuntimeError("MONOREPO_OWNER and MONOREPO_NAME are required")
 
-    matrix_release_tag = latest_release_tag(monorepo_owner, monorepo_name, token)
+    matrix_release_tag = latest_release_tag(Path("."))
     if not matrix_release_tag:
         raise RuntimeError(f"No tags found for {monorepo_owner}/{monorepo_name}")
 
@@ -260,19 +220,12 @@ def main() -> None:
 
     for target in targets:
         if target.is_submodule:
-            submodule_release_tag = latest_release_tag(target.repo_owner, target.repo_name, token)
+            submodule_path = Path(target.pyproject_path).parent
+            submodule_release_tag = latest_release_tag(submodule_path)
             if submodule_release_tag:
                 try:
-                    version = fetch_pyproject_version_at_tag(
-                        owner=target.repo_owner,
-                        repo=target.repo_name,
-                        pyproject_path="pyproject.toml",
-                        release_tag=submodule_release_tag,
-                        token=token,
-                    )
-                except (HTTPError, ValueError) as error:
-                    if isinstance(error, HTTPError) and error.code != 404:
-                        raise
+                    version = fetch_local_pyproject_version_at_tag(submodule_path, submodule_release_tag)
+                except (subprocess.CalledProcessError, ValueError):
                     version = NO_VERSION_FOUND_AT_TAG
             else:
                 version = NO_VERSION_FOUND_AT_TAG
@@ -302,5 +255,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (HTTPError, URLError, RuntimeError) as error:
+    except (RuntimeError, subprocess.CalledProcessError) as error:
         raise SystemExit(f"Error: {error}") from error
