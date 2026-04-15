@@ -30,12 +30,12 @@ class RepoTarget:
     is_submodule: bool
 
 
-def extract_version_from_pyproject(pyproject_text: str) -> str:
-    """Parse project.version from pyproject.toml text."""
+def extract_version_from_pyproject(pyproject_text: str) -> str | None:
+    """Parse project.version from pyproject.toml text, if available."""
     parsed = tomllib.loads(pyproject_text)
     version = parsed.get("project", {}).get("version")
     if not version:
-        raise ValueError("project.version not found in pyproject.toml")
+        return None
     return str(version)
 
 
@@ -46,10 +46,8 @@ def read_local_pyproject_version(pyproject_path: str) -> str:
         return NO_VERSION_FOUND_IN_WORKING_TREE
 
     text = pyproject_file.read_text(encoding="utf-8")
-    try:
-        return extract_version_from_pyproject(text)
-    except ValueError:
-        return NO_VERSION_FOUND_IN_WORKING_TREE
+    version = extract_version_from_pyproject(text)
+    return version or NO_VERSION_FOUND_IN_WORKING_TREE
 
 
 def run_git_command(repo_path: Path, args: list[str]) -> str:
@@ -66,11 +64,7 @@ def run_git_command(repo_path: Path, args: list[str]) -> str:
 
 def latest_release_tag(repo_path: Path) -> str | None:
     """Return latest local git tag in repo_path, or None when no tags exist."""
-    try:
-        tags_output = run_git_command(repo_path, ["tag", "--sort=-version:refname"])
-    except subprocess.CalledProcessError:
-        return None
-
+    tags_output = run_git_command(repo_path, ["tag", "--sort=-version:refname"])
     tags = [line.strip() for line in tags_output.splitlines() if line.strip()]
     if not tags:
         return None
@@ -80,7 +74,8 @@ def latest_release_tag(repo_path: Path) -> str | None:
 def fetch_local_pyproject_version_at_tag(repo_path: Path, release_tag: str) -> str:
     """Read pyproject.toml at a local git tag and parse project.version."""
     pyproject_text = run_git_command(repo_path, ["show", f"{release_tag}:pyproject.toml"])
-    return extract_version_from_pyproject(pyproject_text)
+    version = extract_version_from_pyproject(pyproject_text)
+    return version or NO_VERSION_FOUND_AT_TAG
 
 
 def parse_submodule_mapping() -> dict[str, tuple[str, str]]:
@@ -223,10 +218,7 @@ def main() -> None:
             submodule_path = Path(target.pyproject_path).parent
             submodule_release_tag = latest_release_tag(submodule_path)
             if submodule_release_tag:
-                try:
-                    version = fetch_local_pyproject_version_at_tag(submodule_path, submodule_release_tag)
-                except (subprocess.CalledProcessError, ValueError):
-                    version = NO_VERSION_FOUND_AT_TAG
+                version = fetch_local_pyproject_version_at_tag(submodule_path, submodule_release_tag)
             else:
                 version = NO_VERSION_FOUND_AT_TAG
         else:
@@ -255,5 +247,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (RuntimeError, subprocess.CalledProcessError) as error:
+    except RuntimeError as error:
         raise SystemExit(f"Error: {error}") from error
