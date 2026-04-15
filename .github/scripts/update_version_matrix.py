@@ -6,7 +6,6 @@ import csv
 import json
 import os
 import re
-import tomllib
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +13,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+import tomllib
 
 COMPONENTS_DIR = Path("Components")
 GITMODULES_PATH = Path(".gitmodules")
@@ -128,9 +128,7 @@ def parse_submodule_mapping() -> dict[str, tuple[str, str]]:
 
     submodule_text = GITMODULES_PATH.read_text(encoding="utf-8")
     pattern = re.compile(
-        r"\[submodule\s+\"(?P<name>.+?)\"\]\s*"
-        r"path\s*=\s*(?P<path>.+?)\s*"
-        r"url\s*=\s*(?P<url>.+?)\s*(?:\n|$)",
+        r"\[submodule\s+\"(?P<name>.+?)\"\]\s*" r"path\s*=\s*(?P<path>.+?)\s*" r"url\s*=\s*(?P<url>.+?)\s*(?:\n|$)",
         flags=re.DOTALL,
     )
 
@@ -244,7 +242,6 @@ def write_records(records: dict[tuple[str, str, str, str], dict[str, str]]) -> N
 
 def main() -> None:
     """Update matrix: monorepo from working tree, submodules from latest tags."""
-
     token = os.environ.get("GITHUB_TOKEN", "").strip() or None
 
     monorepo_owner = os.environ.get("MONOREPO_OWNER", "").strip()
