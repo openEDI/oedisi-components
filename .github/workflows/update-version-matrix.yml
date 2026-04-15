@@ -1,4 +1,4 @@
-name: Update Version Marix
+name: Update Version Matrix
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  update-version-marix:
+  update-version-matrix:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,13 +16,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Update version_matrix.csv from latest release tags
+      - name: Update version_matrix.csv from working tree and submodule tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MONOREPO_OWNER: ${{ github.repository_owner }}
@@ -34,12 +35,12 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update version_matrix.csv from release tags"
-          branch: "automation/update-version-marix"
+          commit-message: "chore: update version_matrix.csv from working tree and submodule tags"
+          branch: "automation/update-version-matrix"
           delete-branch: true
           title: "chore: update version_matrix.csv"
           body: |
             This PR updates version_matrix.csv with component versions mapped to
-            the latest GitHub release tags for the monorepo and submodule repos.
+            the monorepo working tree and latest submodule release tags when available.
           add-paths: |
             version_matrix.csv

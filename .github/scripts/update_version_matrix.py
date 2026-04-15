@@ -1,4 +1,4 @@
-"""Update version_matrix.csv using latest GitHub release tags per repository."""
+"""Update version_matrix.csv from monorepo working tree and submodule tags."""
 
 from __future__ import annotations
 
@@ -18,6 +18,9 @@ from urllib.request import Request, urlopen
 COMPONENTS_DIR = Path("Components")
 GITMODULES_PATH = Path(".gitmodules")
 CSV_PATH = Path("version_matrix.csv")
+WORKING_TREE_REF = "WORKING_TREE"
+NO_VERSION_FOUND_IN_WORKING_TREE = "NO VERSION FOUND IN WORKING TREE"
+NO_VERSION_FOUND_AT_TAG = "NO VERSION FOUND AT TAG"
 
 
 @dataclass(frozen=True)
@@ -28,38 +31,39 @@ class RepoTarget:
     repo_name: str
     component: str
     pyproject_path: str
+    is_submodule: bool
 
 
-def github_api_json(path: str, token: str) -> object:
+def github_api_json(path: str, token: str | None) -> object:
     """Call GitHub API and parse JSON payload."""
-    request = Request(
-        f"https://api.github.com{path}",
-        headers={
-            "Accept": "application/vnd.github+json",
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    )
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    request = Request(f"https://api.github.com{path}", headers=headers)
     with urlopen(request) as response:  # nosec B310 - trusted GitHub API URL
         return json.loads(response.read().decode("utf-8"))
 
 
-def github_api_raw(path: str, token: str) -> str:
+def github_api_raw(path: str, token: str | None) -> str:
     """Call GitHub API and return raw text payload."""
-    request = Request(
-        f"https://api.github.com{path}",
-        headers={
-            "Accept": "application/vnd.github.raw",
-            "Authorization": f"Bearer {token}",
-            "X-GitHub-Api-Version": "2022-11-28",
-        },
-    )
+    headers = {
+        "Accept": "application/vnd.github.raw",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    request = Request(f"https://api.github.com{path}", headers=headers)
     with urlopen(request) as response:  # nosec B310 - trusted GitHub API URL
         return response.read().decode("utf-8")
 
 
-def latest_release_tag(owner: str, repo: str, token: str) -> str:
-    """Get latest published release tag, or fallback to most recent tag."""
+def latest_release_tag(owner: str, repo: str, token: str | None) -> str | None:
+    """Get latest published release tag, or fallback to most recent git tag."""
     release_path = f"/repos/{owner}/{repo}/releases/latest"
     try:
         response = github_api_json(release_path, token)
@@ -77,7 +81,7 @@ def latest_release_tag(owner: str, repo: str, token: str) -> str:
         if isinstance(first, dict) and first.get("name"):
             return str(first["name"])
 
-    raise RuntimeError(f"No tags found for {owner}/{repo}")
+    return None
 
 
 def extract_version_from_pyproject(pyproject_text: str) -> str:
@@ -89,14 +93,27 @@ def extract_version_from_pyproject(pyproject_text: str) -> str:
     return str(version)
 
 
-def fetch_pyproject_version(
+def read_local_pyproject_version(pyproject_path: str) -> str:
+    """Read project.version from a local pyproject.toml in the working tree."""
+    pyproject_file = Path(pyproject_path)
+    if not pyproject_file.exists():
+        return NO_VERSION_FOUND_IN_WORKING_TREE
+
+    text = pyproject_file.read_text(encoding="utf-8")
+    try:
+        return extract_version_from_pyproject(text)
+    except ValueError:
+        return NO_VERSION_FOUND_IN_WORKING_TREE
+
+
+def fetch_pyproject_version_at_tag(
     owner: str,
     repo: str,
     pyproject_path: str,
     release_tag: str,
-    token: str,
+    token: str | None,
 ) -> str:
-    """Fetch pyproject.toml at a release tag and return package version."""
+    """Fetch pyproject.toml for a specific release tag and parse project.version."""
     encoded_path = quote(pyproject_path)
     encoded_tag = quote(release_tag)
     api_path = f"/repos/{owner}/{repo}/contents/{encoded_path}?ref={encoded_tag}"
@@ -159,6 +176,7 @@ def discover_targets(monorepo_owner: str, monorepo_name: str) -> list[RepoTarget
                     repo_name=monorepo_name,
                     component=component_dir.name,
                     pyproject_path=pyproject_file.as_posix(),
+                    is_submodule=False,
                 )
             )
 
@@ -169,7 +187,8 @@ def discover_targets(monorepo_owner: str, monorepo_name: str) -> list[RepoTarget
                 repo_owner=owner,
                 repo_name=repo,
                 component=component_name,
-                pyproject_path="pyproject.toml",
+                pyproject_path=f"{submodule_path}/pyproject.toml",
+                is_submodule=True,
             )
         )
 
@@ -224,46 +243,61 @@ def write_records(records: dict[tuple[str, str, str, str], dict[str, str]]) -> N
 
 
 def main() -> None:
-    """Discover releases/versions and upsert version_matrix.csv rows."""
-    token = os.environ.get("GITHUB_TOKEN", "").strip()
-    if not token:
-        raise RuntimeError("GITHUB_TOKEN is required")
+    """Update matrix: monorepo from working tree, submodules from latest tags."""
+
+    token = os.environ.get("GITHUB_TOKEN", "").strip() or None
 
     monorepo_owner = os.environ.get("MONOREPO_OWNER", "").strip()
     monorepo_name = os.environ.get("MONOREPO_NAME", "").strip()
     if not monorepo_owner or not monorepo_name:
         raise RuntimeError("MONOREPO_OWNER and MONOREPO_NAME are required")
 
-    targets = discover_targets(monorepo_owner=monorepo_owner, monorepo_name=monorepo_name)
-    unique_repos = sorted({(target.repo_owner, target.repo_name) for target in targets})
+    matrix_release_tag = latest_release_tag(monorepo_owner, monorepo_name, token)
+    if not matrix_release_tag:
+        raise RuntimeError(f"No tags found for {monorepo_owner}/{monorepo_name}")
 
-    release_tags: dict[tuple[str, str], str] = {}
-    for owner, repo in unique_repos:
-        release_tags[(owner, repo)] = latest_release_tag(owner=owner, repo=repo, token=token)
+    targets = discover_targets(monorepo_owner=monorepo_owner, monorepo_name=monorepo_name)
 
     records = read_existing_records()
     now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
     for target in targets:
-        release_tag = release_tags[(target.repo_owner, target.repo_name)]
-        version = fetch_pyproject_version(
-            owner=target.repo_owner,
-            repo=target.repo_name,
-            pyproject_path=target.pyproject_path,
-            release_tag=release_tag,
-            token=token,
-        )
+        if target.is_submodule:
+            submodule_release_tag = latest_release_tag(target.repo_owner, target.repo_name, token)
+            if submodule_release_tag:
+                try:
+                    version = fetch_pyproject_version_at_tag(
+                        owner=target.repo_owner,
+                        repo=target.repo_name,
+                        pyproject_path="pyproject.toml",
+                        release_tag=submodule_release_tag,
+                        token=token,
+                    )
+                except (HTTPError, ValueError) as error:
+                    if isinstance(error, HTTPError) and error.code != 404:
+                        raise
+                    version = NO_VERSION_FOUND_AT_TAG
+            else:
+                version = NO_VERSION_FOUND_AT_TAG
+        else:
+            version = read_local_pyproject_version(target.pyproject_path)
 
-        key = (target.repo_owner, target.repo_name, release_tag, target.component)
-        records[key] = {
-            "repo_owner": target.repo_owner,
-            "repo_name": target.repo_name,
-            "release_tag": release_tag,
-            "component": target.component,
-            "component_path": target.pyproject_path,
-            "version": version,
-            "last_updated_utc": now,
-        }
+        key = (target.repo_owner, target.repo_name, matrix_release_tag, target.component)
+        existing_row = records.get(key)
+        if existing_row:
+            existing_row["version"] = version
+            existing_row["last_updated_utc"] = now
+            records[key] = existing_row
+        else:
+            records[key] = {
+                "repo_owner": target.repo_owner,
+                "repo_name": target.repo_name,
+                "release_tag": matrix_release_tag,
+                "component": target.component,
+                "component_path": target.pyproject_path,
+                "version": version,
+                "last_updated_utc": now,
+            }
 
     write_records(records)
 
@@ -271,5 +305,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (HTTPError, URLError, ValueError, RuntimeError) as error:
+    except (HTTPError, URLError, RuntimeError) as error:
         raise SystemExit(f"Error: {error}") from error
