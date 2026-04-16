@@ -1,14 +1,12 @@
-name: Publish Docker Images on Release
+name: Publish Docker Images on Version Matrix Change
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
+    paths:
+      - version_matrix.csv
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: 'Release tag to use (e.g., v1.2.3). If empty, uses release tag from the release event.'
-        required: false
-        default: 'v0.0.1'
 
 jobs:
   build-and-push:
@@ -19,6 +17,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -44,10 +44,12 @@ jobs:
 
       - name: Run workflow_runner.py
         env:
-          RELEASE_TAG: ${{ github.event.inputs.release_tag || github.ref_name }}
+          # Fallback tag used only when a component has no valid CSV version.
+          RELEASE_TAG: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKERHUB_USERNAME_AL: ${{ secrets.DOCKERHUB_USERNAME_AL }}
           DOCKERHUB_API_KEY_AL: ${{ secrets.DOCKERHUB_API_KEY_AL }}
           MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
           MAILJET_API_SECRET: ${{ secrets.MAILJET_API_SECRET }}
         run: |
-          python workflow_runner.py
+          python .github/scripts/workflow_runner.py
