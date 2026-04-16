@@ -26,8 +26,7 @@ jobs:
           'measuring_federate',
           'omoo_federate',
           'recorder',
-          'wls_federate',
-          'pnnl-dsse-ekf'
+          'wls_federate'
         ]
         include:
           - component: broker
@@ -44,8 +43,6 @@ jobs:
             package: recorder
           - component: wls_federate
             package: wls_federate
-          - component: pnnl-dsse-ekf
-            package: ekf_federate
         exclude:
           - python-version: '3.11'
             component: 'pnnl-dsse-ekf'
