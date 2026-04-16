@@ -11,7 +11,6 @@ from pathlib import Path
 
 import docker
 import requests
-
 from requests.auth import HTTPBasicAuth
 from rich import print
 
@@ -30,6 +29,7 @@ VERSION_MATRIX_CSV = REPO_ROOT / "version_matrix.csv"
 GITMODULES_PATH = REPO_ROOT / ".gitmodules"
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "")
 NO_VERSION_PREFIX = "NO VERSION FOUND"
+
 
 @dataclass(frozen=True)
 class ComponentTarget:
