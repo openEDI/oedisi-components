@@ -1,6 +1,9 @@
 name: TestDOPFOMOO
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'Components/**'
 jobs:
   build:
     runs-on: ${{ matrix.os }}
