@@ -1,3 +1,9 @@
 [submodule "Components/pnnl-dopf-admm"]
 	path = Components/pnnl-dopf-admm
 	url = https://github.com/openEDI/pnnl-dopf-admm
+[submodule "Components/nlpdopf"]
+	path = Components/nlpdopf
+	url = https://github.com/openEDI/nlpdopf
+[submodule "Components/nlpdsse"]
+	path = Components/nlpdsse
+	url = https://github.com/openEDI/nlpdsse
