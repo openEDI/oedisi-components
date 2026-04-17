@@ -3,7 +3,14 @@ name: RunExample
 on:
   push:
     paths:
-      - 'Components/**'
+      - '.github/workflows/test-api.yml'
+      - 'Components/broker/**'
+      - 'Components/lindistflow_federate/**'
+      - 'Components/LocalFeeder/**'
+      - 'Components/measuring_federate/**'
+      - 'Components/recorder/**'
+      - 'Components/wls_federate/**'
+      - 'scenarios/docker_system.json'
 
 
 jobs:
@@ -17,6 +24,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+          submodules: recursive
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: conda-incubator/setup-miniconda@v2
