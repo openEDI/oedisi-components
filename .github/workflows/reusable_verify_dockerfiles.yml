@@ -34,6 +34,10 @@ jobs:
           else
             for component_dir in Components/*; do
               [ -d "$component_dir" ] || continue
+              component="$(basename "$component_dir")"
+              if [ "$component" = "pnnl-imputation-ffnn" ] || [ "$component" = "pnnl-profiler-sdv" ]; then
+                continue
+              fi
               target="${component_dir}/Dockerfile"
               if [ -f "$target" ]; then
                 echo "$target found"
