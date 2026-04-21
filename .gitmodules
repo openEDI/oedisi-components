@@ -19,3 +19,9 @@
 [submodule "Components/pnnl-profiler-sdv"]
 	path = Components/pnnl-profiler-sdv
 	url = https://github.com/openEDI/pnnl-profiler-sdv
+[submodule "Components/nlpdopf"]
+	path = Components/nlpdopf
+	url = https://github.com/openEDI/nlpdopf
+[submodule "Components/nlpdsse"]
+	path = Components/nlpdsse
+	url = https://github.com/openEDI/nlpdsse
