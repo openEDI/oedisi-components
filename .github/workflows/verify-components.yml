@@ -6,6 +6,7 @@ on:
       - 'Components/**'
       - '.github/workflows/verify-components.yml'
       - '.github/workflows/reusable_verify_components.yml'
+      - '.github/workflows/lint-format.yml'
 
 jobs:
   verify:
