@@ -173,15 +173,17 @@ def discover_component_targets() -> list[ComponentTarget]:
                 discovered[entry.resolve().as_posix()] = entry
     print(f"Found {len(discovered)} Components/* entries with Dockerfile")
 
-    if COMPONENTS_JSON.is_file():
-        components = json.loads(COMPONENTS_JSON.read_text(encoding="utf-8"))
-        print(f"Loaded {len(components)} entries from components.json")
-        for raw_path in components.values():
-            component_dir = resolve_component_directory(str(raw_path))
-            if not component_dir:
-                continue
-            if (component_dir / "Dockerfile").is_file():
-                discovered[component_dir.resolve().as_posix()] = component_dir
+    if not COMPONENTS_JSON.is_file():
+        raise RuntimeError(f"Required file missing: {COMPONENTS_JSON}")
+
+    components = json.loads(COMPONENTS_JSON.read_text(encoding="utf-8"))
+    print(f"Loaded {len(components)} entries from components.json")
+    for raw_path in components.values():
+        component_dir = resolve_component_directory(str(raw_path))
+        if not component_dir:
+            continue
+        if (component_dir / "Dockerfile").is_file():
+            discovered[component_dir.resolve().as_posix()] = component_dir
 
     targets: list[ComponentTarget] = []
     root = REPO_ROOT
@@ -257,7 +259,7 @@ def resolve_component_tag(
     matrix_rows: list[dict[str, str]],
     tag_cache: dict[tuple[str, str], str | None],
 ) -> str:
-    """Resolve Docker tag strictly from CSV version at latest repo tag."""
+    """Resolve Docker tag from version_matrix.csv for the repository's latest tag."""
     repo_key = (target.repo_owner, target.repo_name)
     latest_tag = tag_cache.get(repo_key)
 
@@ -283,12 +285,11 @@ def resolve_component_tag(
             f"repo={target.repo_owner}/{target.repo_name}, release_tag={latest_tag}"
         )
 
-    final_tag = csv_version
     print(
         f"Tag decision for {target.component_name}: "
-        f"csv_version={csv_version}, repo_tag={latest_tag}, selected={final_tag}"
+        f"repo_tag={latest_tag}, selected_csv_version={csv_version}"
     )
-    return final_tag
+    return csv_version
 
 
 def load_matrix_rows() -> list[dict[str, str]]:
