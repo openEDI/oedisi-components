@@ -285,10 +285,7 @@ def resolve_component_tag(
             f"repo={target.repo_owner}/{target.repo_name}, release_tag={latest_tag}"
         )
 
-    print(
-        f"Tag decision for {target.component_name}: "
-        f"repo_tag={latest_tag}, selected_csv_version={csv_version}"
-    )
+    print(f"Tag decision for {target.component_name}: " f"repo_tag={latest_tag}, selected_csv_version={csv_version}")
     return csv_version
 
 
