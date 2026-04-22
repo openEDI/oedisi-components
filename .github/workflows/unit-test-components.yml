@@ -51,6 +51,8 @@ jobs:
             package: nlpdsse
         exclude:
           - python-version: '3.11'
+            component: 'pnnl-dsse-ekf'
+          - python-version: '3.11'
             component: 'nlpdopf'
           - python-version: '3.11'
             component: 'nlpdsse'
