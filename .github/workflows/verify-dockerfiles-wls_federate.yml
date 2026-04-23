@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - wls_federate
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/wls_federate/**'
