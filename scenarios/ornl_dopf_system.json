@@ -1,0 +1,104 @@
+{
+    "name": "ornl_dopf_system",
+    "components": [
+        {
+            "name": "feeder",
+            "type": "LocalFeeder",
+            "parameters": {
+                "use_smartds": false,
+                "user_uploads_model": false,
+                "profile_location": "gadal_ieee123/profiles",
+                "opendss_location": "gadal_ieee123/qsts",
+                "sensor_location": "gadal_ieee123/sensors.json",
+                "start_date": "2017-01-01 00:00:00",
+                "number_of_timesteps": 96,
+                "run_freq_sec": 900,
+                "topology_output": "../../outputs/topology.json"
+            }
+        },
+        {
+            "name": "dopfpso",
+            "type": "DOPFPSOComponent",
+            "parameters": {
+                "name": "dopfpso",
+                "pv_buses": ["7.1", "29.1", "49.1", "55.1", "63.1", "68.1", "80.1", "87.1", "113.1"],
+                "pv_capacity_kw": [150, 150, 150, 150, 150, 150, 150, 150, 150],
+                "algorithm_parameters": {"tol": 1e-5}
+            }
+        },
+        {
+            "name": "recorder_voltage_magnitude",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_mag.feather",
+                "csv_filename": "../../outputs/voltage_mag.csv"
+            }
+        },
+        {
+            "name": "recorder_power_real",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/powers_real.feather",
+                "csv_filename": "../../outputs/powers_real.csv"
+            }
+        },
+        {
+            "name": "recorder_power_imag",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/powers_imag.feather",
+                "csv_filename": "../../outputs/powers_imag.csv"
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "feeder",
+            "source_port": "powers_real",
+            "target": "dopfpso",
+            "target_port": "powers_real"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_imag",
+            "target": "dopfpso",
+            "target_port": "powers_imag"
+        },
+        {
+            "source": "feeder",
+            "source_port": "topology",
+            "target": "dopfpso",
+            "target_port": "topology"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_magnitude",
+            "target": "dopfpso",
+            "target_port": "voltages_magnitude"
+        },
+        {
+            "source": "dopfpso",
+            "source_port": "change_commands",
+            "target": "feeder",
+            "target_port": "change_commands"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_magnitude",
+            "target": "recorder_voltage_magnitude",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_real",
+            "target": "recorder_power_real",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_imag",
+            "target": "recorder_power_imag",
+            "target_port": "subscription"
+        }
+    ]
+}

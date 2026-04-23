@@ -9,5 +9,8 @@
     "HubVoltageComponent": "Components/pnnl-hub-voltage/component_definition.json",
     "HubControlComponent": "Components/pnnl-hub-control/component_definition.json",
     "HubPowerComponent": "Components/pnnl-hub-power/component_definition.json",
-    "EKFStateEstimatorComponent": "Components/pnnl-dsse-ekf/component_definition.json"
+    "EKFStateEstimatorComponent": "Components/pnnl-dsse-ekf/component_definition.json",
+    "EVCSComponent": "Components/ornl-ev-pso/component_definition.json",
+    "DOPFPSOComponent": "Components/ornl-dopf-pso/component_definition.json",
+    "DSSEGNWLSComponent": "Components/ornl-dsse-gnwls/component_definition.json"
 }

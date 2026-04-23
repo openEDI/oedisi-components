@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - ornl-dopf-pso
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-dopf-pso/**'
+      - '.github/workflows/verify-dockerfiles-ornl-dopf-pso.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/ornl-dopf-pso

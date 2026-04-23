@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - ornl-dsse-gnwls
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-dsse-gnwls/**'
+      - '.github/workflows/verify-dockerfiles-ornl-dsse-gnwls.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/ornl-dsse-gnwls
