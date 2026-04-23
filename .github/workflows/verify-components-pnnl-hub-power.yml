@@ -1,0 +1,14 @@
+name: Verify Components - pnnl-hub-power
+
+on:
+  push:
+    paths:
+      - 'Components/pnnl-hub-power/**'
+      - '.github/workflows/verify-components-pnnl-hub-power.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/pnnl-hub-power

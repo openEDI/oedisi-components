@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - pnnl-dsse-ekf
+
+on:
+  push:
+    paths:
+      - 'Components/pnnl-dsse-ekf/**'
+      - '.github/workflows/verify-dockerfiles-pnnl-dsse-ekf.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/pnnl-dsse-ekf
