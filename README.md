@@ -20,6 +20,15 @@
 - **[update-components-submodules.yml](.github/workflows/update-components-submodules.yml)** - Automatically updates all component submodules under `Components/`. Scheduled weekly (Monday 8 AM UTC) or triggered manually.
 - **[update-version-matrix.yml](.github/workflows/update-version-matrix.yml)** - Updates `version_matrix.csv` from working tree and submodule release tags. Creates a pull request with changes. Triggered on release published events or manual workflow dispatch.
 
+## Integration Test Status
+
+| Workflow | Components | Status | Uses Multi-contianer Setup |
+|----------|------------|--------|-------------|
+| RunExample | broker, lindistflow_federate, LocalFeeder, measuring_federate, recorder, wls_federate | [![RunExample](https://github.com/openEDI/oedisi-components/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/test-api.yml) | False |
+| TestDOPFOMOO | broker, LocalFeeder, measuring_federate, recorder, omoo_federate | [![TestDOPFOMOO](https://github.com/openEDI/oedisi-components/actions/workflows/test-dopf.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/test-dopf.yml) | False |
+
+
+
 ## Component Status
 
 | Component | Version | Tests | Config files | Docker | Maintainer |
