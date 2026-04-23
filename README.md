@@ -1,12 +1,22 @@
 # oedisi-example
 
-[![Main - Integration Tests](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/test-api.yml)
-[![Main - Docker Build Test](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/docker-test.yml)
-[![Main - Unit Tests](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml/badge.svg)](https://github.com/openEDI/oedisi-example/actions/workflows/unit-test-federates.yml)
+[![Lint and Format](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml)
+[![Publish on Version Matrix](https://github.com/openEDI/oedisi-components/actions/workflows/publish-on-version-matrix.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/publish-on-version-matrix.yml)
+[![Update Components Submodules](https://github.com/openEDI/oedisi-components/actions/workflows/update-components-submodules.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/update-components-submodules.yml)
+[![Update Version Matrix](https://github.com/openEDI/oedisi-components/actions/workflows/update-version-matrix.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/update-version-matrix.yml)
+
 
 This example shows how to use the GADAL api to manage simulations. We also
 use it as a testing ground for the testing the combination of feeders,
 state estimation, and distributed OPF.
+
+## Key Workflows
+
+**Repository-wide automation:**
+- **[lint-format.yml](.github/workflows/lint-format.yml)** - Code quality enforcement using pre-commit hooks (ruff, trailing whitespace, YAML validation). Runs on every push.
+- **[publish-on-version-matrix.yml](.github/workflows/publish-on-version-matrix.yml)** - Builds and publishes Docker images when `version_matrix.csv` changes. Triggered on main branch push or manual workflow dispatch.
+- **[update-components-submodules.yml](.github/workflows/update-components-submodules.yml)** - Automatically updates all component submodules under `Components/`. Scheduled weekly (Monday 8 AM UTC) or triggered manually.
+- **[update-version-matrix.yml](.github/workflows/update-version-matrix.yml)** - Updates `version_matrix.csv` from working tree and submodule release tags. Creates a pull request with changes. Manual workflow dispatch only.
 
 ## Component Status
 
