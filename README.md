@@ -110,26 +110,26 @@ pytest --cov=Components --cov-report=html Components/
 
 ### Code Quality
 
-The repository uses standardized code quality tools configured in [pyproject.toml](pyproject.toml):
+The repository enforces code quality standards through automated linting and formatting via GitHub Actions and pre-commit hooks.
 
+**GitHub Actions Lint Workflow** (`.github/workflows/lint-format.yml`):
+- Runs on every push and can be triggered manually
+- Uses Python 3.13 to ensure compatibility with latest standards
+- Executes all pre-commit hooks to validate code quality
+
+**Pre-commit Hooks** (`.pre-commit-config.yaml`):
+- **Standard hooks**: Trailing whitespace removal, EOF fixing, YAML validation, large file detection
+- **Ruff**: Modern Python linter and formatter (replaces flake8, black, isort)
+  - `ruff check --fix`: Automatic fixing of linting issues
+  - `ruff format`: Code formatting for consistency
+
+To set up pre-commit hooks locally:
 ```bash
-# Format code
-black Components/
-isort Components/
-
-# Type checking
-mypy Components/
-
-# Linting
-flake8 Components/
-
-# Check docstrings
-pydocstyle Components/
-```
-
-Install pre-commit hooks:
-```bash
+pip install pre-commit
 pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
 ```
 
 # Install and Running Locally
