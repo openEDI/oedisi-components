@@ -153,27 +153,6 @@ pre-commit run --all-files
    pip install pytest mypy black isort flake8 pydocstyle pre-commit
    ```
 
-## Running Simulations
-
-1. Build the simulation system:
-```bash
-oedisi build --system scenarios/docker_system.json
-```
-
-This initializes the system defined in `scenarios/test_system.json` in a `build` directory.
-
-You can specify your own directory with `--build-dir` and your own system json
-with `--system`.
-
-2. Run `oedisi run`
-
-3. Analyze the results using `python post_analysis.py`
-
-This computes some percentage relative errors in magnitude (MAPE) and angle (MAE),
-as well as plots in `errors.png`, `voltage_magnitudes_0.png`, `voltage_angles_0.png`, etc.
-
-If you put your outputs in a separate directory, you can run `python post_analysis.py [output_directory]`.
-
 ## Troubleshooting
 
 If the simulation fails, you may **need** to kill the `helics_broker` manually before you can start a new simulation.
