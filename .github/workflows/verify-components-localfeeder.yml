@@ -1,0 +1,14 @@
+name: Verify Components - LocalFeeder
+
+on:
+  push:
+    paths:
+      - 'Components/LocalFeeder/**'
+      - '.github/workflows/verify-components-localfeeder.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/LocalFeeder

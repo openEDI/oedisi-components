@@ -1,0 +1,14 @@
+name: Verify Components - broker
+
+on:
+  push:
+    paths:
+      - 'Components/broker/**'
+      - '.github/workflows/verify-components-broker.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/broker

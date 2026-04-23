@@ -1,0 +1,14 @@
+name: Verify Components - wls_federate
+
+on:
+  push:
+    paths:
+      - 'Components/wls_federate/**'
+      - '.github/workflows/verify-components-wls_federate.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/wls_federate
