@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - omoo_federate
+
+on:
+  push:
+    paths:
+      - 'Components/omoo_federate/**'
+      - '.github/workflows/verify-dockerfiles-omoo_federate.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/omoo_federate

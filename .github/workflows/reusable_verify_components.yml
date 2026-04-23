@@ -20,53 +20,49 @@ jobs:
           submodules: recursive
 
       - name: Check component_definition.json exists
-        env:
-          COMPONENT_ROOT: ${{ inputs.component-root }}
         run: |
-          if [ -n "$COMPONENT_ROOT" ]; then
-            target="$COMPONENT_ROOT/component_definition.json"
-            if [ -f "$target" ]; then
-              echo "$target found"
-            else
-              echo "$target missing"
-              exit 1
-            fi
-            for component_dir in Components/*; do
-              [ -d "$component_dir" ] || continue
-              component="$(basename "$component_dir")"
-              if [ "$component" = "broker" ]; then
-                continue
-              fi
-              target="${component_dir}/component_definition.json"
-              if [ -f "$target" ]; then
-                echo "$target found"
-              else
-                echo "$target missing"
-                exit 1
-              fi
-            done
+          component_root="${{ inputs.component-root }}"
+          if [ -n "$component_root" ]; then
+            component_dirs="$component_root"
+          else
+            component_dirs="Components/*"
           fi
 
-      - name: Check README.md exists
-        env:
-          COMPONENT_ROOT: ${{ inputs.component-root }}
-        run: |
-          if [ -n "$COMPONENT_ROOT" ]; then
-            target="$COMPONENT_ROOT/README.md"
+          for component_dir in $component_dirs; do
+            [ -d "$component_dir" ] || continue
+            component="$(basename "$component_dir")"
+            if [ "$component" = "broker" ]; then
+              continue
+            fi
+            target="${component_dir}/component_definition.json"
             if [ -f "$target" ]; then
               echo "$target found"
             else
               echo "$target missing"
               exit 1
             fi
-            for component_dir in Components/*; do
-              [ -d "$component_dir" ] || continue
-              target="${component_dir}/README.md"
-              if [ -f "$target" ]; then
-                echo "$target found"
-              else
-                echo "$target missing"
-                exit 1
-              fi
-            done
+          done
+
+      - name: Check README.md exists
+        run: |
+          component_root="${{ inputs.component-root }}"
+          if [ -n "$component_root" ]; then
+            component_dirs="$component_root"
+          else
+            component_dirs="Components/*"
           fi
+
+          for component_dir in $component_dirs; do
+            [ -d "$component_dir" ] || continue
+            component="$(basename "$component_dir")"
+            if [ "$component" = "broker" ]; then
+              continue
+            fi
+            target="${component_dir}/README.md"
+            if [ -f "$target" ]; then
+              echo "$target found"
+            else
+              echo "$target missing"
+              exit 1
+            fi
+          done

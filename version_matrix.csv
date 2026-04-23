@@ -1,0 +1,9 @@
+repo_owner,repo_name,release_tag,component,component_path,version,last_updated_utc
+openEDI,oedisi-components,v0.6.0,LocalFeeder,Components/LocalFeeder/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,broker,Components/broker/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,lindistflow_federate,Components/lindistflow_federate/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,measuring_federate,Components/measuring_federate/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,omoo_federate,Components/omoo_federate/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,recorder,Components/recorder/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,oedisi-components,v0.6.0,wls_federate,Components/wls_federate/pyproject.toml,0.1.0,2026-04-15T22:27:16Z
+openEDI,pnnl-dopf-admm,v0.6.0,pnnl-dopf-admm,Components/pnnl-dopf-admm/pyproject.toml,NO VERSION FOUND AT TAG,2026-04-15T22:27:16Z
