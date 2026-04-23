@@ -11,7 +11,7 @@
 [![Lint and Format](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml)
 
 
-This example shows how to use the GADAL api to manage simulations. We also
+This example shows how to use the OEDISI api to manage simulations. We also
 use it as a testing ground for the testing the combination of feeders,
 state estimation, and distributed OPF.
 
