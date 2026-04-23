@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - pnnl-dopf-admm
+
+on:
+  push:
+    paths:
+      - 'Components/pnnl-dopf-admm/**'
+      - '.github/workflows/verify-dockerfiles-pnnl-dopf-admm.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/pnnl-dopf-admm

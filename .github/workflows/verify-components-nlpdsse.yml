@@ -1,0 +1,14 @@
+name: Verify Components - nlpdsse
+
+on:
+  push:
+    paths:
+      - 'Components/nlpdsse/**'
+      - '.github/workflows/verify-components-nlpdsse.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/nlpdsse

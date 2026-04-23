@@ -21,7 +21,14 @@ jobs:
 
       - name: Check Dockerfile exists
         run: |
-          for component_dir in Components/*; do
+          component_root="${{ inputs.component-root }}"
+          if [ -n "$component_root" ]; then
+            component_dirs="$component_root"
+          else
+            component_dirs="Components/*"
+          fi
+
+          for component_dir in $component_dirs; do
             [ -d "$component_dir" ] || continue
             component="$(basename "$component_dir")"
             if [ "$component" = "broker" ]; then

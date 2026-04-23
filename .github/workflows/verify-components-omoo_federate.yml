@@ -1,0 +1,14 @@
+name: Verify Components - omoo_federate
+
+on:
+  push:
+    paths:
+      - 'Components/omoo_federate/**'
+      - '.github/workflows/verify-components-omoo_federate.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/omoo_federate

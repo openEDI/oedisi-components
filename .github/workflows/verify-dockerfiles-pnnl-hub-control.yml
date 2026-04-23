@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - pnnl-hub-control
+
+on:
+  push:
+    paths:
+      - 'Components/pnnl-hub-control/**'
+      - '.github/workflows/verify-dockerfiles-pnnl-hub-control.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/pnnl-hub-control
