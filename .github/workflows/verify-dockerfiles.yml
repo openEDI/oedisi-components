@@ -6,6 +6,7 @@ on:
       - 'Components/**'
       - '.github/workflows/verify-dockerfiles.yml'
       - '.github/workflows/reusable_verify_dockerfiles.yml'
+      - '.github/workflows/lint-format.yml'
 
 jobs:
   verify:

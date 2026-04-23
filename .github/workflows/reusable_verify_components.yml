@@ -20,53 +20,35 @@ jobs:
           submodules: recursive
 
       - name: Check component_definition.json exists
-        env:
-          COMPONENT_ROOT: ${{ inputs.component-root }}
         run: |
-          if [ -n "$COMPONENT_ROOT" ]; then
-            target="$COMPONENT_ROOT/component_definition.json"
+          for component_dir in Components/*; do
+            [ -d "$component_dir" ] || continue
+            component="$(basename "$component_dir")"
+            if [ "$component" = "broker" ]; then
+              continue
+            fi
+            target="${component_dir}/component_definition.json"
             if [ -f "$target" ]; then
               echo "$target found"
             else
               echo "$target missing"
               exit 1
             fi
-            for component_dir in Components/*; do
-              [ -d "$component_dir" ] || continue
-              component="$(basename "$component_dir")"
-              if [ "$component" = "broker" ] || [ "$component" = "pnnl-imputation-ffnn" ] || [ "$component" = "pnnl-profiler-sdv" ]; then
-                continue
-              fi
-              target="${component_dir}/component_definition.json"
-              if [ -f "$target" ]; then
-                echo "$target found"
-              else
-                echo "$target missing"
-                exit 1
-              fi
-            done
-          fi
+          done
 
       - name: Check README.md exists
-        env:
-          COMPONENT_ROOT: ${{ inputs.component-root }}
         run: |
-          if [ -n "$COMPONENT_ROOT" ]; then
-            target="$COMPONENT_ROOT/README.md"
+          for component_dir in Components/*; do
+            [ -d "$component_dir" ] || continue
+            component="$(basename "$component_dir")"
+            if [ "$component" = "broker" ]; then
+              continue
+            fi
+            target="${component_dir}/README.md"
             if [ -f "$target" ]; then
               echo "$target found"
             else
               echo "$target missing"
               exit 1
             fi
-            for component_dir in Components/*; do
-              [ -d "$component_dir" ] || continue
-              target="${component_dir}/README.md"
-              if [ -f "$target" ]; then
-                echo "$target found"
-              else
-                echo "$target missing"
-                exit 1
-              fi
-            done
-          fi
+          done

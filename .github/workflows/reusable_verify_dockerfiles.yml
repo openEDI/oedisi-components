@@ -20,30 +20,18 @@ jobs:
           submodules: recursive
 
       - name: Check Dockerfile exists
-        env:
-          COMPONENT_ROOT: ${{ inputs.component-root }}
         run: |
-          if [ -n "$COMPONENT_ROOT" ]; then
-            target="$COMPONENT_ROOT/Dockerfile"
+          for component_dir in Components/*; do
+            [ -d "$component_dir" ] || continue
+            component="$(basename "$component_dir")"
+            if [ "$component" = "broker" ]; then
+              continue
+            fi
+            target="${component_dir}/Dockerfile"
             if [ -f "$target" ]; then
               echo "$target found"
             else
               echo "$target missing"
               exit 1
             fi
-          else
-            for component_dir in Components/*; do
-              [ -d "$component_dir" ] || continue
-              component="$(basename "$component_dir")"
-              if [ "$component" = "pnnl-imputation-ffnn" ] || [ "$component" = "pnnl-profiler-sdv" ]; then
-                continue
-              fi
-              target="${component_dir}/Dockerfile"
-              if [ -f "$target" ]; then
-                echo "$target found"
-              else
-                echo "$target missing"
-                exit 1
-              fi
-            done
-          fi
+          done

@@ -3,7 +3,13 @@ name: TestDOPFOMOO
 on:
   push:
     paths:
-      - 'Components/**'
+      - '.github/workflows/test-dopf.yml'
+      - 'Components/broker/**'
+      - 'Components/LocalFeeder/**'
+      - 'Components/measuring_federate/**'
+      - 'Components/recorder/**'
+      - 'Components/omoo_federate/**'
+      - 'scenarios/omoo_system.json'
 jobs:
   build:
     runs-on: ${{ matrix.os }}
