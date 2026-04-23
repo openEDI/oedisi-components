@@ -1,4 +1,4 @@
-# oedisi-example
+# OEDISI-Components
 
 [![Publish on Version Matrix](https://github.com/openEDI/oedisi-components/actions/workflows/publish-on-version-matrix.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/publish-on-version-matrix.yml)
 
@@ -11,9 +11,6 @@
 [![Lint and Format](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/lint-format.yml)
 
 
-This example shows how to use the OEDISI api to manage simulations. We also
-use it as a testing ground for the testing the combination of feeders,
-state estimation, and distributed OPF.
 
 ## Key Workflows
 
