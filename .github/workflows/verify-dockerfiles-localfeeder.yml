@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - LocalFeeder
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/LocalFeeder/**'

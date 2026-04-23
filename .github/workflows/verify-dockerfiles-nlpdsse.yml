@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - nlpdsse
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/nlpdsse/**'

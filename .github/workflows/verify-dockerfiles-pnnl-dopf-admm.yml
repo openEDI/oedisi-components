@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - pnnl-dopf-admm
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/pnnl-dopf-admm/**'

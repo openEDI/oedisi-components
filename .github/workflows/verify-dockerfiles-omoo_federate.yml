@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - omoo_federate
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/omoo_federate/**'

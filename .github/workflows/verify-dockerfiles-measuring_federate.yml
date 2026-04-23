@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - measuring_federate
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/measuring_federate/**'

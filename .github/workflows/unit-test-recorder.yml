@@ -1,6 +1,7 @@
 name: Unit Test - recorder
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, al/restructed ]
     paths:
