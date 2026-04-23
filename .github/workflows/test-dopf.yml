@@ -1,6 +1,7 @@
 name: TestDOPFOMOO
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - '.github/workflows/test-dopf.yml'

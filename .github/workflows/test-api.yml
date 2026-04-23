@@ -1,6 +1,7 @@
 name: RunExample
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - '.github/workflows/test-api.yml'

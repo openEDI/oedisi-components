@@ -1,6 +1,7 @@
 name: Unit Test - lindistflow_federate
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, al/restructed ]
     paths:
