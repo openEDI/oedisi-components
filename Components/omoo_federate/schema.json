@@ -1,0 +1,65 @@
+{
+  "title": "OMOOConfig",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "algorithm_parameters": {
+      "title": "Algorithm Parameters",
+      "type": "object",
+      "properties": {
+        "Vmax": {
+          "title": "Vmax",
+          "type": "number",
+          "default": 1.05
+        },
+        "Vmin_act": {
+          "title": "Vmin (active)",
+          "type": "number",
+          "default": 0.95
+        },
+        "Vmin": {
+          "title": "Vmin",
+          "type": "number",
+          "default": 0.95
+        },
+        "alpha": {
+          "title": "Alpha",
+          "type": "number",
+          "default": 0.5
+        },
+        "epsilon": {
+          "title": "Epsilon",
+          "type": "number",
+          "default": 1e-8,
+          "minimum": 0
+        },
+        "nu": {
+          "title": "Nu",
+          "type": "number",
+          "default": 0.016,
+          "minimum": 0
+        },
+        "ratio_t_k": {
+          "title": "Ratio t/k",
+          "type": "integer",
+          "default": 1000,
+          "minimum": 1
+        },
+        "units": {
+          "title": "Units",
+          "type": "string",
+          "enum": ["SI", "PER_UNIT"],
+          "default": "PER_UNIT"
+        },
+        "base_power": {
+          "title": "Base Power",
+          "type": "number",
+          "default": 100.0
+        }
+      }
+    }
+  }
+}
