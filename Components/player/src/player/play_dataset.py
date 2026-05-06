@@ -77,6 +77,7 @@ class ComponentParameters(BaseModel):
     data_type: str
     number_of_timesteps: int
     start_time_index: int
+    run_freq_time_step: float = 900.0
 
 
 class Player:
@@ -186,11 +187,12 @@ class Player:
         granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
 
         while granted_time < h.HELICS_TIME_MAXTIME:
-            if row_index >= num_rows:
-                logger.info(f"Dataset exhausted after {num_rows} rows. Finalizing.")
+            dataset_index = self.t_start + row_index
+            if row_index >= self.t_steps or dataset_index >= num_rows:
+                logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
                 break
 
-            row = self.dataset.iloc[self.t_start : self.t_start + self.t_steps]
+            row = self.dataset.iloc[dataset_index]
             measurement = self._build_measurement(row, row_index)
             self.pub.publish(measurement.model_dump_json())
             logger.info(f"Published row {row_index} at HELICS time {granted_time}")
