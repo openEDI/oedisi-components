@@ -110,9 +110,10 @@ class Player:
         fedinfo.core_init = "--federates=1"
         logger.debug(config.name)
 
-        h.helicsFederateInfoSetTimeProperty(
-            fedinfo, h.helics_property_time_delta, config.run_freq_time_step
-        )
+        # Use a small delta_t (like the feeder) so HELICS doesn't skip the
+        # federate to MAXTIME in one step.  run_freq_time_step is the physical
+        # publish interval recorded in the data; it is NOT the HELICS time unit.
+        h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, 0.01)
 
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
         logger.info("Value federate created")
@@ -176,29 +177,34 @@ class Player:
         return self.type_class.model_validate(data)
 
     def run(self):
-        """Run the player execution loop, publishing one row per granted time step."""
+        """Run the player execution loop, publishing one row per granted time step.
+
+        Follows the feeder pattern: request sequential integer timesteps (0, 1,
+        2, …) instead of HELICS_TIME_MAXTIME.  In HELICS 3.6+, source-only
+        federates that request MAXTIME are granted MAXTIME immediately, so we
+        must request bounded times to keep the co-simulation properly stepped.
+        """
         self.vfed.enter_initializing_mode()
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
 
         num_rows = len(self.dataset)
-        row_index = 0
+        request_time = 0
 
-        granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
-
-        while granted_time < h.HELICS_TIME_MAXTIME:
+        for row_index in range(self.t_steps):
             dataset_index = self.t_start + row_index
-            if row_index >= self.t_steps or dataset_index >= num_rows:
+            if dataset_index >= num_rows:
                 logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
                 break
+
+            granted_time = h.helicsFederateRequestTime(self.vfed, request_time)
 
             row = self.dataset.iloc[dataset_index]
             measurement = self._build_measurement(row, row_index)
             self.pub.publish(measurement.model_dump_json())
             logger.info(f"Published row {row_index} at HELICS time {granted_time}")
-            row_index += 1
 
-            granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
+            request_time += 1
 
         self.destroy()
 

@@ -5,7 +5,7 @@
             "name": "player",
             "type": "Player",
             "parameters": {
-                "filename": "scenarios/player_measuring/voltages.csv",
+                "filename": "../player/data/voltages.csv",
                 "data_type": "VoltagesMagnitude",
                 "number_of_timesteps": 4,
                 "start_time_index": 0,
@@ -18,7 +18,7 @@
             "parameters": {
                 "additive_noise_stddev": 0.0,
                 "multiplicative_noise_stddev": 0.0,
-                "measurement_file": "scenarios/player_measuring/sensors.json"
+                "measurement_file": "../player/data/sensors.json"
             }
         },
         {
