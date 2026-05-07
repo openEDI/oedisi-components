@@ -179,17 +179,26 @@ class Player:
     def run(self):
         """Run the player execution loop, publishing one row per granted time step.
 
-        Follows the feeder pattern: request sequential integer timesteps (0, 1,
-        2, …) instead of HELICS_TIME_MAXTIME.  In HELICS 3.6+, source-only
+        Follows the feeder pattern: request sequential integer timesteps (1, 2,
+        3, …) instead of HELICS_TIME_MAXTIME.  In HELICS 3.6+, source-only
         federates that request MAXTIME are granted MAXTIME immediately, so we
         must request bounded times to keep the co-simulation properly stepped.
+        Time starts at 1 (not 0) because subscriber federates with time_delta
+        >= 1.0 cannot be granted time 0 after enter_executing_mode() — their
+        first valid grant is current_time + delta >= 1.0.
         """
         self.vfed.enter_initializing_mode()
         self.vfed.enter_executing_mode()
         logger.info("Entering execution mode")
 
         num_rows = len(self.dataset)
-        request_time = 0
+        # Start at t=1 so that subscriber federates whose time_delta >= 1.0
+        # (e.g. the measuring federate) can be granted time 1 as their first
+        # step.  After enter_executing_mode() a federate is at time 0, so its
+        # minimum next grant is 0 + delta.  If the player published row 0 at
+        # t=0 the subscriber's first grant (t=1) would see row 1 as the most
+        # recent value (<=1), silently dropping row 0.
+        request_time = 1
 
         for row_index in range(self.t_steps):
             dataset_index = self.t_start + row_index
