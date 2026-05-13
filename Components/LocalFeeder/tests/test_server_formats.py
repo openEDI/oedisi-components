@@ -7,7 +7,6 @@ from pathlib import Path
 
 import localfeeder.server as server
 
-
 DATA_DIR = Path("tests/data")
 
 

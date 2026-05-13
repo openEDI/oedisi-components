@@ -10,19 +10,16 @@ import zipfile
 from enum import StrEnum
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, Request, UploadFile
-from fastapi.exceptions import HTTPException
-from fastapi.responses import JSONResponse
-from oedisi.componentframework.system_configuration import ComponentStruct
-from oedisi.types.common import BrokerConfig, DefaultFileNames, HeathCheck, ServerReply
-from loguru import logger
-
 from ditto.readers.cim_iec_61968_13.reader import Reader as CIMReader
 from ditto.readers.cyme.reader import Reader as CymeReader
 from ditto.writers.opendss.write import Writer as OpenDSSWriter
+from fastapi import BackgroundTasks, FastAPI, Request, UploadFile
+from fastapi.exceptions import HTTPException
+from fastapi.responses import JSONResponse
 from gdm.distribution import DistributionSystem
-
-
+from loguru import logger
+from oedisi.componentframework.system_configuration import ComponentStruct
+from oedisi.types.common import BrokerConfig, DefaultFileNames, HeathCheck, ServerReply
 
 from .sender_cosim import run_simulator
 
@@ -32,7 +29,10 @@ app = FastAPI()
 
 base_path = os.getcwd()
 
+
 class SupportedFormats(StrEnum):
+    """Supported uploaded model formats for the LocalFeeder /model endpoint."""
+
     CIM = "CIM"
     CYME = "CYME"
     JSON = "JSON"
@@ -82,8 +82,6 @@ async def sensor():
     return data
 
 
-
-
 @app.post("/profiles")
 async def upload_profiles(file: UploadFile):
     """Endpoint to upload power profiles."""
@@ -112,9 +110,8 @@ async def upload_profiles(file: UploadFile):
         raise HTTPException(500, "Unknown error while uploading userdefined opendss profiles.") from err
 
 
-def _read_cim(model_path: str)-> DistributionSystem:
+def _read_cim(model_path: str) -> DistributionSystem:
     """Read a CIM model."""
-
     logger.info(f"Reading CIM model from path: {model_path}")
     cim_file = None
     for root, _, files in os.walk(model_path):
@@ -132,9 +129,9 @@ def _read_cim(model_path: str)-> DistributionSystem:
     logger.info(f"Successfully read CIM model from {cim_file}")
     return reader.get_system()
 
-def _read_cyme(model_path: str)-> DistributionSystem:
-    """Read a CYME model."""
 
+def _read_cyme(model_path: str) -> DistributionSystem:
+    """Read a CYME model."""
     logger.info(f"Reading CYME model from path: {model_path}")
     network_file = None
     equipment_file = None
@@ -158,9 +155,9 @@ def _read_cyme(model_path: str)-> DistributionSystem:
     logger.info(f"Successfully read CYME model from {model_path}")
     return reader.system
 
-def _read_json(model_path: str)-> DistributionSystem:
-    """Read a JSON model."""
 
+def _read_json(model_path: str) -> DistributionSystem:
+    """Read a JSON model."""
     logger.info(f"Reading JSON model from path: {model_path}")
     json_file = None
     for root, _, files in os.walk(model_path):
@@ -176,18 +173,18 @@ def _read_json(model_path: str)-> DistributionSystem:
     logger.info(f"Successfully read JSON model from {json_file}")
     return system
 
+
 def _convert_to_opendss(system: DistributionSystem, opendss_path: str):
     """Convert a model to OpenDSS format."""
-
     logger.info(f"Converting model to OpenDSS format at path: {opendss_path}")
     writer = OpenDSSWriter(system)
     writer.write(opendss_path, separate_substations=False, separate_feeders=False)
     logger.info(f"Successfully converted model to OpenDSS format at path: {opendss_path}")
 
+
 @app.post("/model")
 async def upload_model(file: UploadFile, supported_format: SupportedFormats = SupportedFormats.OPENDSS):
     """Endpoint to upload OpenDSS models."""
-
     try:
         data = file.file.read()
         model_path = "./converted_model"
@@ -206,7 +203,7 @@ async def upload_model(file: UploadFile, supported_format: SupportedFormats = Su
             system = _read_cyme(model_path)
         elif supported_format == SupportedFormats.JSON:
             system = _read_json(model_path)
-        
+
         if system:
             _convert_to_opendss(system, opendss_path)
         else:
