@@ -100,16 +100,14 @@ def resample_dataset(
     t_steps:
         Number of output rows to produce.
 
-    Returns
+    Returns:
     -------
     pd.DataFrame
         Resampled DataFrame with the same column order as the source.
         If no ``time`` column is present the original DataFrame is returned.
     """
     if "time" not in df.columns:
-        logger.warning(
-            "Dataset has no 'time' column; skipping interpolation resampling."
-        )
+        logger.warning("Dataset has no 'time' column; skipping interpolation resampling.")
         return df
 
     df = df.copy()
@@ -118,15 +116,11 @@ def resample_dataset(
 
     if df["time"].duplicated().any():
         n_dups = df["time"].duplicated().sum()
-        logger.warning(
-            f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp."
-        )
+        logger.warning(f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp.")
         df = df.drop_duplicates(subset="time", keep="last").reset_index(drop=True)
 
     if t_start >= len(df):
-        raise ValueError(
-            f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s)."
-        )
+        raise ValueError(f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s).")
 
     data_cols = [c for c in df.columns if c != "time"]
     t0 = df["time"].iloc[0]
@@ -171,10 +165,7 @@ class Player:
     ):
         """Initialize the player federate."""
         if config.data_type not in TYPE_MAP:
-            raise ValueError(
-                f"Unknown data_type '{config.data_type}'. "
-                f"Valid types: {sorted(TYPE_MAP.keys())}"
-            )
+            raise ValueError(f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}")
         self.type_class = TYPE_MAP[config.data_type]
         self.dataset = self._load_dataset(config.filename)
         self._metadata_path = config.filename
@@ -209,9 +200,7 @@ class Player:
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
         logger.info("Value federate created")
 
-        self.pub = self.vfed.register_publication(
-            "publication", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub = self.vfed.register_publication("publication", h.HELICS_DATA_TYPE_STRING, "")
 
     def _load_dataset(self, filename: str) -> pd.DataFrame:
         """Load dataset from a Feather or CSV file (detected by extension)."""
@@ -221,9 +210,7 @@ class Player:
         elif ext == ".csv":
             return pd.read_csv(filename)
         else:
-            raise ValueError(
-                f"Unsupported file format '{ext}'. Expected .feather or .csv"
-            )
+            raise ValueError(f"Unsupported file format '{ext}'. Expected .feather or .csv")
 
     def _load_metadata(self, filename: str) -> dict[str, Any]:
         """Load optional sidecar metadata JSON for EquipmentNodeArray types."""

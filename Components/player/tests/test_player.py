@@ -2,7 +2,6 @@
 
 import json
 import tempfile
-from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -178,9 +177,7 @@ class TestPlayerBuildMeasurement:
         assert measurement.ids == ["node_1", "node_2"]
         assert measurement.values == [10.0, 20.0]
 
-    def test_build_equipment_node_array_missing_metadata_raises(
-        self, equipment_node_df
-    ):
+    def test_build_equipment_node_array_missing_metadata_raises(self, equipment_node_df):
         """Test that missing equipment_ids metadata raises ValueError."""
         stub = self._make_player_stub("PowersReal", metadata={})
         row = equipment_node_df.iloc[0]
@@ -201,6 +198,7 @@ class TestPlayerTypeMap:
     """Test the TYPE_MAP covers all expected types."""
 
     def test_all_bus_array_subtypes_present(self):
+        """Test that all BusArray subtypes are present in TYPE_MAP."""
         from player import TYPE_MAP
 
         for name in [
@@ -212,6 +210,7 @@ class TestPlayerTypeMap:
             assert name in TYPE_MAP, f"{name} missing from TYPE_MAP"
 
     def test_all_equipment_array_subtypes_present(self):
+        """Test that all EquipmentArray subtypes are present in TYPE_MAP."""
         from player import TYPE_MAP
 
         for name in [
@@ -231,6 +230,7 @@ class TestPlayerTypeMap:
             assert name in TYPE_MAP, f"{name} missing from TYPE_MAP"
 
     def test_all_equipment_node_array_subtypes_present(self):
+        """Test that all EquipmentNodeArray subtypes are present in TYPE_MAP."""
         from player import TYPE_MAP
 
         for name in ["PowersMagnitude", "PowersAngle", "PowersReal", "PowersImaginary"]:
@@ -245,8 +245,8 @@ class TestComponentParameters:
 
         The data_type check happens before file loading, so no actual file is needed.
         """
-        from player.play_dataset import Player, ComponentParameters
         from oedisi.types.common import BrokerConfig
+        from player.play_dataset import ComponentParameters, Player
 
         config = ComponentParameters(
             name="test",
@@ -371,9 +371,7 @@ class TestResampleDataset:
         df = pd.DataFrame(
             {
                 "val": [1.0, 99.0, 2.0],
-                "time": pd.to_datetime(
-                    ["2023-01-01 00:00", "2023-01-01 00:00", "2023-01-01 00:15"]
-                ),
+                "time": pd.to_datetime(["2023-01-01 00:00", "2023-01-01 00:00", "2023-01-01 00:15"]),
             }
         )
         result = resample_dataset(df, run_freq_time_step=900.0, t_start=0, t_steps=2)
@@ -393,4 +391,3 @@ class TestResampleDataset:
 
         with pytest.raises(ValueError, match="start_time_index"):
             resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=10, t_steps=1)
-
