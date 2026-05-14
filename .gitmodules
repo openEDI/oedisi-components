@@ -25,3 +25,12 @@
 [submodule "Components/nlpdsse"]
 	path = Components/nlpdsse
 	url = https://github.com/openEDI/nlpdsse
+[submodule "Components/ornl-ev-pso"]
+	path = Components/ornl-ev-pso
+	url = https://github.com/openEDI/ornl-ev-pso
+[submodule "Components/ornl-dopf-pso"]
+	path = Components/ornl-dopf-pso
+	url = https://github.com/openEDI/ornl-dopf-pso
+[submodule "Components/ornl-dsse-gnwls"]
+	path = Components/ornl-dsse-gnwls
+	url = https://github.com/openEDI/ornl-dsse-gnwls

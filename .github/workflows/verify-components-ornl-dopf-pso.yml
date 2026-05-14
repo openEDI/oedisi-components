@@ -1,0 +1,14 @@
+name: Verify Components - ornl-dopf-pso
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-dopf-pso/**'
+      - '.github/workflows/verify-components-ornl-dopf-pso.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/ornl-dopf-pso

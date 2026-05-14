@@ -1,6 +1,7 @@
 name: Unit Test - nlpdsse
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, al/restructed ]
     paths:

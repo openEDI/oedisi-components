@@ -1,0 +1,34 @@
+{
+  "description": "Configuration for the measurement federate.",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "additive_noise_stddev": {
+      "default": 0.0,
+      "title": "Additive Noise Stddev",
+      "type": "number",
+      "minimum": 0.0
+    },
+    "multiplicative_noise_stddev": {
+      "default": 0.0,
+      "title": "Multiplicative Noise Stddev",
+      "type": "number",
+      "minimum": 0.0
+    },
+    "measurement_file": {
+      "title": "Measurement File",
+      "type": "string"
+    },
+    "run_freq_time_step": {
+      "default": 1.0,
+      "title": "Run Freq Time Step",
+      "type": "number",
+      "minimum": 0.0
+    }
+  },
+  "required": ["measurement_file"],
+  "title": "MeasurementConfig",
+  "type": "object"
+}

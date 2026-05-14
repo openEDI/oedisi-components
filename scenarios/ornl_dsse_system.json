@@ -1,0 +1,141 @@
+{
+    "name": "ornl_dsse_system",
+    "components": [
+        {
+            "name": "feeder",
+            "type": "LocalFeeder",
+            "parameters": {
+                "use_smartds": false,
+                "user_uploads_model": false,
+                "profile_location": "gadal_ieee123/profiles",
+                "opendss_location": "gadal_ieee123/qsts",
+                "sensor_location": "gadal_ieee123/sensors.json",
+                "start_date": "2017-01-01 00:00:00",
+                "number_of_timesteps": 96,
+                "run_freq_sec": 900,
+                "topology_output": "../../outputs/topology.json"
+            }
+        },
+        {
+            "name": "sensor_voltage_magnitude",
+            "type": "MeasurementComponent",
+            "parameters": {
+                "additive_noise_stddev": 0.0,
+                "multiplicative_noise_stddev": 0.0,
+                "measurement_file": "sensors.json"
+            }
+        },
+        {
+            "name": "sensor_power_real",
+            "type": "MeasurementComponent",
+            "parameters": {
+                "additive_noise_stddev": 0.0,
+                "multiplicative_noise_stddev": 0.0,
+                "measurement_file": "sensors.json"
+            }
+        },
+        {
+            "name": "sensor_power_imag",
+            "type": "MeasurementComponent",
+            "parameters": {
+                "additive_noise_stddev": 0.0,
+                "multiplicative_noise_stddev": 0.0,
+                "measurement_file": "sensors.json"
+            }
+        },
+        {
+            "name": "dsse",
+            "type": "DSSEGNWLSComponent",
+            "parameters": {
+                "name": "dsse",
+                "algorithm_parameters": {"tol": 1e-5}
+            }
+        },
+        {
+            "name": "recorder_voltage_mag",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_mag.feather",
+                "csv_filename": "../../outputs/voltage_mag.csv"
+            }
+        },
+        {
+            "name": "recorder_voltage_angle",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_angle.feather",
+                "csv_filename": "../../outputs/voltage_angle.csv"
+            }
+        },
+        {
+            "name": "recorder_voltage_magnitude_true",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_magnitude_true.feather",
+                "csv_filename": "../../outputs/voltage_magnitude_true.csv"
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "feeder",
+            "source_port": "voltages_magnitude",
+            "target": "sensor_voltage_magnitude",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_real",
+            "target": "sensor_power_real",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_imag",
+            "target": "sensor_power_imag",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "topology",
+            "target": "dsse",
+            "target_port": "topology"
+        },
+        {
+            "source": "sensor_voltage_magnitude",
+            "source_port": "publication",
+            "target": "dsse",
+            "target_port": "voltages_magnitude"
+        },
+        {
+            "source": "sensor_power_real",
+            "source_port": "publication",
+            "target": "dsse",
+            "target_port": "powers_real"
+        },
+        {
+            "source": "sensor_power_imag",
+            "source_port": "publication",
+            "target": "dsse",
+            "target_port": "powers_imaginary"
+        },
+        {
+            "source": "dsse",
+            "source_port": "voltage_mag",
+            "target": "recorder_voltage_mag",
+            "target_port": "subscription"
+        },
+        {
+            "source": "dsse",
+            "source_port": "voltage_angle",
+            "target": "recorder_voltage_angle",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_magnitude",
+            "target": "recorder_voltage_magnitude_true",
+            "target_port": "subscription"
+        }
+    ]
+}

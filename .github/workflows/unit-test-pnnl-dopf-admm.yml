@@ -1,6 +1,7 @@
 name: Unit Test - pnnl-dopf-admm
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, al/restructed ]
     paths:

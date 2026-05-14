@@ -11,4 +11,7 @@
     "HubPowerComponent": "Components/pnnl-hub-power/component_definition.json",
     "EKFStateEstimatorComponent": "Components/pnnl-dsse-ekf/component_definition.json",
     "Player": "Components/player/component_definition.json"
+    "EVCSComponent": "Components/ornl-ev-pso/component_definition.json",
+    "DOPFPSOComponent": "Components/ornl-dopf-pso/component_definition.json",
+    "DSSEGNWLSComponent": "Components/ornl-dsse-gnwls/component_definition.json"
 }

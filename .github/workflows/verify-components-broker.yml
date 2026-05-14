@@ -1,6 +1,7 @@
 name: Verify Components - broker
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/broker/**'

@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - lindistflow_federate
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/lindistflow_federate/**'

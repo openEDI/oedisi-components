@@ -1,0 +1,33 @@
+{
+  "description": "Configuration for the LinDistFlow OPF federate.",
+  "title": "LinDistFlowConfig",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "deltat": {
+      "title": "Time Step (s)",
+      "type": "number",
+      "default": 0.1,
+      "minimum": 0
+    },
+    "control_type": {
+      "title": "Control Type",
+      "type": "integer",
+      "default": 3,
+      "oneOf": [
+        { "const": 1, "title": "WATT" },
+        { "const": 2, "title": "VAR" },
+        { "const": 3, "title": "WATT_VAR" }
+      ]
+    },
+    "pf_flag": {
+      "title": "Run Power Flow",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": ["deltat", "control_type", "pf_flag"]
+}

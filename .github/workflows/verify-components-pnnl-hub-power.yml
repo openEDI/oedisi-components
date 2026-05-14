@@ -1,6 +1,7 @@
 name: Verify Components - pnnl-hub-power
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/pnnl-hub-power/**'

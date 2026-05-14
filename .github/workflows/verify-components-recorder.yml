@@ -1,6 +1,7 @@
 name: Verify Components - recorder
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/recorder/**'

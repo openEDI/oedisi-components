@@ -1,0 +1,88 @@
+{
+  "description": "JSON configuration for the feeder simulator.\n\nSpecial cases S3 sources right now.",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "use_smartds": {
+      "default": false,
+      "title": "Use Smartds",
+      "type": "boolean"
+    },
+    "user_uploads_model": {
+      "default": false,
+      "title": "User Uploads Model",
+      "type": "boolean"
+    },
+    "profile_location": {
+      "default": "gadal_ieee123/profiles",
+      "title": "Profile Location",
+      "type": "string"
+    },
+    "opendss_location": {
+      "default": "gadal_ieee123/qsts",
+      "title": "Opendss Location",
+      "type": "string"
+    },
+    "existing_feeder_file": {
+      "type": "string",
+      "title": "Existing Feeder File"
+    },
+    "sensor_location": {
+      "type": "string",
+      "title": "Sensor Location",
+      "default": "gadal_ieee123/sensors.json"
+    },
+    "start_date": {
+      "default": "2017-01-01 00:00:00",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "number_of_timesteps": {
+      "default": 1,
+      "title": "Number Of Timesteps",
+      "type": "integer"
+    },
+    "run_freq_sec": {
+      "default": 900,
+      "title": "Run Freq Sec",
+      "type": "number",
+      "minimum": 0
+    },
+    "start_time_index": {
+      "default": 0,
+      "title": "Start Time Index",
+      "type": "integer"
+    },
+    "topology_output": {
+      "default": "topology.json",
+      "title": "Topology Output",
+      "type": "string"
+    },
+    "use_sparse_admittance": {
+      "default": false,
+      "title": "Use Sparse Admittance",
+      "type": "boolean"
+    },
+    "tap_setting": {
+      "type": "integer",
+      "title": "Tap Setting"
+    },
+    "open_lines": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array",
+      "title": "Open Lines"
+    }
+  },
+  "required": [
+    "profile_location",
+    "opendss_location",
+    "start_date",
+    "number_of_timesteps"
+  ],
+  "title": "FeederConfig",
+  "type": "object"
+}

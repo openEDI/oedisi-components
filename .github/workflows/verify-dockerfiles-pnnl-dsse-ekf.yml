@@ -1,6 +1,7 @@
 name: Verify Dockerfiles - pnnl-dsse-ekf
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/pnnl-dsse-ekf/**'

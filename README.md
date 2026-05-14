@@ -20,6 +20,15 @@
 - **[update-components-submodules.yml](.github/workflows/update-components-submodules.yml)** - Automatically updates all component submodules under `Components/`. Scheduled weekly (Monday 8 AM UTC) or triggered manually.
 - **[update-version-matrix.yml](.github/workflows/update-version-matrix.yml)** - Updates `version_matrix.csv` from working tree and submodule release tags. Creates a pull request with changes. Triggered on release published events or manual workflow dispatch.
 
+## Integration Test Status
+
+| Workflow | Components | Status | Uses Multi-contianer Setup |
+|----------|------------|--------|-------------|
+| RunExample | broker, lindistflow_federate, LocalFeeder, measuring_federate, recorder, wls_federate | [![RunExample](https://github.com/openEDI/oedisi-components/actions/workflows/test-api.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/test-api.yml) | False |
+| TestDOPFOMOO | broker, LocalFeeder, measuring_federate, recorder, omoo_federate | [![TestDOPFOMOO](https://github.com/openEDI/oedisi-components/actions/workflows/test-dopf.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/test-dopf.yml) | False |
+
+
+
 ## Component Status
 
 | Component | Version | Tests | Config files | Docker | Maintainer |
@@ -40,6 +49,9 @@
 | [**PNNL-Profiler-SDV**](https://github.com/openEDI/pnnl-profiler-sdv) | [![Release](https://img.shields.io/github/v/release/openEDI/pnnl-profiler-sdv?sort=semver&display_name=tag)](https://github.com/openEDI/pnnl-profiler-sdv/releases/latest) | - | - | - | tylor.slay@pnnl.gov |
 | [**NLP-DOPF**](https://github.com/openEDI/nlpdopf) | [![Release](https://img.shields.io/github/v/release/openEDI/nlpdopf?sort=semver&display_name=tag)](https://github.com/openEDI/nlpdopf/releases/latest) | [![Unit Tests](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-nlpdopf.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-nlpdopf.yml) | [![Verify Components](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-nlpdopf.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-nlpdopf.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-nlpdopf.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-nlpdopf.yml) | - |
 | [**NLP-DSSE**](https://github.com/openEDI/nlpdsse) | [![Release](https://img.shields.io/github/v/release/openEDI/nlpdsse?sort=semver&display_name=tag)](https://github.com/openEDI/nlpdsse/releases/latest) | [![Unit Tests](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-nlpdsse.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-nlpdsse.yml) | [![Verify Components](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-nlpdsse.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-nlpdsse.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-nlpdsse.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-nlpdsse.yml) | - |
+| [**ORNL-EV-PSO**](https://github.com/openEDI/ornl-ev-pso) | [![Release](https://img.shields.io/github/v/release/openEDI/ornl-ev-pso?sort=semver&display_name=tag)](https://github.com/openEDI/ornl-ev-pso/releases/latest) | [![Unit Tests](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-ev-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-ev-pso.yml) | [![Verify Components](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-ev-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-ev-pso.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-ev-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-ev-pso.yml) | liub@ornl.gov |
+| [**ORNL-DOPF-PSO**](https://github.com/openEDI/ornl-dopf-pso) | [![Release](https://img.shields.io/github/v/release/openEDI/ornl-dopf-pso?sort=semver&display_name=tag)](https://github.com/openEDI/ornl-dopf-pso/releases/latest) | [![Unit Tests](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-dopf-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-dopf-pso.yml) | [![Verify Components](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-dopf-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-dopf-pso.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-dopf-pso.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-dopf-pso.yml) | liub@ornl.gov |
+| [**ORNL-DSSE-GNWLS**](https://github.com/openEDI/ornl-dsse-gnwls) | [![Release](https://img.shields.io/github/v/release/openEDI/ornl-dsse-gnwls?sort=semver&display_name=tag)](https://github.com/openEDI/ornl-dsse-gnwls/releases/latest) | [![Unit Tests](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-dsse-gnwls.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/unit-test-ornl-dsse-gnwls.yml) | [![Verify Components](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-dsse-gnwls.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-components-ornl-dsse-gnwls.yml) | [![Verify Dockerfiles](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-dsse-gnwls.yml/badge.svg)](https://github.com/openEDI/oedisi-components/actions/workflows/verify-dockerfiles-ornl-dsse-gnwls.yml) | liub@ornl.gov |
 
 
 ## Repository Structure
@@ -63,6 +75,9 @@ This repository is organized as a Python repository containing  components for p
 - **[pnnl-profiler-sdv](Components/pnnl-profiler-sdv/README.md)** - Synthetic data generation via profiling
 - **[nlpdopf](Components/nlpdopf/README.md)** - NLP-based distributed optimal power flow
 - **[nlpdsse](Components/nlpdsse/README.md)** - NLP-based distribution system state estimation
+- **[ornl-ev-pso](Components/ornl-ev-pso/README.md)** - PSO-based EV charging optimization
+- **[ornl-dopf-pso](Components/ornl-dopf-pso/README.md)** - PSO-based distributed optimal power flow
+- **[ornl-dsse-gnwls](Components/ornl-dsse-gnwls/README.md)** - Gauss-Newton WLS state estimation
 
 **Each component includes:**
 - `pyproject.toml` for modern Python packaging (PEP 621)

@@ -1,6 +1,7 @@
 name: Verify Components - LocalFeeder
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'Components/LocalFeeder/**'
