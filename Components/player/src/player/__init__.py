@@ -9,11 +9,12 @@ This component provides:
 
 __version__ = "0.1.0"
 
-from .play_dataset import Player, ComponentParameters, TYPE_MAP
+from .play_dataset import Player, ComponentParameters, TYPE_MAP, resample_dataset
 
 __all__ = [
     "__version__",
     "Player",
     "ComponentParameters",
     "TYPE_MAP",
+    "resample_dataset",
 ]

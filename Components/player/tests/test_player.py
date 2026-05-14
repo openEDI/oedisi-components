@@ -293,3 +293,104 @@ class TestComponentParameters:
 
         result = Player._load_metadata(None, str(tmp_path / "data.csv"))
         assert result == {}
+
+
+class TestResampleDataset:
+    """Tests for the resample_dataset interpolation function."""
+
+    @pytest.fixture
+    def uniform_df(self):
+        """DataFrame with 5 rows at 15-minute (900 s) intervals."""
+        times = pd.date_range("2023-01-01", periods=5, freq="15min")
+        return pd.DataFrame(
+            {
+                "bus_1": [1.0, 1.1, 1.2, 1.3, 1.4],
+                "bus_2": [0.9, 0.95, 1.0, 1.05, 1.1],
+                "time": times,
+            }
+        )
+
+    def test_no_time_column_returns_original_df(self):
+        """Returns the original DataFrame unchanged when no 'time' column exists."""
+        from player.play_dataset import resample_dataset
+
+        df = pd.DataFrame({"a": [1.0, 2.0], "b": [3.0, 4.0]})
+        result = resample_dataset(df, run_freq_time_step=900.0, t_start=0, t_steps=2)
+        assert result is df
+
+    def test_same_frequency_aligned_is_noop(self, uniform_df):
+        """When run_freq_time_step matches the source interval, values are unchanged."""
+        from player.play_dataset import resample_dataset
+
+        result = resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=0, t_steps=5)
+
+        assert len(result) == 5
+        assert list(result.columns) == ["bus_1", "bus_2", "time"]
+        for i, expected in enumerate([1.0, 1.1, 1.2, 1.3, 1.4]):
+            assert result["bus_1"].iloc[i] == pytest.approx(expected, abs=1e-9)
+
+    def test_interpolation_at_higher_frequency(self, uniform_df):
+        """Halving the time step doubles the rows; midpoint values are interpolated."""
+        from player.play_dataset import resample_dataset
+
+        result = resample_dataset(uniform_df, run_freq_time_step=450.0, t_start=0, t_steps=9)
+
+        assert len(result) == 9
+        # Row 0 → original row 0 (1.0), row 1 → midpoint (1.05), row 2 → original row 1 (1.1)
+        assert result["bus_1"].iloc[0] == pytest.approx(1.0, abs=1e-9)
+        assert result["bus_1"].iloc[1] == pytest.approx(1.05, abs=1e-9)
+        assert result["bus_1"].iloc[2] == pytest.approx(1.1, abs=1e-9)
+
+    def test_start_time_index_shifts_grid_to_source_timestamp(self, uniform_df):
+        """t_start shifts the output grid to begin at the source row's timestamp."""
+        from player.play_dataset import resample_dataset
+
+        result = resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=2, t_steps=3)
+
+        assert len(result) == 3
+        # Grid starts at the timestamp of source row 2
+        assert result["bus_1"].iloc[0] == pytest.approx(1.2, abs=1e-9)
+        assert result["bus_1"].iloc[1] == pytest.approx(1.3, abs=1e-9)
+        assert result["bus_1"].iloc[2] == pytest.approx(1.4, abs=1e-9)
+
+    def test_out_of_range_clamps_to_last_value(self, uniform_df):
+        """Requesting more steps than data covers clamps to the last source value."""
+        from player.play_dataset import resample_dataset
+
+        # Request 8 steps at 900 s; source only covers 5 rows (4 × 900 s span)
+        result = resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=0, t_steps=8)
+        assert len(result) == 8
+        # Last valid value (1.4) is clamped for the 3 out-of-range steps
+        assert result["bus_1"].iloc[5] == pytest.approx(1.4, abs=1e-9)
+        assert result["bus_1"].iloc[7] == pytest.approx(1.4, abs=1e-9)
+
+    def test_duplicate_timestamps_are_deduplicated(self):
+        """Duplicate timestamps emit a warning and keep the last occurrence."""
+        from player.play_dataset import resample_dataset
+
+        df = pd.DataFrame(
+            {
+                "val": [1.0, 99.0, 2.0],
+                "time": pd.to_datetime(
+                    ["2023-01-01 00:00", "2023-01-01 00:00", "2023-01-01 00:15"]
+                ),
+            }
+        )
+        result = resample_dataset(df, run_freq_time_step=900.0, t_start=0, t_steps=2)
+        # After dedup, row 0 should be the last occurrence of the duplicate (99.0)
+        assert result["val"].iloc[0] == pytest.approx(99.0, abs=1e-9)
+
+    def test_column_order_is_preserved(self, uniform_df):
+        """Output column order matches the source (data cols first, time last)."""
+        from player.play_dataset import resample_dataset
+
+        result = resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=0, t_steps=3)
+        assert list(result.columns) == ["bus_1", "bus_2", "time"]
+
+    def test_t_start_out_of_range_raises(self, uniform_df):
+        """Raises ValueError when t_start exceeds the dataset length."""
+        from player.play_dataset import resample_dataset
+
+        with pytest.raises(ValueError, match="start_time_index"):
+            resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=10, t_steps=1)
+

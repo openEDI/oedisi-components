@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import helics as h
+import numpy as np
 import pandas as pd
 from oedisi.types.common import BrokerConfig
 from oedisi.types.data_types import (
@@ -69,6 +70,86 @@ TYPE_MAP: dict[str, type[MeasurementArray]] = {
 }
 
 
+def resample_dataset(
+    df: pd.DataFrame,
+    run_freq_time_step: float,
+    t_start: int,
+    t_steps: int,
+) -> pd.DataFrame:
+    """Resample a dataset to evenly-spaced time steps via linear interpolation.
+
+    The target time grid begins at the timestamp of the source row at *t_start*
+    and produces exactly *t_steps* entries spaced *run_freq_time_step* seconds
+    apart.  Values are linearly interpolated from the source data; target
+    points outside the source time range are clamped to the nearest boundary
+    value (with a warning).
+
+    If the dataset has no ``time`` column the original DataFrame is returned
+    unchanged (with a warning).
+
+    Parameters
+    ----------
+    df:
+        Source dataset. Must contain numeric data columns and, optionally, a
+        ``time`` column parseable by ``pd.to_datetime``.
+    run_freq_time_step:
+        Desired output interval in seconds.
+    t_start:
+        Row index in the **source** dataset from which the output time grid
+        should start.
+    t_steps:
+        Number of output rows to produce.
+
+    Returns
+    -------
+    pd.DataFrame
+        Resampled DataFrame with the same column order as the source.
+        If no ``time`` column is present the original DataFrame is returned.
+    """
+    if "time" not in df.columns:
+        logger.warning(
+            "Dataset has no 'time' column; skipping interpolation resampling."
+        )
+        return df
+
+    df = df.copy()
+    df["time"] = pd.to_datetime(df["time"])
+    df = df.sort_values("time").reset_index(drop=True)
+
+    if df["time"].duplicated().any():
+        n_dups = df["time"].duplicated().sum()
+        logger.warning(
+            f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp."
+        )
+        df = df.drop_duplicates(subset="time", keep="last").reset_index(drop=True)
+
+    if t_start >= len(df):
+        raise ValueError(
+            f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s)."
+        )
+
+    data_cols = [c for c in df.columns if c != "time"]
+    t0 = df["time"].iloc[0]
+    x_data = (df["time"] - t0).dt.total_seconds().to_numpy()
+
+    x_start = x_data[t_start]
+    x_target = x_start + np.arange(t_steps) * run_freq_time_step
+
+    if x_target[-1] > x_data[-1]:
+        logger.warning(
+            f"Requested end time {t0 + pd.to_timedelta(x_target[-1], unit='s')} "
+            f"exceeds source data end {df['time'].iloc[-1]}. "
+            "Out-of-range values will be clamped to the last source value."
+        )
+
+    result: dict[str, Any] = {}
+    for col in data_cols:
+        result[col] = np.interp(x_target, x_data, df[col].to_numpy(dtype=float))
+    result["time"] = [t0 + pd.to_timedelta(s, unit="s") for s in x_target]
+
+    return pd.DataFrame(result, columns=data_cols + ["time"])
+
+
 class ComponentParameters(BaseModel):
     """Configuration for the Player federate."""
 
@@ -99,7 +180,17 @@ class Player:
         self._metadata_path = config.filename
         self.metadata = self._load_metadata(config.filename)
         self.t_steps = config.number_of_timesteps
-        self.t_start = config.start_time_index
+
+        if "time" in self.dataset.columns:
+            self.dataset = resample_dataset(
+                self.dataset,
+                config.run_freq_time_step,
+                config.start_time_index,
+                config.number_of_timesteps,
+            )
+            self.t_start = 0
+        else:
+            self.t_start = config.start_time_index
 
         fedinfo = h.helicsCreateFederateInfo()
         h.helicsFederateInfoSetBroker(fedinfo, broker_config.broker_ip)
