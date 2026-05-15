@@ -10,6 +10,15 @@ on:
       - 'Components/recorder/**'
       - 'scenarios/player_measuring_system.json'
       - 'scenarios/player_measuring/**'
+  pull_request:
+    paths:
+      - '.github/workflows/test-player.yml'
+      - 'Components/broker/**'
+      - 'Components/player/**'
+      - 'Components/measuring_federate/**'
+      - 'Components/recorder/**'
+      - 'scenarios/player_measuring_system.json'
+      - 'scenarios/player_measuring/**'
 
 jobs:
   build:

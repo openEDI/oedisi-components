@@ -36,10 +36,9 @@ from oedisi.types.data_types import (
     VoltagesReal,
     WindSpeeds,
 )
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.INFO)
 
 TYPE_MAP: dict[str, type[MeasurementArray]] = {
@@ -95,16 +94,19 @@ def resample_dataset(
     run_freq_time_step:
         Desired output interval in seconds.
     t_start:
-        Row index in the **source** dataset from which the output time grid
-        should start.
+        Row index in the **sorted, deduplicated** frame from which the output
+        time grid should start.  If the source had out-of-order rows or
+        duplicates, this index refers to the row after sorting by time and
+        dropping duplicate timestamps — not the original row position.
     t_steps:
         Number of output rows to produce.
 
     Returns:
     -------
     pd.DataFrame
-        Resampled DataFrame with the same column order as the source.
-        If no ``time`` column is present the original DataFrame is returned.
+        Resampled DataFrame with data columns first followed by the ``time``
+        column last.  If no ``time`` column is present the original DataFrame
+        is returned.
     """
     if "time" not in df.columns:
         logger.warning("Dataset has no 'time' column; skipping interpolation resampling.")
@@ -118,6 +120,9 @@ def resample_dataset(
         n_dups = df["time"].duplicated().sum()
         logger.warning(f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp.")
         df = df.drop_duplicates(subset="time", keep="last").reset_index(drop=True)
+
+    if t_steps == 0:
+        return df.iloc[0:0].copy()
 
     if t_start >= len(df):
         raise ValueError(f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s).")
@@ -154,6 +159,20 @@ class ComponentParameters(BaseModel):
     start_time_index: int
     run_freq_time_step: float = 900.0
 
+    @field_validator("number_of_timesteps")
+    @classmethod
+    def positive_steps(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("number_of_timesteps must be > 0")
+        return v
+
+    @field_validator("start_time_index", "run_freq_time_step")
+    @classmethod
+    def non_negative(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("must be >= 0")
+        return v
+
 
 class Player:
     """HELICS player federate — publishes a recorded dataset as a MeasurementArray stream."""
@@ -168,7 +187,7 @@ class Player:
             raise ValueError(f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}")
         self.type_class = TYPE_MAP[config.data_type]
         self.dataset = self._load_dataset(config.filename)
-        self._metadata_path = config.filename
+        self._dataset_path = config.filename
         self.metadata = self._load_metadata(config.filename)
         self.t_steps = config.number_of_timesteps
 
@@ -202,7 +221,8 @@ class Player:
 
         self.pub = self.vfed.register_publication("publication", h.HELICS_DATA_TYPE_STRING, "")
 
-    def _load_dataset(self, filename: str) -> pd.DataFrame:
+    @staticmethod
+    def _load_dataset(filename: str) -> pd.DataFrame:
         """Load dataset from a Feather or CSV file (detected by extension)."""
         ext = Path(filename).suffix.lower()
         if ext == ".feather":
@@ -212,7 +232,8 @@ class Player:
         else:
             raise ValueError(f"Unsupported file format '{ext}'. Expected .feather or .csv")
 
-    def _load_metadata(self, filename: str) -> dict[str, Any]:
+    @staticmethod
+    def _load_metadata(filename: str) -> dict[str, Any]:
         """Load optional sidecar metadata JSON for EquipmentNodeArray types."""
         metadata_path = filename + "_metadata.json"
         if os.path.exists(metadata_path):
@@ -248,7 +269,7 @@ class Player:
                 raise ValueError(
                     f"data_type '{self.type_class.__name__}' requires 'equipment_ids' "
                     f"but no metadata sidecar was found. "
-                    f"Create a '{self._metadata_path}_metadata.json' file with 'equipment_ids'."
+                    f"Create a '{self._dataset_path}_metadata.json' file with 'equipment_ids'."
                 )
             data["equipment_ids"] = equipment_ids
 
@@ -264,6 +285,12 @@ class Player:
         Time starts at 1 (not 0) because subscriber federates with time_delta
         >= 1.0 cannot be granted time 0 after enter_executing_mode() — their
         first valid grant is current_time + delta >= 1.0.
+
+        Note: HELICS times requested here are pure integer counters (1, 2, 3, …),
+        not physical seconds.  run_freq_time_step controls the physical time
+        interval encoded in each published MeasurementArray, but the HELICS
+        federation clock advances in unitless integer steps.  Federates that
+        interpret HELICS time as physical seconds will see incorrect values.
         """
         self.vfed.enter_initializing_mode()
         self.vfed.enter_executing_mode()
@@ -278,22 +305,23 @@ class Player:
         # recent value (<=1), silently dropping row 0.
         request_time = 1
 
-        for row_index in range(self.t_steps):
-            dataset_index = self.t_start + row_index
-            if dataset_index >= num_rows:
-                logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
-                break
+        try:
+            for row_index in range(self.t_steps):
+                dataset_index = self.t_start + row_index
+                if dataset_index >= num_rows:
+                    logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
+                    break
 
-            granted_time = h.helicsFederateRequestTime(self.vfed, request_time)
+                granted_time = h.helicsFederateRequestTime(self.vfed, request_time)
 
-            row = self.dataset.iloc[dataset_index]
-            measurement = self._build_measurement(row, row_index)
-            self.pub.publish(measurement.model_dump_json())
-            logger.info(f"Published row {row_index} at HELICS time {granted_time}")
+                row = self.dataset.iloc[dataset_index]
+                measurement = self._build_measurement(row, row_index)
+                self.pub.publish(measurement.model_dump_json())
+                logger.info(f"Published row {row_index} at HELICS time {granted_time}")
 
-            request_time += 1
-
-        self.destroy()
+                request_time += 1
+        finally:
+            self.destroy()
 
     def destroy(self):
         """Clean up and disconnect the federate."""
@@ -309,11 +337,14 @@ def run_simulator(broker_config: BrokerConfig):
         config = ComponentParameters(**json.load(f))
 
     sfed = Player(config, broker_config)
-    sfed.run()
+    try:
+        sfed.run()
+    except Exception:
+        logger.exception("Player simulation failed")
 
 
 if __name__ == "__main__":
-    schema = ComponentParameters.schema_json(indent=2)
+    schema = json.dumps(ComponentParameters.model_json_schema(), indent=2)
     with open("schema.json", "w") as f:
         f.write(schema)
     run_simulator(BrokerConfig(broker_ip="127.0.0.1"))

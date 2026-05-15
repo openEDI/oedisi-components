@@ -20,6 +20,11 @@
     "start_time_index": {
       "title": "Start Time Index",
       "type": "integer"
+    },
+    "run_freq_time_step": {
+      "default": 900.0,
+      "title": "Run Freq Time Step",
+      "type": "number"
     }
   },
   "required": [

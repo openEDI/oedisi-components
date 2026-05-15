@@ -93,7 +93,7 @@ class TestPlayerLoadDataset:
 
         with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
             simple_df.to_csv(f.name, index=False)
-            result = Player._load_dataset(None, f.name)
+            result = Player._load_dataset(f.name)
 
         assert list(result.columns) == list(simple_df.columns)
         assert len(result) == len(simple_df)
@@ -104,7 +104,7 @@ class TestPlayerLoadDataset:
 
         with tempfile.NamedTemporaryFile(suffix=".feather", delete=False) as f:
             simple_df.to_feather(f.name)
-            result = Player._load_dataset(None, f.name)
+            result = Player._load_dataset(f.name)
 
         assert list(result.columns) == list(simple_df.columns)
         assert len(result) == len(simple_df)
@@ -114,7 +114,7 @@ class TestPlayerLoadDataset:
         from player.play_dataset import Player
 
         with pytest.raises(ValueError, match="Unsupported file format"):
-            Player._load_dataset(None, "data.parquet")
+            Player._load_dataset("data.parquet")
 
 
 class TestPlayerBuildMeasurement:
@@ -128,7 +128,7 @@ class TestPlayerBuildMeasurement:
 
         class Stub:
             type_class = TYPE_MAP[data_type]
-            _metadata_path = "data.csv"
+            _dataset_path = "data.csv"
 
             @property
             def metadata(self):
@@ -273,6 +273,67 @@ class TestComponentParameters:
         assert config.number_of_timesteps == 1
         assert config.start_time_index == 0
 
+    def test_zero_timesteps_raises(self):
+        """number_of_timesteps=0 is rejected by the validator."""
+        from pydantic import ValidationError
+
+        from player.play_dataset import ComponentParameters
+
+        with pytest.raises(ValidationError, match="number_of_timesteps"):
+            ComponentParameters(
+                name="p",
+                filename="f.csv",
+                data_type="VoltagesMagnitude",
+                number_of_timesteps=0,
+                start_time_index=0,
+            )
+
+    def test_negative_timesteps_raises(self):
+        """Negative number_of_timesteps is rejected by the validator."""
+        from pydantic import ValidationError
+
+        from player.play_dataset import ComponentParameters
+
+        with pytest.raises(ValidationError, match="number_of_timesteps"):
+            ComponentParameters(
+                name="p",
+                filename="f.csv",
+                data_type="VoltagesMagnitude",
+                number_of_timesteps=-1,
+                start_time_index=0,
+            )
+
+    def test_negative_start_time_index_raises(self):
+        """Negative start_time_index is rejected by the validator."""
+        from pydantic import ValidationError
+
+        from player.play_dataset import ComponentParameters
+
+        with pytest.raises(ValidationError, match="start_time_index"):
+            ComponentParameters(
+                name="p",
+                filename="f.csv",
+                data_type="VoltagesMagnitude",
+                number_of_timesteps=1,
+                start_time_index=-1,
+            )
+
+    def test_negative_run_freq_time_step_raises(self):
+        """Negative run_freq_time_step is rejected by the validator."""
+        from pydantic import ValidationError
+
+        from player.play_dataset import ComponentParameters
+
+        with pytest.raises(ValidationError, match="run_freq_time_step"):
+            ComponentParameters(
+                name="p",
+                filename="f.csv",
+                data_type="VoltagesMagnitude",
+                number_of_timesteps=1,
+                start_time_index=0,
+                run_freq_time_step=-1.0,
+            )
+
     def test_metadata_sidecar_loaded(self, tmp_path):
         """Test that a metadata sidecar JSON is loaded when present."""
         from player.play_dataset import Player
@@ -284,14 +345,14 @@ class TestComponentParameters:
         with open(metadata_file, "w") as f:
             json.dump(metadata, f)
 
-        result = Player._load_metadata(None, dataset_file)
+        result = Player._load_metadata(dataset_file)
         assert result == metadata
 
     def test_missing_metadata_sidecar_returns_empty_dict(self, tmp_path):
         """Test that missing metadata sidecar returns an empty dict."""
         from player.play_dataset import Player
 
-        result = Player._load_metadata(None, str(tmp_path / "data.csv"))
+        result = Player._load_metadata(str(tmp_path / "data.csv"))
         assert result == {}
 
 
@@ -391,3 +452,10 @@ class TestResampleDataset:
 
         with pytest.raises(ValueError, match="start_time_index"):
             resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=10, t_steps=1)
+
+    def test_t_steps_zero_returns_empty_dataframe(self, uniform_df):
+        """t_steps=0 returns an empty DataFrame without raising IndexError."""
+        from player.play_dataset import resample_dataset
+
+        result = resample_dataset(uniform_df, run_freq_time_step=900.0, t_start=0, t_steps=0)
+        assert len(result) == 0

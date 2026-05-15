@@ -45,4 +45,3 @@ jobs:
       run: |
         cd Components/player
         mypy src/player --ignore-missing-imports
-      continue-on-error: true

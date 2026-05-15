@@ -2,8 +2,8 @@
     "directory": "player",
     "execute_function": "python -m src.player.play_dataset",
     "static_inputs": [
-        {"type": "", "port_id": "filename"},
-        {"type": "", "port_id": "data_type"}
+        {"type": "string", "port_id": "filename"},
+        {"type": "string", "port_id": "data_type"}
     ],
     "dynamic_inputs": [],
     "dynamic_outputs": [

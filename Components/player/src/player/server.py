@@ -6,7 +6,7 @@ import os
 import socket
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI
 from fastapi.responses import JSONResponse
 from oedisi.componentframework.system_configuration import ComponentStruct
 from oedisi.types.common import BrokerConfig, DefaultFileNames, HeathCheck, ServerReply
@@ -33,12 +33,9 @@ def read_root():
 async def run_model(broker_config: BrokerConfig, background_tasks: BackgroundTasks):
     """Start the player simulation in a background task."""
     logging.info(broker_config)
-    try:
-        background_tasks.add_task(run_simulator, broker_config)
-        response = ServerReply(detail="Task sucessfully added.").model_dump()
-        return JSONResponse(response, 200)
-    except Exception as err:
-        raise HTTPException(500, str(err)) from err
+    background_tasks.add_task(run_simulator, broker_config)
+    response = ServerReply(detail="Task successfully added.").model_dump()
+    return JSONResponse(response, 200)
 
 
 @app.post("/configure")
@@ -51,9 +48,11 @@ async def configure(component_struct: ComponentStruct):
     links = {}
     for link in component_struct.links:
         links[link.target_port] = f"{link.source}/{link.source_port}"
-    json.dump(links, open(DefaultFileNames.INPUT_MAPPING.value, "w"))
-    json.dump(params, open(DefaultFileNames.STATIC_INPUTS.value, "w"))
-    response = ServerReply(detail="Sucessfully updated configuration files.").model_dump()
+    with open(DefaultFileNames.INPUT_MAPPING.value, "w") as f:
+        json.dump(links, f)
+    with open(DefaultFileNames.STATIC_INPUTS.value, "w") as f:
+        json.dump(params, f)
+    response = ServerReply(detail="Successfully updated configuration files.").model_dump()
     return JSONResponse(response, 200)
 
 
