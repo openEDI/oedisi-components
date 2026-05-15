@@ -6,6 +6,11 @@
 #
 # Defaults:
 #   components.json  → <repo-root>/components.json
+#
+
+# stop any running processes that could conflict new cosim
+pkill -9 helics_broker
+pkill -9 python
 
 set -euo pipefail
 
@@ -65,4 +70,5 @@ oedisi build --system "$SCENARIO"
 
 # ── 5. Run ────────────────────────────────────────────────────────────────────
 echo "==> Running..."
+
 oedisi run

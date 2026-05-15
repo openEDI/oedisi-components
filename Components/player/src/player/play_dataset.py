@@ -162,6 +162,7 @@ class ComponentParameters(BaseModel):
     @field_validator("number_of_timesteps")
     @classmethod
     def positive_steps(cls, v: int) -> int:
+        """Ensure number of timesteps is greater than 0."""
         if v <= 0:
             raise ValueError("number_of_timesteps must be > 0")
         return v
@@ -169,6 +170,7 @@ class ComponentParameters(BaseModel):
     @field_validator("start_time_index", "run_freq_time_step")
     @classmethod
     def non_negative(cls, v: float) -> float:
+        """Ensure start time and run frequency are not negative."""
         if v < 0:
             raise ValueError("must be >= 0")
         return v

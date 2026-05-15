@@ -275,9 +275,8 @@ class TestComponentParameters:
 
     def test_zero_timesteps_raises(self):
         """number_of_timesteps=0 is rejected by the validator."""
-        from pydantic import ValidationError
-
         from player.play_dataset import ComponentParameters
+        from pydantic import ValidationError
 
         with pytest.raises(ValidationError, match="number_of_timesteps"):
             ComponentParameters(
@@ -290,9 +289,8 @@ class TestComponentParameters:
 
     def test_negative_timesteps_raises(self):
         """Negative number_of_timesteps is rejected by the validator."""
-        from pydantic import ValidationError
-
         from player.play_dataset import ComponentParameters
+        from pydantic import ValidationError
 
         with pytest.raises(ValidationError, match="number_of_timesteps"):
             ComponentParameters(
@@ -305,9 +303,8 @@ class TestComponentParameters:
 
     def test_negative_start_time_index_raises(self):
         """Negative start_time_index is rejected by the validator."""
-        from pydantic import ValidationError
-
         from player.play_dataset import ComponentParameters
+        from pydantic import ValidationError
 
         with pytest.raises(ValidationError, match="start_time_index"):
             ComponentParameters(
@@ -320,9 +317,8 @@ class TestComponentParameters:
 
     def test_negative_run_freq_time_step_raises(self):
         """Negative run_freq_time_step is rejected by the validator."""
-        from pydantic import ValidationError
-
         from player.play_dataset import ComponentParameters
+        from pydantic import ValidationError
 
         with pytest.raises(ValidationError, match="run_freq_time_step"):
             ComponentParameters(
