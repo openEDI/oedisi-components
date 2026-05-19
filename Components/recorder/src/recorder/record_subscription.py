@@ -98,6 +98,10 @@ class Recorder:
             if writer is not None:
                 writer.close()
                 streamwriter.close()
+            else:
+                logger.warning("No subscription data was received; feather file is empty.")
+                self.destroy()
+                return
         data = pd.read_feather(self.feather_filename)
         data.to_csv(self.csv_filename, header=True, index=False)
         self.destroy()
