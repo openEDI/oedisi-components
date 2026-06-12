@@ -109,9 +109,7 @@ def resample_dataset(
         is returned.
     """
     if "time" not in df.columns:
-        logger.warning(
-            "Dataset has no 'time' column; skipping interpolation resampling."
-        )
+        logger.warning("Dataset has no 'time' column; skipping interpolation resampling.")
         return df
 
     df = df.copy()
@@ -120,18 +118,14 @@ def resample_dataset(
 
     if df["time"].duplicated().any():
         n_dups = df["time"].duplicated().sum()
-        logger.warning(
-            f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp."
-        )
+        logger.warning(f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp.")
         df = df.drop_duplicates(subset="time", keep="last").reset_index(drop=True)
 
     if t_steps == 0:
         return df.iloc[0:0].copy()
 
     if t_start >= len(df):
-        raise ValueError(
-            f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s)."
-        )
+        raise ValueError(f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s).")
 
     data_cols = [c for c in df.columns if c != "time"]
     t0 = df["time"].iloc[0]
@@ -147,6 +141,7 @@ def resample_dataset(
             "Out-of-range values will be clamped to the last source value."
         )
 
+    print(data_cols)
     result: dict[str, Any] = {}
     for col in data_cols:
         result[col] = np.interp(x_target, x_data, df[col].to_numpy(dtype=float))
@@ -192,9 +187,7 @@ class Player:
     ):
         """Initialize the player federate."""
         if config.data_type not in TYPE_MAP:
-            raise ValueError(
-                f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}"
-            )
+            raise ValueError(f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}")
         self.type_class = TYPE_MAP[config.data_type]
         self.dataset = self._load_dataset(config.filename)
         self._dataset_path = config.filename
@@ -229,9 +222,7 @@ class Player:
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
         logger.info("Value federate created")
 
-        self.pub = self.vfed.register_publication(
-            "publication", h.HELICS_DATA_TYPE_STRING, ""
-        )
+        self.pub = self.vfed.register_publication("publication", h.HELICS_DATA_TYPE_STRING, "")
 
     @staticmethod
     def _load_dataset(filename: str) -> pd.DataFrame:
@@ -242,9 +233,7 @@ class Player:
         elif ext == ".csv":
             return pd.read_csv(filename)
         else:
-            raise ValueError(
-                f"Unsupported file format '{ext}'. Expected .feather or .csv"
-            )
+            raise ValueError(f"Unsupported file format '{ext}'. Expected .feather or .csv")
 
     @staticmethod
     def _load_metadata(filename: str) -> dict[str, Any]:
@@ -312,21 +301,16 @@ class Player:
         logger.info("Entering execution mode")
 
         num_rows = len(self.dataset)
-        # Start at t=1 so that subscriber federates whose time_delta >= 1.0
-        # (e.g. the measuring federate) can be granted time 1 as their first
-        # step.  After enter_executing_mode() a federate is at time 0, so its
-        # minimum next grant is 0 + delta.  If the player published row 0 at
-        # t=0 the subscriber's first grant (t=1) would see row 1 as the most
+        # If the player published row 0 at t=0
+        # the subscriber's first grant (t=1) would see row 1 as the most
         # recent value (<=1), silently dropping row 0.
-        request_time = 1
+        request_time = 0
 
         try:
             for row_index in range(self.t_steps):
                 dataset_index = self.t_start + row_index
                 if dataset_index >= num_rows:
-                    logger.info(
-                        f"Dataset exhausted after {row_index} rows. Finalizing."
-                    )
+                    logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
                     break
 
                 granted_time = h.helicsFederateRequestTime(self.vfed, request_time)

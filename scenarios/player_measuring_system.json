@@ -2,11 +2,22 @@
     "name": "test_player_measuring",
     "components": [
         {
-            "name": "player",
+            "name": "player_v",
             "type": "Player",
             "parameters": {
                 "filename": "../../scenarios/player_measuring/voltages.csv",
                 "data_type": "VoltagesMagnitude",
+                "number_of_timesteps": 3,
+                "start_time_index": 0,
+                "run_freq_time_step": 900.0
+            }
+        },
+        {
+            "name": "player_p",
+            "type": "Player",
+            "parameters": {
+                "filename": "../../scenarios/player_measuring/powers.csv",
+                "data_type": "PowersReal",
                 "number_of_timesteps": 3,
                 "start_time_index": 0,
                 "run_freq_time_step": 900.0
@@ -30,17 +41,25 @@
             }
         },
         {
-            "name": "recorder_player",
+            "name": "recorder_v",
             "type": "Recorder",
             "parameters": {
                 "feather_filename": "../../outputs/player_voltages.feather",
                 "csv_filename": "../../outputs/player_voltages.csv"
             }
+        },
+        {
+            "name": "recorder_p",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/player_powers.feather",
+                "csv_filename": "../../outputs/player_powers.csv"
+            }
         }
     ],
     "links": [
         {
-            "source": "player",
+            "source": "player_v",
             "source_port": "publication",
             "target": "measuring",
             "target_port": "subscription"
@@ -52,9 +71,15 @@
             "target_port": "subscription"
         },
         {
-            "source": "player",
+            "source": "player_v",
             "source_port": "publication",
-            "target": "recorder_player",
+            "target": "recorder_v",
+            "target_port": "subscription"
+        },
+        {
+            "source": "player_p",
+            "source_port": "publication",
+            "target": "recorder_p",
             "target_port": "subscription"
         }
     ]
