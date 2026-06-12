@@ -5,9 +5,9 @@
             "name": "player",
             "type": "Player",
             "parameters": {
-                "filename": "../player/data/voltages.csv",
+                "filename": "../../scenarios/player_measuring/voltages.csv",
                 "data_type": "VoltagesMagnitude",
-                "number_of_timesteps": 4,
+                "number_of_timesteps": 3,
                 "start_time_index": 0,
                 "run_freq_time_step": 900.0
             }
@@ -18,7 +18,7 @@
             "parameters": {
                 "additive_noise_stddev": 0.0,
                 "multiplicative_noise_stddev": 0.0,
-                "measurement_file": "../player/data/sensors.json"
+                "measurement_file": "../../scenarios/player_measuring/sensors.json"
             }
         },
         {
@@ -27,6 +27,14 @@
             "parameters": {
                 "feather_filename": "../../outputs/measured_voltages.feather",
                 "csv_filename": "../../outputs/measured_voltages.csv"
+            }
+        },
+        {
+            "name": "recorder_player",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/player_voltages.feather",
+                "csv_filename": "../../outputs/player_voltages.csv"
             }
         }
     ],
@@ -41,6 +49,12 @@
             "source": "measuring",
             "source_port": "publication",
             "target": "recorder",
+            "target_port": "subscription"
+        },
+        {
+            "source": "player",
+            "source_port": "publication",
+            "target": "recorder_player",
             "target_port": "subscription"
         }
     ]

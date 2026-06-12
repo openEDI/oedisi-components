@@ -109,7 +109,9 @@ def resample_dataset(
         is returned.
     """
     if "time" not in df.columns:
-        logger.warning("Dataset has no 'time' column; skipping interpolation resampling.")
+        logger.warning(
+            "Dataset has no 'time' column; skipping interpolation resampling."
+        )
         return df
 
     df = df.copy()
@@ -118,14 +120,18 @@ def resample_dataset(
 
     if df["time"].duplicated().any():
         n_dups = df["time"].duplicated().sum()
-        logger.warning(f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp.")
+        logger.warning(
+            f"Found {n_dups} duplicate timestamp(s); keeping last occurrence per timestamp."
+        )
         df = df.drop_duplicates(subset="time", keep="last").reset_index(drop=True)
 
     if t_steps == 0:
         return df.iloc[0:0].copy()
 
     if t_start >= len(df):
-        raise ValueError(f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s).")
+        raise ValueError(
+            f"start_time_index {t_start} is out of range for dataset with {len(df)} row(s)."
+        )
 
     data_cols = [c for c in df.columns if c != "time"]
     t0 = df["time"].iloc[0]
@@ -186,7 +192,9 @@ class Player:
     ):
         """Initialize the player federate."""
         if config.data_type not in TYPE_MAP:
-            raise ValueError(f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}")
+            raise ValueError(
+                f"Unknown data_type '{config.data_type}'. Valid types: {sorted(TYPE_MAP.keys())}"
+            )
         self.type_class = TYPE_MAP[config.data_type]
         self.dataset = self._load_dataset(config.filename)
         self._dataset_path = config.filename
@@ -221,7 +229,9 @@ class Player:
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
         logger.info("Value federate created")
 
-        self.pub = self.vfed.register_publication("publication", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub = self.vfed.register_publication(
+            "publication", h.HELICS_DATA_TYPE_STRING, ""
+        )
 
     @staticmethod
     def _load_dataset(filename: str) -> pd.DataFrame:
@@ -232,7 +242,9 @@ class Player:
         elif ext == ".csv":
             return pd.read_csv(filename)
         else:
-            raise ValueError(f"Unsupported file format '{ext}'. Expected .feather or .csv")
+            raise ValueError(
+                f"Unsupported file format '{ext}'. Expected .feather or .csv"
+            )
 
     @staticmethod
     def _load_metadata(filename: str) -> dict[str, Any]:
@@ -250,6 +262,7 @@ class Player:
         if the row data does not match the configured type.
         """
         ids = [col for col in row.index if col != "time"]
+        print(ids)
         values = [float(row[col]) for col in ids]
         time = row.get("time", None)
 
@@ -311,12 +324,15 @@ class Player:
             for row_index in range(self.t_steps):
                 dataset_index = self.t_start + row_index
                 if dataset_index >= num_rows:
-                    logger.info(f"Dataset exhausted after {row_index} rows. Finalizing.")
+                    logger.info(
+                        f"Dataset exhausted after {row_index} rows. Finalizing."
+                    )
                     break
 
                 granted_time = h.helicsFederateRequestTime(self.vfed, request_time)
 
                 row = self.dataset.iloc[dataset_index]
+                print(row)
                 measurement = self._build_measurement(row, row_index)
                 self.pub.publish(measurement.model_dump_json())
                 logger.info(f"Published row {row_index} at HELICS time {granted_time}")
