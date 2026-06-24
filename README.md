@@ -161,21 +161,39 @@ pre-commit run --all-files
 
 # Install and Running Locally
 
-## Installation
+## 1. Initialize Submodules
+Before installing or running any components, ensure all Git submodules are initialized and updated:
+```bash
+git submodule update --init --recursive
+```
 
-1. Install component dependencies. You can either:
+## 2. Installation
+Install the component dependencies in editable mode (recommended for development):
+```bash
+pip install -e Components/broker \
+            -e Components/lindistflow_federate \
+            -e Components/LocalFeeder \
+            -e Components/measuring_federate \
+            -e Components/recorder \
+            -e Components/wls_federate
+```
 
-   **Option A: Install all components in editable mode** (recommended for developers)
-   ```bash
-   pip install -e Components/broker \
-               -e Components/LocalFeeder \
-               -e Components/measuring_federate \
-               -e Components/recorder \
-               -e Components/wls_federate
-   ```
+To install development tools as well:
+```bash
+pip install pytest mypy ruff pre-commit
+```
 
-3. **Verify Installation**
- development tools (optional):
-   ```bash
-   pip install pytest mypy ruff pre-commit
-   ```
+## 3. Running Scenarios
+You can test and run co-simulation scenarios locally using `oedisi` build and run commands.
+
+First, build the co-simulation configuration from a scenario JSON file:
+```bash
+oedisi build --system scenarios/system.json
+```
+
+Then, run the co-simulation:
+```bash
+oedisi run
+```
+
+The output data will be stored in the `outputs/` directory.
