@@ -43,3 +43,24 @@ class TestLinDistFlowOptimization:
         # Basic import test
         assert EchoFederate is not None
         assert hasattr(EchoFederate, "__init__")
+
+    def test_generate_schema(self):
+        """Generate schema.json from ComponentParameters model."""
+        import json
+        from pathlib import Path
+
+        from lindistflow_federate import ComponentParameters
+
+        schema_path = Path(__file__).parent.parent / "schema.json"
+        schema_dict = ComponentParameters.model_json_schema()
+
+        # Verify fields are mapped correctly
+        assert "name" in schema_dict["properties"]
+        assert "deltat" in schema_dict["properties"]
+        assert "control_type" in schema_dict["properties"]
+        assert "pf_flag" in schema_dict["properties"]
+
+        # Write schema to file
+        with open(schema_path, "w", encoding="utf-8") as f:
+            json.dump(schema_dict, f, indent=2)
+            f.write("\n")

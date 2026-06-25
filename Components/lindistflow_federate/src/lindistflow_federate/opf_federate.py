@@ -3,7 +3,6 @@
 import json
 import logging
 from datetime import datetime
-from pathlib import Path
 
 import helics as h
 from oedisi.types.common import BrokerConfig
@@ -14,6 +13,7 @@ from oedisi.types.data_types import (
     Topology,
     VoltagesMagnitude,
 )
+from pydantic import BaseModel, Field
 
 from . import adapter, lindistflow
 from .area import area_info
@@ -23,13 +23,15 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 
 
-class StaticConfig:
-    """Static configuration for the OPF federate."""
+class ComponentParameters(BaseModel):
+    """Static configuration parameters defining schema."""
 
-    name: str
-    deltat: float
-    control_type: lindistflow.ControlType
-    pf_flag: bool
+    name: str | None = Field(default=None, title="Name")
+    deltat: float = Field(default=0.1, ge=0.0, title="Time Step (s)")
+    control_type: lindistflow.ControlType = Field(default=lindistflow.ControlType.WATT_VAR, title="Control Type")
+    pf_flag: bool = Field(default=True, title="Run Power Flow")
+
+    model_config = {"title": "LinDistFlowConfig", "description": "Configuration for the LinDistFlow OPF federate."}
 
 
 class Subscriptions:
@@ -55,27 +57,23 @@ class EchoFederate:
 
     def load_component_definition(self) -> None:
         """Load component definition from JSON file."""
-        path = Path(__file__).parent / "component_definition.json"
+        path = "component_definition.json"
         with open(path, encoding="UTF-8") as file:
             self.component_config = json.load(file)
 
     def load_input_mapping(self):
         """Load input mapping for subscriptions from JSON file."""
-        path = Path(__file__).parent / "input_mapping.json"
+        path = "input_mapping.json"
         with open(path, encoding="UTF-8") as file:
             self.inputs = json.load(file)
 
     def load_static_inputs(self):
         """Load static configuration inputs from JSON file."""
-        self.static = StaticConfig()
-        path = Path(__file__).parent / "static_inputs.json"
+        path = "static_inputs.json"
         with open(path, encoding="UTF-8") as file:
             config = json.load(file)
 
-        self.static.name = config["name"]
-        self.static.deltat = config["deltat"]
-        self.static.control_type = lindistflow.ControlType(config["control_type"])
-        self.static.pf_flag = config["pf_flag"]
+        self.static = ComponentParameters(**config)
 
     def initialize(self, broker_config: BrokerConfig | None) -> None:
         """Initialize HELICS federate and configure broker connection."""
@@ -138,7 +136,7 @@ class EchoFederate:
                 area_branch,
                 area_bus,
                 slack_bus,
-                self.static.control_type,
+                lindistflow.ControlType(self.static.control_type),
                 self.static.pf_flag,
             )
 
@@ -186,5 +184,12 @@ class EchoFederate:
 
 
 if __name__ == "__main__":
+    import json
+
+    schema = json.dumps(ComponentParameters.model_json_schema(), indent=2)
+    with open("schema.json", "w") as f:
+        f.write(schema)
+        f.write("\n")
+
     fed = EchoFederate()
     fed.run()
