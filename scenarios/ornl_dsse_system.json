@@ -22,7 +22,7 @@
             "parameters": {
                 "additive_noise_stddev": 0.0,
                 "multiplicative_noise_stddev": 0.0,
-                "measurement_file": "sensors.json"
+                "measurement_file": "../feeder/sensors/sensors.json"
             }
         },
         {
@@ -31,7 +31,7 @@
             "parameters": {
                 "additive_noise_stddev": 0.0,
                 "multiplicative_noise_stddev": 0.0,
-                "measurement_file": "sensors.json"
+                "measurement_file": "../feeder/sensors/sensors.json"
             }
         },
         {
@@ -40,7 +40,7 @@
             "parameters": {
                 "additive_noise_stddev": 0.0,
                 "multiplicative_noise_stddev": 0.0,
-                "measurement_file": "sensors.json"
+                "measurement_file": "../feeder/sensors/sensors.json"
             }
         },
         {
