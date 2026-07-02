@@ -779,7 +779,7 @@ def optimal_power_flow(
 
     prob = cp.Problem(cp.Minimize(q_obj_vector.T @ x), [A_ineq @ x <= b_ineq, A_eq @ x == b_eq])
 
-    prob.solve(solver=cp.ECOS, verbose=True)
+    prob.solve(solver=cp.CLARABEL, verbose=True)
     logger.info(prob.status)
 
     if prob.status == "infeasible_or_unbounded" or prob.status == "infeasible":
