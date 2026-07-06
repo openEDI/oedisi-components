@@ -34,3 +34,6 @@
 [submodule "Components/ornl-dsse-gnwls"]
 	path = Components/ornl-dsse-gnwls
 	url = https://github.com/openEDI/ornl-dsse-gnwls
+[submodule "Components/pnnl-emt-swod"]
+	path = Components/pnnl-emt-swod
+	url = https://github.com/openEDI/pnnl-emt-swod.git
