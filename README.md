@@ -170,7 +170,8 @@ git submodule update --init --recursive
 ## 2. Installation
 Install the component dependencies in editable mode (recommended for development):
 ```bash
-pip install -e Components/broker \
+uv sync --all-extras
+uv pip install -e Components/broker \
             -e Components/lindistflow_federate \
             -e Components/LocalFeeder \
             -e Components/measuring_federate \
@@ -180,7 +181,7 @@ pip install -e Components/broker \
 
 To install development tools as well:
 ```bash
-pip install pytest mypy ruff pre-commit
+uv pip install pytest mypy ruff pre-commit
 ```
 
 ## 3. Running Scenarios
@@ -188,12 +189,20 @@ You can test and run co-simulation scenarios locally using `oedisi` build and ru
 
 First, build the co-simulation configuration from a scenario JSON file:
 ```bash
-oedisi build --system scenarios/system.json
+uv run oedisi build --system scenarios/system.json
 ```
 
 Then, run the co-simulation:
 ```bash
-oedisi run
+uv run oedisi run
+```
+
+## 3. Cleanup
+Sometimes a federate will break and leave a broker running that needs to be stopped to start a new co-simulation.
+
+```bash
+pkill -9 helics_broker
+pkill -9 python
 ```
 
 The output data will be stored in the `outputs/` directory.
