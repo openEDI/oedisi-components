@@ -7,7 +7,7 @@
             "parameters": {
                 "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/v_abc.csv",
                 "data_type": "VoltagesMagnitude",
-                "number_of_timesteps": 1500002,
+                "number_of_timesteps": 250000,
                 "start_time_index": 0,
                 "run_freq_time_step": 0.00004
             }
@@ -18,7 +18,7 @@
             "parameters": {
                 "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/i_abc.csv",
                 "data_type": "CurrentsMagnitude",
-                "number_of_timesteps": 1500002,
+                "number_of_timesteps": 250000,
                 "start_time_index": 0,
                 "run_freq_time_step": 0.00004
             }
@@ -27,15 +27,7 @@
             "name": "swod",
             "type": "SWODComponent",
             "parameters": {
-                "window_length": 50000,
-                "overlap_length": 25000,
-                "fs": 25000.0,
-                "f0_nom": 50.0,
-                "peak_thresh": 0.003,
-                "freq_max": 150.0,
-                "sideband_tol": 0.1,
-                "freq_match_tol": 0.05,
-                "deltat": 1.0
+                "window_length": 50000
             }
         },
         {
