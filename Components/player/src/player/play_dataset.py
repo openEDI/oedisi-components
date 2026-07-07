@@ -113,7 +113,7 @@ def resample_dataset(
         return df
 
     df = df.copy()
-    df["time"] = pd.to_datetime(df["time"])
+    df["time"] = pd.to_datetime(df["time"], format="mixed")
     df = df.sort_values("time").reset_index(drop=True)
 
     if df["time"].duplicated().any():
@@ -141,7 +141,6 @@ def resample_dataset(
             "Out-of-range values will be clamped to the last source value."
         )
 
-    print(data_cols)
     result: dict[str, Any] = {}
     for col in data_cols:
         result[col] = np.interp(x_target, x_data, df[col].to_numpy(dtype=float))
@@ -251,7 +250,6 @@ class Player:
         if the row data does not match the configured type.
         """
         ids = [col for col in row.index if col != "time"]
-        print(ids)
         values = [float(row[col]) for col in ids]
         time = row.get("time", None)
 
@@ -316,7 +314,6 @@ class Player:
                 granted_time = h.helicsFederateRequestTime(self.vfed, request_time)
 
                 row = self.dataset.iloc[dataset_index]
-                print(row)
                 measurement = self._build_measurement(row, row_index)
                 self.pub.publish(measurement.model_dump_json())
                 logger.info(f"Published row {row_index} at HELICS time {granted_time}")
