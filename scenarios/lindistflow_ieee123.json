@@ -57,7 +57,7 @@
                 "profile_location": "gadal_ieee123/profiles",
                 "opendss_location": "gadal_ieee123/qsts",
                 "start_date": "2017-05-01 00:00:00",
-                "number_of_timesteps": 96,
+                "number_of_timesteps": 4,
                 "run_freq_sec": 900,
                 "topology_output": "../../outputs/topology.json",
                 "use_sparse_admittance": true
