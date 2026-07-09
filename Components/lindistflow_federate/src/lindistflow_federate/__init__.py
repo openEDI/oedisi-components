@@ -9,11 +9,11 @@ This component provides:
 
 __version__ = "0.1.0"
 
-from .opf_federate import ComponentParameters, EchoFederate, Subscriptions
+from .opf_federate import ComponentParameters, Federate, Subscriptions
 
 __all__ = [
     "__version__",
-    "EchoFederate",
+    "Federate",
     "ComponentParameters",
     "Subscriptions",
 ]

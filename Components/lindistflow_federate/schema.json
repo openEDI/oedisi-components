@@ -11,6 +11,7 @@
       "type": "integer"
     }
   },
+  "description": "Static configuration parameters defining schema.",
   "properties": {
     "name": {
       "anyOf": [

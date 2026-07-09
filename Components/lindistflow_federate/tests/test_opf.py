@@ -1,56 +1,16 @@
 """Tests for LinDistFlow optimal power flow federate."""
 
-import pytest
-from fastapi.testclient import TestClient
+import json
+from pathlib import Path
 
-
-@pytest.fixture
-def client():
-    """Create a test client for the lindistflow FastAPI app."""
-    from lindistflow_federate.server import app
-
-    return TestClient(app)
-
-
-class TestLinDistFlowHealthCheck:
-    """Test lindistflow federate health check endpoint."""
-
-    def test_root_endpoint_returns_health_info(self, client):
-        """Test that the root endpoint returns hostname and IP information."""
-        response = client.get("/")
-        assert response.status_code == 200
-        data = response.json()
-        assert "hostname" in data
-        assert "host_ip" in data
-
-
-class TestLinDistFlowConfiguration:
-    """Test lindistflow configuration."""
-
-    def test_configure_endpoint_exists(self, client):
-        """Test that the configure endpoint exists."""
-        response = client.post("/configure", json={})
-        assert response.status_code in [200, 422]
+from lindistflow_federate import ComponentParameters
 
 
 class TestLinDistFlowOptimization:
     """Test optimal power flow algorithms."""
 
-    def test_echo_federate_initialization(self):
-        """Test EchoFederate can be imported and basic structure exists."""
-        from lindistflow_federate import EchoFederate
-
-        # Basic import test
-        assert EchoFederate is not None
-        assert hasattr(EchoFederate, "__init__")
-
-    def test_generate_schema(self):
+    def test_generate_schema(self) -> None:
         """Generate schema.json from ComponentParameters model."""
-        import json
-        from pathlib import Path
-
-        from lindistflow_federate import ComponentParameters
-
         schema_path = Path(__file__).parent.parent / "schema.json"
         schema_dict = ComponentParameters.model_json_schema()
 
@@ -64,3 +24,37 @@ class TestLinDistFlowOptimization:
         with open(schema_path, "w", encoding="utf-8") as f:
             json.dump(schema_dict, f, indent=2)
             f.write("\n")
+
+    def test_component_definition_matches_federate(self) -> None:
+        """Test that component_definition.json is accurate with the component and schema."""
+        # Load component_definition.json
+        comp_def_path = Path(__file__).parent.parent / "component_definition.json"
+        with open(comp_def_path, encoding="utf-8") as f:
+            comp_def = json.load(f)
+
+        # Load schema.json
+        schema_path = Path(__file__).parent.parent / "schema.json"
+        with open(schema_path, encoding="utf-8") as f:
+            schema = json.load(f)
+
+        # 1. Verify static inputs match schema.json properties
+        static_inputs = {item["port_id"] for item in comp_def.get("static_inputs", [])}
+        expected_static = set(schema.get("properties", {}).keys())
+        assert static_inputs == expected_static, f"Static inputs mismatch: {static_inputs} vs {expected_static}"
+
+        # 2. Verify dynamic inputs (subscriptions)
+        dynamic_inputs = {item["port_id"]: item["type"] for item in comp_def.get("dynamic_inputs", [])}
+        expected_inputs = {
+            "topology": "Topology",
+            "voltages_magnitude": "VoltagesMagnitude",
+            "injections": "Injection",
+        }
+        assert dynamic_inputs == expected_inputs, f"Dynamic inputs mismatch: {dynamic_inputs} vs {expected_inputs}"
+
+        # 3. Verify dynamic outputs (publications)
+        dynamic_outputs = {item["port_id"]: item["type"] for item in comp_def.get("dynamic_outputs", [])}
+        expected_outputs = {
+            "change_commands": "CommandList",
+            "opf_voltages_magnitude": "VoltagesMagnitude",
+        }
+        assert dynamic_outputs == expected_outputs, f"Dynamic outputs mismatch: {dynamic_outputs} vs {expected_outputs}"

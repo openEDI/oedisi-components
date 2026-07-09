@@ -42,7 +42,7 @@ class Subscriptions:
     topology: Topology
 
 
-class EchoFederate:
+class Federate:
     """Federate for executing optimal power flow based on system state."""
 
     def __init__(self, broker_config: BrokerConfig | None = None) -> None:
@@ -191,5 +191,5 @@ if __name__ == "__main__":
         f.write(schema)
         f.write("\n")
 
-    fed = EchoFederate()
+    fed = Federate()
     fed.run()
