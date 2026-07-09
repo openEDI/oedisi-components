@@ -19,15 +19,6 @@ Key features:
 - **FastAPI Server**: REST API wrapper (`server.py`)
 - **Input Formats**: Feather (PyArrow) and CSV
 
-## Configuration
-
-The Player is configured via two static inputs:
-
-| Parameter   | Description                                                  | Example             |
-|-------------|--------------------------------------------------------------|---------------------|
-| `filename`  | Path to the dataset file (`.feather` or `.csv`)             | `outputs/data.feather` |
-| `data_type` | Name of the `oedisi` type to validate and publish as        | `PowersReal`        |
-
 ### Supported data types
 
 All `MeasurementArray` subtypes from `oedisi.types.data_types`:
@@ -48,16 +39,6 @@ Types that extend `EquipmentNodeArray` (e.g. `PowersReal`) require an `equipment
 }
 ```
 
-## Component Definition
-
-```json
-{
-    "static_inputs": ["filename", "data_type"],
-    "dynamic_inputs": [],
-    "dynamic_outputs": [{"type": "MeasurementArray", "port_id": "publication"}]
-}
-```
-
 ## Time Mapping
 
 The Player uses row-index-based time mapping: row 0 is published at the first HELICS time step, row 1 at the second, etc. When the dataset is exhausted, the federate disconnects cleanly.
@@ -69,53 +50,11 @@ The Player uses row-index-based time mapping: row 0 is published at the first HE
 pip install -e Components/player
 ```
 
-### As a standalone package:
-```bash
-cd Components/player
-pip install -e .
-```
-
 ### With development dependencies:
 ```bash
 pip install -e ".[dev]"
 ```
 
-## Usage
-
-### Running the Server
-
-```bash
-# Using the entry point
-player-server
-
-# Or directly with Python
-python -m player.server
-```
-
-The server runs on port 5680 (configurable via `PORT` environment variable).
-
-### Python API
-
-```python
-from player import Player, PlayerConfig
-from oedisi.types.common import BrokerConfig
-
-config = PlayerConfig(name="my_player", filename="data.feather", data_type="PowersReal")
-player = Player(config, BrokerConfig(broker_ip="127.0.0.1"))
-player.run()
-```
-
-## Testing
-
-Run tests from the component directory:
-```bash
-pytest
-```
-
-Run with coverage:
-```bash
-pytest --cov=player --cov-report=html
-```
 
 ## Docker
 
@@ -130,7 +69,3 @@ docker run -p 5680:5680 -e PORT=5680 -v /data:/data oedisi-player
 ```
 
 Mount a volume containing your dataset files.
-
-## License
-
-BSD 3-Clause License — see [LICENSE.md](../../LICENSE.md) for details.
