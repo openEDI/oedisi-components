@@ -13,16 +13,8 @@
   "description": "Static configuration parameters defining schema.",
   "properties": {
     "name": {
-      "anyOf": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        }
-      ],
-      "default": null,
-      "title": "Name"
+      "title": "Name",
+      "type": "string"
     },
     "deltat": {
       "default": 0.1,
@@ -33,14 +25,17 @@
     "control_type": {
       "$ref": "#/$defs/ControlType",
       "default": 1,
-      "title": "Control Type"
+      "title": "Control Type (Watt or VAR)"
     },
     "pf_flag": {
       "default": true,
-      "title": "Run Power Flow",
+      "title": "Run Relaxed Power Flow",
       "type": "boolean"
     }
   },
+  "required": [
+    "name"
+  ],
   "title": "LinDistFlowConfig",
   "type": "object"
 }

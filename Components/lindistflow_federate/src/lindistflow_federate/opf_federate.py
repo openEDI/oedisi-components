@@ -26,10 +26,12 @@ logger.setLevel(logging.DEBUG)
 class ComponentParameters(BaseModel):
     """Static configuration parameters defining schema."""
 
-    name: str | None = Field(default=None, title="Name")
+    name: str
     deltat: float = Field(default=0.1, ge=0.0, title="Time Step (s)")
-    control_type: lindistflow.ControlType = Field(default=lindistflow.ControlType.WATT, title="Control Type")
-    pf_flag: bool = Field(default=True, title="Run Power Flow")
+    control_type: lindistflow.ControlType = Field(
+        default=lindistflow.ControlType.WATT, title="Control Type (Watt or VAR)"
+    )
+    pf_flag: bool = Field(default=True, title="Run Relaxed Power Flow")
 
     model_config = {"title": "LinDistFlowConfig", "description": "Configuration for the LinDistFlow OPF federate."}
 
