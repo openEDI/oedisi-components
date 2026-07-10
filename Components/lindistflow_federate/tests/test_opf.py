@@ -56,5 +56,10 @@ class TestLinDistFlowOptimization:
         expected_outputs = {
             "change_commands": "CommandList",
             "opf_voltages_magnitude": "VoltagesMagnitude",
+            "opf_voltages_angle": "VoltagesAngle",
+            "opf_power_magnitude": "PowersMagnitude",
+            "opf_power_angle": "PowersAngle",
+            "opf_control_power_real": "PowersReal",
+            "opf_control_power_imaginary": "PowersImaginary",
         }
         assert dynamic_outputs == expected_outputs, f"Dynamic outputs mismatch: {dynamic_outputs} vs {expected_outputs}"
