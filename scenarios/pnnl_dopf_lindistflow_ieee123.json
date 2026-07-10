@@ -1,0 +1,138 @@
+{
+  "name": "pnnl-dopf-lindistflow-ieee123",
+  "description": "example usecase for the lindistflow algorithm on ieee123 model",
+  "createdAt": "2026-07-10T21:23:27.778Z",
+  "components": [
+    {
+      "name": "feeder",
+      "type": "Feeder",
+      "parameters": {
+        "use_smartds": false,
+        "user_uploads_model": false,
+        "profile_location": "gadal_ieee123/profiles",
+        "opendss_location": "gadal_ieee123/qsts",
+        "sensor_location": "gadal_ieee123/sensors.json",
+        "start_date": "2017-01-01 00:00:00",
+        "number_of_timesteps": 1,
+        "run_freq_sec": 900,
+        "start_time_index": 0,
+        "topology_output": "topology.json",
+        "use_sparse_admittance": true,
+        "tap_setting": 1
+      }
+    },
+    {
+      "name": "dopf",
+      "type": "LinDistFlowComponent",
+      "parameters": {
+        "deltat": 0.1,
+        "control_type": 1,
+        "pf_flag": false
+      }
+    },
+    {
+      "name": "feeder_vreal",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/feeder_vreal.csv",
+        "feather_filename": "../../outputs/feeder_vreal.feather"
+      }
+    },
+    {
+      "name": "feeder_preal",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/feeder_preal.csv",
+        "feather_filename": "../../outputs/feeder_preal.feather"
+      }
+    },
+    {
+      "name": "dopf_vmag",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/dopf_vmag.csv",
+        "feather_filename": "../../outputs/dopf_vmag.feather"
+      }
+    },
+    {
+      "name": "dopf_vang",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/dopf_vang.csv",
+        "feather_filename": "../../outputs/dopf_vang.feather"
+      }
+    },
+    {
+      "name": "dopf_pmag",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/dopf.pmag.csv",
+        "feather_filename": "../../outputs/dopf.pmag.feather"
+      }
+    },
+    {
+      "name": "dopf_pang",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/dopf.pang.csv",
+        "feather_filename": "../../outputs/dopf.pang.feather"
+      }
+    }
+  ],
+  "links": [
+    {
+      "source": "feeder",
+      "target": "feeder_vreal",
+      "source_port": "voltages_real",
+      "target_port": "subscription"
+    },
+    {
+      "source": "feeder",
+      "target": "feeder_preal",
+      "source_port": "powers_real",
+      "target_port": "subscription"
+    },
+    {
+      "source": "dopf",
+      "target": "dopf_vmag",
+      "source_port": "opf_voltages_magnitude",
+      "target_port": "subscription"
+    },
+    {
+      "source": "feeder",
+      "target": "dopf",
+      "source_port": "topology",
+      "target_port": "topology"
+    },
+    {
+      "source": "feeder",
+      "target": "dopf",
+      "source_port": "voltages_magnitude",
+      "target_port": "voltages_magnitude"
+    },
+    {
+      "source": "feeder",
+      "target": "dopf",
+      "source_port": "injections",
+      "target_port": "injections"
+    },
+    {
+      "source": "dopf",
+      "target": "dopf_vang",
+      "source_port": "opf_voltages_angle",
+      "target_port": "subscription"
+    },
+    {
+      "source": "dopf",
+      "target": "dopf_pmag",
+      "source_port": "opf_power_magnitude",
+      "target_port": "subscription"
+    },
+    {
+      "source": "dopf",
+      "target": "dopf_pang",
+      "source_port": "opf_power_angle",
+      "target_port": "subscription"
+    }
+  ]
+}
