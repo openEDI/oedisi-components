@@ -4,8 +4,7 @@
       "description": "Enum for different types of DER control modes.",
       "enum": [
         1,
-        2,
-        3
+        2
       ],
       "title": "ControlType",
       "type": "integer"
@@ -33,7 +32,7 @@
     },
     "control_type": {
       "$ref": "#/$defs/ControlType",
-      "default": 3,
+      "default": 1,
       "title": "Control Type"
     },
     "pf_flag": {
