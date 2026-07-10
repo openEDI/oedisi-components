@@ -28,7 +28,7 @@ class ComponentParameters(BaseModel):
 
     name: str | None = Field(default=None, title="Name")
     deltat: float = Field(default=0.1, ge=0.0, title="Time Step (s)")
-    control_type: lindistflow.ControlType = Field(default=lindistflow.ControlType.WATT_VAR, title="Control Type")
+    control_type: lindistflow.ControlType = Field(default=lindistflow.ControlType.WATT, title="Control Type")
     pf_flag: bool = Field(default=True, title="Run Power Flow")
 
     model_config = {"title": "LinDistFlowConfig", "description": "Configuration for the LinDistFlow OPF federate."}
@@ -48,6 +48,7 @@ class Federate:
     def __init__(self, broker_config: BrokerConfig | None = None) -> None:
         """Initialize the OPF federate, loading configurations and registering with HELICS."""
         self.sub = Subscriptions()
+        self.pv_capacities: dict[str, float] = {}
         self.load_static_inputs()
         self.load_input_mapping()
         self.initialize(broker_config)
@@ -115,6 +116,15 @@ class Federate:
                 continue
 
             topology = Topology.model_validate(self.sub.topology.json)
+            if not self.pv_capacities:
+                for val, eq_id in zip(
+                    topology.injections.power_real.values,
+                    topology.injections.power_real.equipment_ids,
+                    strict=True,
+                ):
+                    if eq_id.lower().startswith("pvsystem."):
+                        self.pv_capacities[eq_id.lower()] = self.pv_capacities.get(eq_id.lower(), 0.0) + float(val)
+
             [branch_info, bus_info] = adapter.extract_info(topology)
 
             slack = topology.slack_bus[0]
@@ -153,18 +163,26 @@ class Federate:
                                 continue
 
                             if self.static.control_type == lindistflow.ControlType.WATT:
-                                logger.debug(f"{eqid}, {setpoint}")
+                                max_pv = self.pv_capacities.get(eqid.lower(), 50.0)
+                                if max_pv <= 0:
+                                    obj_val = 100.0
+                                elif setpoint == 0:
+                                    obj_val = 0.0
+                                elif setpoint < max_pv:
+                                    obj_val = setpoint / float(max_pv) * 100.0
+                                else:
+                                    obj_val = 100.0
+
+                                logger.debug(f"{eqid}, {setpoint} kW -> {obj_val} %Pmpp")
                                 commands.append(
                                     Command(
                                         obj_name=eqid,
-                                        obj_property="WattPriority",
-                                        val=setpoint,
+                                        obj_property="%Pmpp",
+                                        val=str(obj_val),
                                     )
                                 )
                             elif self.static.control_type == lindistflow.ControlType.VAR:
-                                commands.append(Command(obj_name=eqid, obj_property="kVAR", val=setpoint))
-                            elif self.static.control_type == lindistflow.ControlType.WATT_VAR:
-                                commands.append(Command(obj_name=eqid, obj_property="kVA", val=setpoint))
+                                commands.append(Command(obj_name=eqid, obj_property="kvar", val=str(setpoint)))
 
             logger.info(commands)
             if commands:
