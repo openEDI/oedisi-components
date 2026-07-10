@@ -39,7 +39,6 @@ class ControlType(Enum):
 
     WATT = 1
     VAR = 2
-    WATT_VAR = 3
 
 
 def ignore_phase(control: dict) -> float:
@@ -782,9 +781,13 @@ def optimal_power_flow(
     prob.solve(solver=cp.CLARABEL, verbose=True)
     logger.info(prob.status)
 
-    if prob.status == "infeasible_or_unbounded" or prob.status == "infeasible":
-        logger.debug("Check for limits. Power flow didn't converge")
-        exit()
+    if prob.status != "optimal":
+        if not pf_flag:
+            logger.warning("Optimization failed to converge with tight limits. Retrying with relaxed voltage limits.")
+            return optimal_power_flow(branch_info, bus_info, source_bus, control, pf_flag=True)
+        else:
+            logger.error("Optimization failed to converge even with relaxed limits.")
+            exit()
 
     from_bus = []
     to_bus = []
@@ -799,7 +802,7 @@ def optimal_power_flow(
     mul = 1 / (BASE_S * 1000)
     line_flow = {}
     n_flow_ABC = (nbus_ABC * 3 + nbus_s1s2) + (nbus_ABC * 6 + nbus_s1s2 * 2)
-    for _k in range(n_flow_ABC, n_flow_ABC + nbranch_ABC):
+    for k in range(n_flow_ABC, n_flow_ABC + nbranch_ABC):
         line_flow[name[i]] = {}
         line_flow[name[i]]["A"] = [
             x.value[k] * mul * 1000,
@@ -828,7 +831,7 @@ def optimal_power_flow(
         i += 1
 
     # Monish Edits
-    for _key, val_bus in bus_info.items():
+    for key, val_bus in bus_info.items():
         # volt.append(
         #     [name[k], '{:.4f}'.format(math.sqrt(abs(x.value[k]))),
         #      '{:.4f}'.format(math.sqrt(abs(x.value[nbus_ABC + k]))),
@@ -857,7 +860,7 @@ def optimal_power_flow(
     # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     opf_control_variable = {}
-    for _key, val_bus in bus_info.items():
+    for key, val_bus in bus_info.items():
         opf_control_variable[key] = {}
         opf_control_variable[key]["A"] = x.value[val_bus["idx"] + control_variable_idx_start]
         opf_control_variable[key]["B"] = x.value[nbus_ABC + val_bus["idx"] + control_variable_idx_start]
