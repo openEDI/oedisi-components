@@ -104,7 +104,18 @@ class Federate:
         """Register HELICS publications for commands and voltages."""
         self.pub_commands = self.fed.register_publication("change_commands", h.HELICS_DATA_TYPE_STRING, "")
 
+        # @agent we need to be publishing voltage magnitude/angle and power magnitude/angle
+        # and the control power real/imag.
         self.pub_voltages = self.fed.register_publication("opf_voltages_magnitude", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_voltages_angle = self.fed.register_publication("opf_voltages_angle", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_power_magnitude = self.fed.register_publication("opf_power_magnitude", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_power_angle = self.fed.register_publication("opf_power_angle", h.HELICS_DATA_TYPE_STRING, "")
+        self.pub_control_power_real = self.fed.register_publication(
+            "opf_control_power_real", h.HELICS_DATA_TYPE_STRING, ""
+        )
+        self.pub_control_power_imaginary = self.fed.register_publication(
+            "opf_control_power_imaginary", h.HELICS_DATA_TYPE_STRING, ""
+        )
 
     def run(self) -> None:
         """Run the main execution loop for data exchange and OPF calculation."""
@@ -190,8 +201,22 @@ class Federate:
             if commands:
                 self.pub_commands.publish(CommandList(root=commands).model_dump_json())
 
+            # @agent make sure all the published values are captured here
             pub_mags = adapter.pack_voltages(voltages, time)
             self.pub_voltages.publish(pub_mags.model_dump_json())
+
+            pub_angles = adapter.pack_voltages_angle(voltages, time)
+            self.pub_voltages_angle.publish(pub_angles.model_dump_json())
+
+            pub_pow_mag, pub_pow_ang = adapter.pack_power_flow(power_flow, time)
+            self.pub_power_magnitude.publish(pub_pow_mag.model_dump_json())
+            self.pub_power_angle.publish(pub_pow_ang.model_dump_json())
+
+            pub_ctrl_real, pub_ctrl_imag = adapter.pack_control_powers(
+                control, area_bus, self.static.control_type, conversion, time
+            )
+            self.pub_control_power_real.publish(pub_ctrl_real.model_dump_json())
+            self.pub_control_power_imaginary.publish(pub_ctrl_imag.model_dump_json())
 
         self.stop()
 
