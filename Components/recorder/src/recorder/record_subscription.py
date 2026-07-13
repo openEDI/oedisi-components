@@ -1,12 +1,12 @@
 """Recorder federate for logging simulation results to Feather and CSV."""
 
+import csv
 import json
 import logging
 from datetime import datetime
 
 import helics as h
 import numpy as np
-import pandas as pd
 import pyarrow as pa
 from oedisi.types.common import BrokerConfig
 from oedisi.types.data_types import MeasurementArray
@@ -66,9 +66,11 @@ class Recorder:
         with (
             pa.OSFile(self.feather_filename, "wb") as sink,
             pa.OSFile(self.feather_filename + ".stream", "wb") as streamsink,
+            open(self.csv_filename, "w", newline="") as csvfile,
         ):
             writer = None
             streamwriter = None
+            csvwriter = None
             while granted_time < h.HELICS_TIME_MAXTIME:
                 logger.info("start time: " + str(datetime.now()))
                 logger.debug(granted_time)
@@ -86,11 +88,15 @@ class Recorder:
                     schema = pa.schema(schema_elements)
                     writer = pa.ipc.new_file(sink, schema)
                     streamwriter = pa.ipc.new_stream(streamsink, schema)
+                    csvwriter = csv.DictWriter(csvfile, fieldnames=schema.names, lineterminator="\n")
+                    csvwriter.writeheader()
                     start = False
 
                 record_batch = pa.RecordBatch.from_pylist([measurement_dict])
                 writer.write_batch(record_batch)
                 streamwriter.write_batch(record_batch)
+                csvwriter.writerow(measurement_dict)
+                csvfile.flush()
 
                 granted_time = h.helicsFederateRequestTime(self.vfed, h.HELICS_TIME_MAXTIME)
                 logger.info("end time: " + str(datetime.now()))
@@ -98,12 +104,6 @@ class Recorder:
             if writer is not None:
                 writer.close()
                 streamwriter.close()
-            else:
-                logger.warning("No subscription data was received; feather file is empty.")
-                self.destroy()
-                return
-        data = pd.read_feather(self.feather_filename)
-        data.to_csv(self.csv_filename, header=True, index=False)
         self.destroy()
 
     def destroy(self):
