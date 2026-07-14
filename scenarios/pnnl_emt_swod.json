@@ -1,0 +1,160 @@
+{
+    "name": "pnnl_emt_swod_scenario",
+    "components": [
+        {
+            "name": "player_v",
+            "type": "Player",
+            "parameters": {
+                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/v_abc.csv",
+                "data_type": "VoltagesMagnitude",
+                "number_of_timesteps": 1250000,
+                "start_time_index": 250000,
+                "run_freq_time_step": 0.00004
+            }
+        },
+        {
+            "name": "player_i",
+            "type": "Player",
+            "parameters": {
+                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/i_abc.csv",
+                "data_type": "CurrentsMagnitude",
+                "number_of_timesteps": 1250000,
+                "start_time_index": 250000,
+                "run_freq_time_step": 0.00004
+            }
+        },
+        {
+            "name": "swod",
+            "type": "SWODComponent",
+            "parameters": {
+                "window_length": 50000
+            }
+        },
+        {
+            "name": "recorder_osc_freq",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_oscillation_frequency.feather",
+                "csv_filename": "../../outputs/swod_oscillation_frequency.csv"
+            }
+        },
+        {
+            "name": "recorder_osc_amp",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_oscillation_amplitude.feather",
+                "csv_filename": "../../outputs/swod_oscillation_amplitude.csv"
+            }
+        },
+        {
+            "name": "recorder_har_freq",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_harmonic_frequency.feather",
+                "csv_filename": "../../outputs/swod_harmonic_frequency.csv"
+            }
+        },
+        {
+            "name": "recorder_har_amp",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_harmonic_amplitude.feather",
+                "csv_filename": "../../outputs/swod_harmonic_amplitude.csv"
+            }
+        },
+        {
+            "name": "recorder_real_ssp",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_real_ssp.feather",
+                "csv_filename": "../../outputs/swod_real_ssp.csv"
+            }
+        },
+        {
+            "name": "recorder_reactive_ssp",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_reactive_ssp.feather",
+                "csv_filename": "../../outputs/swod_reactive_ssp.csv"
+            }
+        },
+        {
+            "name": "recorder_watts_rms",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_watts_rms.feather",
+                "csv_filename": "../../outputs/swod_watts_rms.csv"
+            }
+        },
+        {
+            "name": "recorder_vars_rms",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/swod_vars_rms.feather",
+                "csv_filename": "../../outputs/swod_vars_rms.csv"
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "player_v",
+            "source_port": "publication",
+            "target": "swod",
+            "target_port": "voltages_abs"
+        },
+        {
+            "source": "player_i",
+            "source_port": "publication",
+            "target": "swod",
+            "target_port": "currents_abs"
+        },
+        {
+            "source": "swod",
+            "source_port": "oscillation_frequency",
+            "target": "recorder_osc_freq",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "oscillation_amplitude",
+            "target": "recorder_osc_amp",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "harmonic_frequency",
+            "target": "recorder_har_freq",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "harmonic_amplitude",
+            "target": "recorder_har_amp",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "real_ssp",
+            "target": "recorder_real_ssp",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "reactive_ssp",
+            "target": "recorder_reactive_ssp",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "watts_rms",
+            "target": "recorder_watts_rms",
+            "target_port": "subscription"
+        },
+        {
+            "source": "swod",
+            "source_port": "vars_rms",
+            "target": "recorder_vars_rms",
+            "target_port": "subscription"
+        }
+    ]
+}
