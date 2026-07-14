@@ -320,9 +320,15 @@ def go_cosim(
     initial_timestamp = datetime.strptime(config.start_date, "%Y-%m-%d %H:%M:%S")
 
     while request_time < int(config.number_of_timesteps):
-        granted_time = h.helicsFederateRequestTime(vfed, request_time)
+        if config.iterative_time:
+            granted_time, iteration_state = h.helicsFederateRequestTimeIterative(
+                vfed, request_time, h.HELICS_ITERATION_REQUEST_ITERATE_IF_NEEDED
+            )
+        else:
+            granted_time = h.helicsFederateRequestTime(vfed, request_time)
+            iteration_state = None
         assert granted_time <= request_time + deltat, f"granted_time: {granted_time} past {request_time}"
-        if granted_time >= request_time - deltat:
+        if not config.iterative_time and granted_time >= request_time - deltat:
             request_time += 1
 
         current_index = int(granted_time)  # floors
@@ -423,6 +429,9 @@ def go_cosim(
             )
 
         logger.info("end time: " + str(datetime.now()))
+
+        if config.iterative_time and iteration_state == h.HELICS_ITERATION_RESULT_NEXT_STEP:
+            request_time += 1
 
     h.helicsFederateDisconnect(vfed)
     h.helicsFederateFree(vfed)
