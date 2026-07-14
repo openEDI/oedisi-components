@@ -12,9 +12,9 @@
         "profile_location": "gadal_ieee123/profiles",
         "opendss_location": "gadal_ieee123/qsts",
         "sensor_location": "gadal_ieee123/sensors.json",
-        "start_date": "2017-01-01 00:00:00",
-        "number_of_timesteps": 1,
-        "run_freq_sec": 900,
+        "start_date": "2017-01-01 08:00:00",
+        "number_of_timesteps": 8,
+        "run_freq_sec": 3600,
         "start_time_index": 0,
         "topology_output": "topology.json",
         "use_sparse_admittance": true,
@@ -63,19 +63,19 @@
       }
     },
     {
-      "name": "dopf_pmag",
+      "name": "dopf_preal",
       "type": "Recorder",
       "parameters": {
-        "csv_filename": "../../outputs/dopf.pmag.csv",
-        "feather_filename": "../../outputs/dopf.pmag.feather"
+        "csv_filename": "../../outputs/dopf.preal.csv",
+        "feather_filename": "../../outputs/dopf.preal.feather"
       }
     },
     {
-      "name": "dopf_pang",
+      "name": "dopf_pimag",
       "type": "Recorder",
       "parameters": {
-        "csv_filename": "../../outputs/dopf.pang.csv",
-        "feather_filename": "../../outputs/dopf.pang.feather"
+        "csv_filename": "../../outputs/dopf.pimag.csv",
+        "feather_filename": "../../outputs/dopf.pimag.feather"
       }
     }
   ],
@@ -124,14 +124,14 @@
     },
     {
       "source": "dopf",
-      "target": "dopf_pmag",
-      "source_port": "opf_power_magnitude",
+      "target": "dopf_preal",
+      "source_port": "opf_control_power_real",
       "target_port": "subscription"
     },
     {
       "source": "dopf",
-      "target": "dopf_pang",
-      "source_port": "opf_power_angle",
+      "target": "dopf_pimag",
+      "source_port": "opf_control_power_imaginary",
       "target_port": "subscription"
     }
   ]
