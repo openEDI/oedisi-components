@@ -103,9 +103,6 @@ class Federate:
     def register_publication(self) -> None:
         """Register HELICS publications for commands and voltages."""
         self.pub_commands = self.fed.register_publication("change_commands", h.HELICS_DATA_TYPE_STRING, "")
-
-        # @agent we need to be publishing voltage magnitude/angle and power magnitude/angle
-        # and the control power real/imag.
         self.pub_voltages = self.fed.register_publication("opf_voltages_magnitude", h.HELICS_DATA_TYPE_STRING, "")
         self.pub_voltages_angle = self.fed.register_publication("opf_voltages_angle", h.HELICS_DATA_TYPE_STRING, "")
         self.pub_power_magnitude = self.fed.register_publication("opf_power_magnitude", h.HELICS_DATA_TYPE_STRING, "")
@@ -201,7 +198,6 @@ class Federate:
             if commands:
                 self.pub_commands.publish(CommandList(root=commands).model_dump_json())
 
-            # @agent make sure all the published values are captured here
             pub_mags = adapter.pack_voltages(voltages, time)
             self.pub_voltages.publish(pub_mags.model_dump_json())
 
@@ -229,12 +225,5 @@ class Federate:
 
 
 if __name__ == "__main__":
-    import json
-
-    schema = json.dumps(ComponentParameters.model_json_schema(), indent=2)
-    with open("schema.json", "w") as f:
-        f.write(schema)
-        f.write("\n")
-
     fed = Federate()
     fed.run()

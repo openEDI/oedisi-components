@@ -787,7 +787,7 @@ def optimal_power_flow(
             return optimal_power_flow(branch_info, bus_info, source_bus, control, pf_flag=True)
         else:
             logger.error("Optimization failed to converge even with relaxed limits.")
-            exit()
+            exit(1)
 
     from_bus = []
     to_bus = []
