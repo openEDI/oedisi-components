@@ -5,10 +5,10 @@
             "name": "player_v",
             "type": "Player",
             "parameters": {
-                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/v_abc.csv",
+                "filename": "/components/pnnl-emt-swod/data/v_abc.csv",
                 "data_type": "VoltagesMagnitude",
-                "number_of_timesteps": 1250000,
-                "start_time_index": 250000,
+                "number_of_timesteps": 100000,
+                "start_time_index": 0,
                 "run_freq_time_step": 0.00004
             }
         },
@@ -16,10 +16,10 @@
             "name": "player_i",
             "type": "Player",
             "parameters": {
-                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/i_abc.csv",
+                "filename": "/components/pnnl-emt-swod/data/i_abc.csv",
                 "data_type": "CurrentsMagnitude",
-                "number_of_timesteps": 1250000,
-                "start_time_index": 250000,
+                "number_of_timesteps": 100000,
+                "start_time_index": 0,
                 "run_freq_time_step": 0.00004
             }
         },
