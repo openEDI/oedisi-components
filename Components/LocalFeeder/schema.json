@@ -23,7 +23,14 @@
     "opendss_location": {
       "default": "gadal_ieee123/qsts",
       "title": "Opendss Location",
-      "type": "string"
+      "type": "string",
+      "enum": [
+        "gadal_ieee123/qsts",
+        "SMART-DS/v1.0/2017/SFO/P1U/scenarios/solar_high_batteries_none_timeseries/opendss/p1uhs0_1247/p1uhs0_1247--p1udt942",
+        "SMART-DS/v1.0/2017/SFO/P1U/scenarios/solar_medium_batteries_none_timeseries/opendss/p1uhs0_1247/p1uhs0_1247--p1udt942",
+        "SMART-DS/v1.0/2017/SFO/P6U/scenarios/solar_medium_batteries_none_timeseries/opendss/p6uhs10_1247/p6uhs10_1247--p6udt5293",
+        "SMART-DS/v1.0/2017/SFO/P9U/scenarios/solar_medium_batteries_none_timeseries/opendss/p9uhs16_1247/p9uhs16_1247--p9udt12866"
+      ]
     },
     "existing_feeder_file": {
       "type": "string",
