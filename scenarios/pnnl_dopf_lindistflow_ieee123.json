@@ -1,10 +1,10 @@
 {
   "name": "pnnl-dopf-lindistflow-ieee123",
-  "description": "example usecase for the lindistflow algorithm on ieee123 model",
-  "createdAt": "2026-07-10T21:23:27.778Z",
+  "description": "example usecase for the lindistflow algorithm on ieee123 model with reference and control feeders",
+  "createdAt": "2026-07-18T12:52:10Z",
   "components": [
     {
-      "name": "feeder",
+      "name": "reference_feeder",
       "type": "Feeder",
       "parameters": {
         "use_smartds": false,
@@ -22,6 +22,24 @@
       }
     },
     {
+      "name": "control_feeder",
+      "type": "Feeder",
+      "parameters": {
+        "use_smartds": false,
+        "user_uploads_model": false,
+        "profile_location": "gadal_ieee123/profiles",
+        "opendss_location": "gadal_ieee123/qsts",
+        "sensor_location": "gadal_ieee123/sensors.json",
+        "start_date": "2017-01-01 08:00:00",
+        "number_of_timesteps": 8,
+        "run_freq_sec": 3600,
+        "start_time_index": 0,
+        "topology_output": "control_topology.json",
+        "use_sparse_admittance": true,
+        "tap_setting": 1
+      }
+    },
+    {
       "name": "dopf",
       "type": "LinDistFlowComponent",
       "parameters": {
@@ -31,19 +49,67 @@
       }
     },
     {
-      "name": "feeder_vreal",
+      "name": "recorder_reference_voltage_real",
       "type": "Recorder",
       "parameters": {
-        "csv_filename": "../../outputs/feeder_vreal.csv",
-        "feather_filename": "../../outputs/feeder_vreal.feather"
+        "csv_filename": "../../outputs/reference_voltage_real.csv",
+        "feather_filename": "../../outputs/reference_voltage_real.feather"
       }
     },
     {
-      "name": "feeder_preal",
+      "name": "recorder_reference_voltage_imag",
       "type": "Recorder",
       "parameters": {
-        "csv_filename": "../../outputs/feeder_preal.csv",
-        "feather_filename": "../../outputs/feeder_preal.feather"
+        "csv_filename": "../../outputs/reference_voltage_imag.csv",
+        "feather_filename": "../../outputs/reference_voltage_imag.feather"
+      }
+    },
+    {
+      "name": "recorder_reference_power_real",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/reference_power_real.csv",
+        "feather_filename": "../../outputs/reference_power_real.feather"
+      }
+    },
+    {
+      "name": "recorder_reference_power_imag",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/reference_power_imag.csv",
+        "feather_filename": "../../outputs/reference_power_imag.feather"
+      }
+    },
+    {
+      "name": "recorder_control_voltage_real",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/control_voltage_real.csv",
+        "feather_filename": "../../outputs/control_voltage_real.feather"
+      }
+    },
+    {
+      "name": "recorder_control_voltage_imag",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/control_voltage_imag.csv",
+        "feather_filename": "../../outputs/control_voltage_imag.feather"
+      }
+    },
+    {
+      "name": "recorder_control_power_real",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/control_power_real.csv",
+        "feather_filename": "../../outputs/control_power_real.feather"
+      }
+    },
+    {
+      "name": "recorder_control_power_imag",
+      "type": "Recorder",
+      "parameters": {
+        "csv_filename": "../../outputs/control_power_imag.csv",
+        "feather_filename": "../../outputs/control_power_imag.feather"
       }
     },
     {
@@ -81,40 +147,82 @@
   ],
   "links": [
     {
-      "source": "feeder",
-      "target": "feeder_vreal",
+      "source": "reference_feeder",
+      "target": "recorder_reference_voltage_real",
       "source_port": "voltages_real",
       "target_port": "subscription"
     },
     {
-      "source": "feeder",
-      "target": "feeder_preal",
+      "source": "reference_feeder",
+      "target": "recorder_reference_voltage_imag",
+      "source_port": "voltages_imag",
+      "target_port": "subscription"
+    },
+    {
+      "source": "reference_feeder",
+      "target": "recorder_reference_power_real",
       "source_port": "powers_real",
       "target_port": "subscription"
+    },
+    {
+      "source": "reference_feeder",
+      "target": "recorder_reference_power_imag",
+      "source_port": "powers_imag",
+      "target_port": "subscription"
+    },
+    {
+      "source": "control_feeder",
+      "target": "recorder_control_voltage_real",
+      "source_port": "voltages_real",
+      "target_port": "subscription"
+    },
+    {
+      "source": "control_feeder",
+      "target": "recorder_control_voltage_imag",
+      "source_port": "voltages_imag",
+      "target_port": "subscription"
+    },
+    {
+      "source": "control_feeder",
+      "target": "recorder_control_power_real",
+      "source_port": "powers_real",
+      "target_port": "subscription"
+    },
+    {
+      "source": "control_feeder",
+      "target": "recorder_control_power_imag",
+      "source_port": "powers_imag",
+      "target_port": "subscription"
+    },
+    {
+      "source": "control_feeder",
+      "target": "dopf",
+      "source_port": "topology",
+      "target_port": "topology"
+    },
+    {
+      "source": "control_feeder",
+      "target": "dopf",
+      "source_port": "voltages_magnitude",
+      "target_port": "voltages_magnitude"
+    },
+    {
+      "source": "control_feeder",
+      "target": "dopf",
+      "source_port": "injections",
+      "target_port": "injections"
+    },
+    {
+      "source": "dopf",
+      "target": "control_feeder",
+      "source_port": "change_commands",
+      "target_port": "change_commands"
     },
     {
       "source": "dopf",
       "target": "dopf_vmag",
       "source_port": "opf_voltages_magnitude",
       "target_port": "subscription"
-    },
-    {
-      "source": "feeder",
-      "target": "dopf",
-      "source_port": "topology",
-      "target_port": "topology"
-    },
-    {
-      "source": "feeder",
-      "target": "dopf",
-      "source_port": "voltages_magnitude",
-      "target_port": "voltages_magnitude"
-    },
-    {
-      "source": "feeder",
-      "target": "dopf",
-      "source_port": "injections",
-      "target_port": "injections"
     },
     {
       "source": "dopf",
