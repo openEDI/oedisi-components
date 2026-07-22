@@ -25,7 +25,8 @@
             "name": "swod",
             "type": "SWODComponent",
             "parameters": {
-                "window_length": 2000
+                "window_length": 2000,
+                "overlap_length": 1000
             }
         },
         {

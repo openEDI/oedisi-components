@@ -141,18 +141,20 @@ class Player:
     @staticmethod
     def _load_dataset(filename: str) -> pd.DataFrame:
         """Load dataset from a Feather or CSV file (detected by extension)."""
-        ext = Path(filename).suffix.lower()
+        path = Path(filename).expanduser()
+        ext = path.suffix.lower()
         if ext == ".feather":
-            return pd.read_feather(filename)
+            return pd.read_feather(path)
         elif ext == ".csv":
-            return pd.read_csv(filename)
+            return pd.read_csv(path)
         else:
             raise ValueError(f"Unsupported file format '{ext}'. Expected .feather or .csv")
 
     @staticmethod
     def _load_metadata(filename: str) -> dict[str, Any]:
         """Load optional sidecar metadata JSON for EquipmentNodeArray types."""
-        metadata_path = filename + "_metadata.json"
+        path = Path(filename).expanduser()
+        metadata_path = str(path) + "_metadata.json"
         if os.path.exists(metadata_path):
             with open(metadata_path) as f:
                 return json.load(f)
