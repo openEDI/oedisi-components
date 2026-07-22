@@ -5,29 +5,27 @@
             "name": "player_v",
             "type": "Player",
             "parameters": {
-                "filename": "/components/pnnl-emt-swod/data/v_abc.csv",
+                "filename": "~/dev/swod_data/v_abc_1khz.csv",
                 "data_type": "VoltagesMagnitude",
-                "number_of_timesteps": 100000,
-                "start_time_index": 0,
-                "run_freq_time_step": 0.00004
+                "number_of_timesteps": 60000,
+                "start_time_index": 0
             }
         },
         {
             "name": "player_i",
             "type": "Player",
             "parameters": {
-                "filename": "/components/pnnl-emt-swod/data/i_abc.csv",
+                "filename": "~/dev/swod_data/i_abc_1khz.csv",
                 "data_type": "CurrentsMagnitude",
-                "number_of_timesteps": 100000,
-                "start_time_index": 0,
-                "run_freq_time_step": 0.00004
+                "number_of_timesteps": 60000,
+                "start_time_index": 0
             }
         },
         {
             "name": "swod",
             "type": "SWODComponent",
             "parameters": {
-                "window_length": 50000
+                "window_length": 2000
             }
         },
         {

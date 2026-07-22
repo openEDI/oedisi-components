@@ -76,7 +76,6 @@ class ComponentParameters(BaseModel):
     data_type: str
     number_of_timesteps: int
     start_time_index: int
-    run_freq_time_step: float = 900.0
 
     @field_validator("number_of_timesteps")
     @classmethod
@@ -86,10 +85,10 @@ class ComponentParameters(BaseModel):
             raise ValueError("number_of_timesteps must be > 0")
         return v
 
-    @field_validator("start_time_index", "run_freq_time_step")
+    @field_validator("start_time_index")
     @classmethod
     def non_negative(cls, v: float) -> float:
-        """Ensure start time and run frequency are not negative."""
+        """Ensure start time index is not negative."""
         if v < 0:
             raise ValueError("must be >= 0")
         return v
@@ -131,8 +130,7 @@ class Player:
         logger.debug(config.name)
 
         # Use a small delta_t (like the feeder) so HELICS doesn't skip the
-        # federate to MAXTIME in one step.  run_freq_time_step is the physical
-        # publish interval recorded in the data; it is NOT the HELICS time unit.
+        # federate to MAXTIME in one step.
         h.helicsFederateInfoSetTimeProperty(fedinfo, h.helics_property_time_delta, 0.01)
 
         self.vfed = h.helicsCreateValueFederate(config.name, fedinfo)
@@ -206,10 +204,9 @@ class Player:
         first valid grant is current_time + delta >= 1.0.
 
         Note: HELICS times requested here are pure integer counters (1, 2, 3, …),
-        not physical seconds.  run_freq_time_step controls the physical time
-        interval encoded in each published MeasurementArray, but the HELICS
-        federation clock advances in unitless integer steps.  Federates that
-        interpret HELICS time as physical seconds will see incorrect values.
+        not physical seconds.  The HELICS federation clock advances in unitless
+        integer steps.  Federates that interpret HELICS time as physical seconds
+        will see incorrect values.
         """
         self.vfed.enter_initializing_mode()
         self.vfed.enter_executing_mode()
