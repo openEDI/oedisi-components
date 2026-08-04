@@ -11,6 +11,12 @@
     "feather_filename": {
       "title": "Feather Path",
       "type": "string"
+    },
+    "time_delta": {
+      "title": "Time Delta",
+      "description": "HELICS time resolution. Default 0.01.",
+      "type": "number",
+      "default": 0.01
     }
   },
   "required": ["csv_filename", "feather_filename"],
