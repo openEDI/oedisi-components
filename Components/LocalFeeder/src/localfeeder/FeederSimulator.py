@@ -331,7 +331,10 @@ class FeederSimulator:
     def load_feeder(self):
         """Load feeder once downloaded. Relies on legacy mode."""
         # Real solution is kvarlimit with kvarmax
-        dss.Basic.LegacyModels(True)
+        try:
+            dss.Basic.LegacyModels(True)
+        except Exception as e:
+            logging.warning(f"LegacyModels setting ignored or unsupported in this OpenDSS version: {e}")
         dss.Text.Command("clear")
         dss.Text.Command("redirect " + self._feeder_file)
         result = dss.Text.Result()

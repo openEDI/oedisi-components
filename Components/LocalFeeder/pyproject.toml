@@ -22,7 +22,7 @@ dependencies = [
     "matplotlib",
     "numpy",
     "pandas",
-    "OpenDSSDirect.py[extras]==0.7.0",
+    "OpenDSSDirect.py[extras]>=0.7.0",
     "boto3",
     "xarray",
     "fastapi",
