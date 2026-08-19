@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - pnnl-emt-swod
+
+on:
+  push:
+    paths:
+      - 'Components/pnnl-emt-swod/**'
+      - '.github/workflows/verify-dockerfiles-pnnl-emt-swod.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/pnnl-emt-swod
