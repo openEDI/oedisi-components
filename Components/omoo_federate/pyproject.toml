@@ -21,7 +21,7 @@ dependencies = [
     "pandas",
     "scipy",
     "xarray",
-    "oedisi~=3.0",
+    "oedisi>=3.0.2,<4.0.0",
     "fastapi",
     "uvicorn",
     "python-multipart",

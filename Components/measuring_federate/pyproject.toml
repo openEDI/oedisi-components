@@ -24,7 +24,7 @@ dependencies = [
     "uvicorn",
     "requests",
     "grequests",
-    "oedisi~=3.0",
+    "oedisi>=3.0.2,<4.0.0",
 ]
 
 [project.optional-dependencies]
