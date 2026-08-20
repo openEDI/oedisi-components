@@ -627,6 +627,57 @@ class FeederSimulator:
 
         return xr.DataArray(res_feeder_voltages, {"ids": list(name_voltage_dict.keys())})
 
+    def _build_load_bus_map(self):
+        self._load_bus_map = {}
+        load_flag = dss.Loads.First()
+        while load_flag:
+            load_name = dss.Loads.Name()
+            dss.Circuit.SetActiveElement(f"Load.{load_name}")
+            bus_names = dss.CktElement.BusNames()
+            if bus_names:
+                for bus in bus_names:
+                    bus_lower = bus.strip().lower()
+                    self._load_bus_map.setdefault(bus_lower, load_name)
+                    base_bus = bus_lower.split(".")[0]
+                    self._load_bus_map.setdefault(base_bus, load_name)
+            load_flag = dss.Loads.Next()
+        logger.info(f"Built load-bus map: {len(self._load_bus_map)} entries")
+
+    def _find_load_for_bus(self, bus_id):
+        if not hasattr(self, "_load_bus_map"):
+            self._build_load_bus_map()
+        bus_lower = bus_id.strip().lower()
+        if not bus_lower:
+            raise ValueError("EV load command must include a bus ID")
+        if bus_lower in self._load_bus_map:
+            return self._load_bus_map[bus_lower]
+        base_bus = bus_lower.split(".")[0]
+        if base_bus in self._load_bus_map:
+            return self._load_bus_map[base_bus]
+        raise ValueError(f"No OpenDSS load found at EV bus '{bus_id}'")
+
+    def _apply_ev_injection(self, bus_id, obj_property, val):
+        if obj_property.lower() not in {"kw", "kvar"}:
+            raise ValueError(f"Unsupported EV load property '{obj_property}'")
+        ev_name = "evinj_" + bus_id.replace(".", "_").lower()
+        if not hasattr(self, "_ev_inject_loads"):
+            self._ev_inject_loads = set()
+        if ev_name not in self._ev_inject_loads:
+            template = self._find_load_for_bus(bus_id)
+            dss.Loads.Name(template)
+            kv = dss.Loads.kV()
+            vminpu = dss.Loads.Vminpu()
+            conn = "delta" if dss.Loads.IsDelta() else "wye"
+            dss.Circuit.SetActiveElement("Load." + template)
+            bus1 = dss.CktElement.BusNames()[0]
+            nph = dss.CktElement.NumPhases()
+            dss.Text.Command(
+                f"New Load.{ev_name} bus1={bus1} phases={nph} conn={conn} "
+                f"kV={kv} kW=0 kvar=0 model=1 Vminpu={vminpu} Vmaxpu=1.2"
+            )
+            self._ev_inject_loads.add(ev_name)
+        dss.Text.Command(f"Load.{ev_name}.{obj_property}={val}")
+
     def change_obj(self, change_commands: list[Command]):
         """set/get an object property.
 
@@ -641,6 +692,10 @@ class FeederSimulator:
         """
         assert self._state != OpenDSSState.UNLOADED, f"{self._state}"
         for entry in change_commands:
+            if entry.obj_name.lower().startswith("evload."):
+                bus_id = entry.obj_name.split(".", 1)[1]
+                self._apply_ev_injection(bus_id, entry.obj_property, entry.val)
+                continue
             dss.Circuit.SetActiveElement(entry.obj_name)  # make the required element as active element
             # dss.CktElement.Properties(entry.obj_property).Val = entry.val
             # dss.Properties.Value(entry.obj_property, str(entry.val))
