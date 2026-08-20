@@ -10,10 +10,15 @@
     "dynamic_inputs": [
         {"type": "VoltagesMagnitude", "port_id": "voltages_magnitude"},
         {"type": "Topology", "port_id": "topology"},
-        {"type": "Injections", "port_id": "injections"}
+        {"type": "Injection", "port_id": "injections"}
     ],
     "dynamic_outputs": [
-        {"type": "ControlList", "port_id": "change_commands"},
-        {"type": "VoltagesMagnitude", "port_id": "opf_voltages_magnitude"}
+        {"type": "CommandList", "port_id": "change_commands"},
+        {"type": "VoltagesMagnitude", "port_id": "opf_voltages_magnitude"},
+        {"type": "VoltagesAngle", "port_id": "opf_voltages_angle"},
+        {"type": "PowersMagnitude", "port_id": "opf_power_magnitude"},
+        {"type": "PowersAngle", "port_id": "opf_power_angle"},
+        {"type": "PowersReal", "port_id": "opf_control_power_real"},
+        {"type": "PowersImaginary", "port_id": "opf_control_power_imaginary"}
     ]
 }

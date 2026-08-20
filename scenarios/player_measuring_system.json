@@ -8,8 +8,7 @@
                 "filename": "../../scenarios/player_measuring/voltages.csv",
                 "data_type": "VoltagesMagnitude",
                 "number_of_timesteps": 3,
-                "start_time_index": 0,
-                "run_freq_time_step": 900.0
+                "start_time_index": 0
             }
         },
         {
@@ -19,8 +18,7 @@
                 "filename": "../../scenarios/player_measuring/powers.csv",
                 "data_type": "PowersReal",
                 "number_of_timesteps": 3,
-                "start_time_index": 0,
-                "run_freq_time_step": 900.0
+                "start_time_index": 0
             }
         },
         {

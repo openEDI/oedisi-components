@@ -1,14 +1,19 @@
 """Adapter for converting OEDISI types to LinDistFlow internal formats."""
 
 import logging
+import math
 from enum import IntEnum
+from typing import Any
 
 import numpy as np
 from oedisi.types.data_types import (
     Injection,
+    PowersAngle,
     PowersImaginary,
+    PowersMagnitude,
     PowersReal,
     Topology,
+    VoltagesAngle,
     VoltagesMagnitude,
 )
 
@@ -232,3 +237,117 @@ def extract_info(topology: Topology) -> tuple[dict, dict]:
     bus_info = extract_voltages(bus_info, topology.base_voltage_magnitudes)
 
     return index_info(branch_info, bus_info)
+
+
+def pack_voltages_angle(voltages: dict[str, Any], time: int) -> VoltagesAngle:
+    """Pack nominal phase angles for the voltages."""
+    ids = []
+    values = []
+    for key, value in voltages.items():
+        for phase in value.keys():
+            if phase == "A":
+                id = f"{key}.1"
+                angle = 0.0
+            elif phase == "B":
+                id = f"{key}.2"
+                angle = -2.0943951023931953
+            elif phase == "C":
+                id = f"{key}.3"
+                angle = 2.0943951023931953
+            else:
+                continue
+            ids.append(id)
+            values.append(angle)
+    return VoltagesAngle(ids=ids, values=values, time=time)
+
+
+def pack_power_flow(power_flow: dict[str, Any], time: int) -> tuple[PowersMagnitude, PowersAngle]:
+    """Pack branch power flow into PowersMagnitude and PowersAngle."""
+    ids = []
+    equipment_ids = []
+    mag_values = []
+    ang_values = []
+    for branch_name, value in power_flow.items():
+        for phase, pq in value.items():
+            if phase == "A":
+                phase_id = "1"
+            elif phase == "B":
+                phase_id = "2"
+            elif phase == "C":
+                phase_id = "3"
+            else:
+                continue
+
+            p, q = pq[0], pq[1]
+            s = math.sqrt(p**2 + q**2)
+            theta = math.atan2(q, p)
+
+            ids.append(f"{branch_name}.{phase_id}")
+            equipment_ids.append(branch_name)
+            mag_values.append(s)
+            ang_values.append(theta)
+
+    return (
+        PowersMagnitude(ids=ids, equipment_ids=equipment_ids, values=mag_values, time=time),
+        PowersAngle(ids=ids, equipment_ids=equipment_ids, values=ang_values, time=time),
+    )
+
+
+def pack_control_powers(
+    control: dict[str, Any], area_bus: dict[str, Any], control_type: Any, conversion: float, time: int
+) -> tuple[PowersReal, PowersImaginary]:
+    """Pack control variables into PowersReal and PowersImaginary."""
+    real_ids = []
+    real_eq_ids = []
+    real_values = []
+
+    imag_ids = []
+    imag_eq_ids = []
+    imag_values = []
+
+    for key, val in control.items():
+        if key in area_bus:
+            bus = area_bus[key]
+            if "eqid" in bus:
+                eqid = bus["eqid"]
+                [type_name, _] = eqid.split(".")
+                if type_name == "PVSystem":
+                    for phase, v_pu in val.items():
+                        if phase == "A":
+                            phase_id = "1"
+                        elif phase == "B":
+                            phase_id = "2"
+                        elif phase == "C":
+                            phase_id = "3"
+                        else:
+                            continue
+
+                        id_str = f"{key}.{phase_id}"
+                        val_kw = v_pu * conversion
+
+                        if control_type.name == "WATT":
+                            real_ids.append(id_str)
+                            real_eq_ids.append(eqid)
+                            real_values.append(val_kw)
+
+                            imag_ids.append(id_str)
+                            imag_eq_ids.append(eqid)
+                            imag_values.append(0.0)
+                        elif control_type.name == "VAR":
+                            phase_idx = int(phase_id) - 1
+                            base_p_kw = (
+                                bus["pv"][phase_idx][0] / 1000.0 if "pv" in bus and phase_idx < len(bus["pv"]) else 0.0
+                            )
+
+                            real_ids.append(id_str)
+                            real_eq_ids.append(eqid)
+                            real_values.append(base_p_kw)
+
+                            imag_ids.append(id_str)
+                            imag_eq_ids.append(eqid)
+                            imag_values.append(val_kw)
+
+    return (
+        PowersReal(ids=real_ids, equipment_ids=real_eq_ids, values=real_values, time=time),
+        PowersImaginary(ids=imag_ids, equipment_ids=imag_eq_ids, values=imag_values, time=time),
+    )

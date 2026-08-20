@@ -5,29 +5,28 @@
             "name": "player_v",
             "type": "Player",
             "parameters": {
-                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/v_abc.csv",
+                "filename": "~/dev/swod_data/v_abc_1khz.csv",
                 "data_type": "VoltagesMagnitude",
-                "number_of_timesteps": 1250000,
-                "start_time_index": 250000,
-                "run_freq_time_step": 0.00004
+                "number_of_timesteps": 60000,
+                "start_time_index": 0
             }
         },
         {
             "name": "player_i",
             "type": "Player",
             "parameters": {
-                "filename": "/home/slay216/swod_data/outputs/FO_A11_1pt5Hz_pt03/i_abc.csv",
+                "filename": "~/dev/swod_data/i_abc_1khz.csv",
                 "data_type": "CurrentsMagnitude",
-                "number_of_timesteps": 1250000,
-                "start_time_index": 250000,
-                "run_freq_time_step": 0.00004
+                "number_of_timesteps": 60000,
+                "start_time_index": 0
             }
         },
         {
             "name": "swod",
             "type": "SWODComponent",
             "parameters": {
-                "window_length": 50000
+                "window_length": 2000,
+                "overlap_length": 1000
             }
         },
         {

@@ -1,33 +1,41 @@
 {
-  "description": "Configuration for the LinDistFlow OPF federate.",
-  "title": "LinDistFlowConfig",
-  "type": "object",
+  "$defs": {
+    "ControlType": {
+      "description": "Enum for different types of DER control modes.",
+      "enum": [
+        1,
+        2
+      ],
+      "title": "ControlType",
+      "type": "integer"
+    }
+  },
+  "description": "Static configuration parameters defining schema.",
   "properties": {
     "name": {
       "title": "Name",
       "type": "string"
     },
     "deltat": {
-      "title": "Time Step (s)",
-      "type": "number",
       "default": 0.1,
-      "minimum": 0
+      "minimum": 0.0,
+      "title": "Time Step (s)",
+      "type": "number"
     },
     "control_type": {
-      "title": "Control Type",
-      "type": "integer",
-      "default": 3,
-      "oneOf": [
-        { "const": 1, "title": "WATT" },
-        { "const": 2, "title": "VAR" },
-        { "const": 3, "title": "WATT_VAR" }
-      ]
+      "$ref": "#/$defs/ControlType",
+      "default": 1,
+      "title": "Control Type (Watt or VAR)"
     },
     "pf_flag": {
-      "title": "Run Power Flow",
-      "type": "boolean",
-      "default": true
+      "default": true,
+      "title": "Run Relaxed Power Flow",
+      "type": "boolean"
     }
   },
-  "required": ["deltat", "control_type", "pf_flag"]
+  "required": [
+    "name"
+  ],
+  "title": "LinDistFlowConfig",
+  "type": "object"
 }
