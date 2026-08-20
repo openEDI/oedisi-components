@@ -57,8 +57,7 @@ def test_ev_command_creates_separate_load_and_reuses_it(monkeypatch):
 
     assert fake_dss.selected_loads == ["base_load"]
     assert fake_dss.commands == [
-        "New Load.evinj_48_1 bus1=48.1 phases=1 conn=wye "
-        "kV=2.4 kW=0 kvar=0 model=1 Vminpu=0.9 Vmaxpu=1.2",
+        "New Load.evinj_48_1 bus1=48.1 phases=1 conn=wye " "kV=2.4 kW=0 kvar=0 model=1 Vminpu=0.9 Vmaxpu=1.2",
         "Load.evinj_48_1.kW=22",
         "Load.evinj_48_1.kvar=3",
     ]
