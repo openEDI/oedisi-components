@@ -31,8 +31,7 @@
     },
     "sensor_location": {
       "type": "string",
-      "title": "Sensor Location",
-      "default": "gadal_ieee123/sensors.json"
+      "title": "Sensor Location"
     },
     "start_date": {
       "default": "2017-01-01 00:00:00",
