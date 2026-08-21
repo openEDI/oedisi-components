@@ -1,0 +1,15 @@
+name: Verify Dockerfiles - recorder
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Components/recorder/**'
+      - '.github/workflows/verify-dockerfiles-recorder.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/recorder

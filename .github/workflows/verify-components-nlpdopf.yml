@@ -1,0 +1,15 @@
+name: Verify Components - nlpdopf
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Components/nlpdopf/**'
+      - '.github/workflows/verify-components-nlpdopf.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/nlpdopf

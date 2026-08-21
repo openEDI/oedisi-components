@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "AlgorithmParameters": {
+      "description": "Parameters for the state estimation algorithm.",
+      "properties": {
+        "tol": {
+          "default": 5e-7,
+          "title": "Tol",
+          "type": "number"
+        },
+        "base_power": {
+          "type": "number",
+          "default": 100.0,
+          "title": "Base Power"
+        }
+      },
+      "title": "AlgorithmParameters",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "algorithm_parameters": {
+      "$ref": "#/$defs/AlgorithmParameters",
+      "default": {
+        "tol": 5e-7,
+        "base_power": 100.0
+      }
+    }
+  },
+  "title": "StateEstimatorConfig",
+  "type": "object"
+}

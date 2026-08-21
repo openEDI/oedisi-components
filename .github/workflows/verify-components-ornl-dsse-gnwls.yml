@@ -1,0 +1,14 @@
+name: Verify Components - ornl-dsse-gnwls
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-dsse-gnwls/**'
+      - '.github/workflows/verify-components-ornl-dsse-gnwls.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/ornl-dsse-gnwls

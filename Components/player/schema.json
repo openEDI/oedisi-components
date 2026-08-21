@@ -1,0 +1,39 @@
+{
+  "description": "Configuration for the Player federate.",
+  "properties": {
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "filename": {
+      "title": "Filename",
+      "type": "string"
+    },
+    "data_type": {
+      "title": "Data Type",
+      "type": "string"
+    },
+    "number_of_timesteps": {
+      "title": "Number Of Timesteps",
+      "type": "integer"
+    },
+    "start_time_index": {
+      "title": "Start Time Index",
+      "type": "integer"
+    },
+    "run_freq_time_step": {
+      "default": 900.0,
+      "title": "Run Freq Time Step",
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "filename",
+    "data_type",
+    "number_of_timesteps",
+    "start_time_index"
+  ],
+  "title": "ComponentParameters",
+  "type": "object"
+}

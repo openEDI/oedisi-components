@@ -1,0 +1,15 @@
+name: Verify Dockerfiles - nlpdopf
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Components/nlpdopf/**'
+      - '.github/workflows/verify-dockerfiles-nlpdopf.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/nlpdopf

@@ -1,0 +1,141 @@
+{
+    "name": "ornl_ev_system",
+    "components": [
+        {
+            "name": "feeder",
+            "type": "LocalFeeder",
+            "parameters": {
+                "use_smartds": false,
+                "user_uploads_model": false,
+                "profile_location": "gadal_ieee123/profiles",
+                "opendss_location": "gadal_ieee123/qsts",
+                "sensor_location": "gadal_ieee123/sensors.json",
+                "start_date": "2017-01-01 00:00:00",
+                "number_of_timesteps": 96,
+                "run_freq_sec": 900,
+                "topology_output": "../../outputs/topology.json"
+            }
+        },
+        {
+            "name": "evcs",
+            "type": "EVCSComponent",
+            "parameters": {
+                "evcs_bus": ["48.1", "65.1", "76.1"],
+                "evcs_bus_assignment": {"48.1": [0,1,2,3,4], "65.1": [5,6,7,8,9], "76.1": [10,11,12,13,14]},
+                "num_evs_per_station": [5, 5, 5],
+                "max_charging_rate": 11.0,
+                "battery_capacity": 50.0,
+                "charging_efficiency": 0.95,
+                "desired_soc": 0.9,
+                "soc_mean": 0.3,
+                "soc_std": 0.2,
+                "soc_lower": 0.1,
+                "soc_upper": 0.5,
+                "arrival_mean": 9.0,
+                "arrival_std": 1.5,
+                "arrival_lower": 7.0,
+                "arrival_upper": 11.0,
+                "departure_shift": 17.5,
+                "departure_mu": 0.0,
+                "departure_sigma": 0.9,
+                "total_hours": 24,
+                "control_interval": 0.25,
+                "random_seed": 42
+            }
+        },
+        {
+            "name": "recorder_voltage_real",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_real.feather",
+                "csv_filename": "../../outputs/voltage_real.csv"
+            }
+        },
+        {
+            "name": "recorder_voltage_imag",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/voltage_imag.feather",
+                "csv_filename": "../../outputs/voltage_imag.csv"
+            }
+        },
+        {
+            "name": "recorder_power_real",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/powers_real.feather",
+                "csv_filename": "../../outputs/powers_real.csv"
+            }
+        },
+        {
+            "name": "recorder_power_imag",
+            "type": "Recorder",
+            "parameters": {
+                "feather_filename": "../../outputs/powers_imag.feather",
+                "csv_filename": "../../outputs/powers_imag.csv"
+            }
+        }
+    ],
+    "links": [
+        {
+            "source": "feeder",
+            "source_port": "powers_real",
+            "target": "evcs",
+            "target_port": "powers_real_in"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_imag",
+            "target": "evcs",
+            "target_port": "powers_imag_in"
+        },
+        {
+            "source": "feeder",
+            "source_port": "topology",
+            "target": "evcs",
+            "target_port": "topology"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_real",
+            "target": "evcs",
+            "target_port": "voltages_real"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_imag",
+            "target": "evcs",
+            "target_port": "voltages_imag"
+        },
+        {
+            "source": "evcs",
+            "source_port": "change_commands",
+            "target": "feeder",
+            "target_port": "change_commands"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_real",
+            "target": "recorder_voltage_real",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "voltages_imag",
+            "target": "recorder_voltage_imag",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_real",
+            "target": "recorder_power_real",
+            "target_port": "subscription"
+        },
+        {
+            "source": "feeder",
+            "source_port": "powers_imag",
+            "target": "recorder_power_imag",
+            "target_port": "subscription"
+        }
+    ]
+}

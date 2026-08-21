@@ -1,0 +1,15 @@
+name: Verify Dockerfiles - nlpdsse
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'Components/nlpdsse/**'
+      - '.github/workflows/verify-dockerfiles-nlpdsse.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/nlpdsse

@@ -1,0 +1,70 @@
+name: Update Components Submodules
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Update submodules under Components
+        id: find_and_update_submodules
+        run: |
+          if [ ! -f .gitmodules ]; then
+            echo "No .gitmodules file found."
+            echo "has_submodules=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          submodules=$(git config --file .gitmodules --get-regexp '^submodule\..*\.path$' | awk '{print $2}' | grep '^Components/' || true)
+
+          if [ -z "$submodules" ]; then
+            echo "No submodules found under Components/."
+            echo "has_submodules=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Updating Components submodules:"
+          echo "$submodules"
+
+          while IFS= read -r submodule_path; do
+            [ -z "$submodule_path" ] && continue
+            git submodule sync -- "$submodule_path"
+            git submodule update --init --remote -- "$submodule_path"
+          done <<< "$submodules"
+
+          echo "has_submodules=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "paths<<EOF"
+            echo "$submodules"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request for submodule updates
+        if: steps.find_and_update_submodules.outputs.has_submodules == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update Components submodules"
+          branch: "automation/update-components-submodules"
+          delete-branch: true
+          title: "chore: update Components submodules"
+          body: |
+            This PR updates all git submodules under the Components directory to
+            their latest configured remote revisions.
+          add-paths: |
+            .gitmodules
+            ${{ steps.find_and_update_submodules.outputs.paths }}
