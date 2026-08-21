@@ -19,6 +19,9 @@ logger.setLevel(logging.INFO)
 class Recorder:
     """HELICS recorder federate."""
 
+    # HELICS time resolution; 0.01 is fine for quasi-static simulations.
+    DEFAULT_TIME_DELTA = 0.01
+
     def __init__(
         self,
         name,
@@ -26,11 +29,11 @@ class Recorder:
         csv_filename,
         input_mapping,
         broker_config: BrokerConfig,
+        time_delta: float = DEFAULT_TIME_DELTA,
     ):
         """Initialize the recorder federate."""
         self.rng = np.random.default_rng(12345)
-        deltat = 0.01
-        # deltat = 60.
+        deltat = time_delta
 
         # Create Federate Info object that describes the federate properties #
         fedinfo = h.helicsCreateFederateInfo()
@@ -75,11 +78,12 @@ class Recorder:
                 logger.info("start time: " + str(datetime.now()))
                 logger.debug(granted_time)
                 # Check that the data is a MeasurementArray type
-                json_data = self.sub.json
-                json_data["time"] = granted_time
                 measurement = MeasurementArray(**self.sub.json)
                 measurement_dict = {key: value for key, value in zip(measurement.ids, measurement.values, strict=False)}
-                measurement_dict["time"] = measurement.time.strftime("%Y-%m-%d %H:%M:%S")
+                # %f keeps microseconds so sub-millisecond EMT timesteps are not truncated.
+                measurement_dict["time"] = (
+                    measurement.time.strftime("%Y-%m-%d %H:%M:%S.%f") if measurement.time is not None else ""
+                )
                 logger.debug(measurement.time)
 
                 if start:
@@ -121,11 +125,12 @@ def run_simulator(broker_config: BrokerConfig):
         name = config["name"]
         feather_path = config["feather_filename"]
         csv_path = config["csv_filename"]
+        time_delta = config.get("time_delta", Recorder.DEFAULT_TIME_DELTA)
 
     with open("input_mapping.json") as f:
         input_mapping = json.load(f)
 
-    sfed = Recorder(name, feather_path, csv_path, input_mapping, broker_config)
+    sfed = Recorder(name, feather_path, csv_path, input_mapping, broker_config, time_delta=time_delta)
     sfed.run()
 
 
