@@ -14,6 +14,7 @@
     "EVCSComponent": "Components/ornl-ev-pso/component_definition.json",
     "DOPFPSOComponent": "Components/ornl-dopf-pso/component_definition.json",
     "DSSEGNWLSComponent": "Components/ornl-dsse-gnwls/component_definition.json",
+    "ODComponent": "Components/ornl-od-prony/component_definition.json",
     "DOPFNLPComponent": "Components/nlpdopf/component_definition.json",
     "DSSENLPComponent": "Components/nlpdsse/component_definition.json",
     "DOPFADMMComponent": "Components/pnnl-dopf-admm/component_definition.json",

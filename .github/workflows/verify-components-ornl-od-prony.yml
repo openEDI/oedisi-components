@@ -1,0 +1,14 @@
+name: Verify Components - ornl-od-prony
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-od-prony/**'
+      - '.github/workflows/verify-components-ornl-od-prony.yml'
+      - '.github/workflows/reusable_verify_components.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_components.yml
+    with:
+      component-root: Components/ornl-od-prony
