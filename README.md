@@ -93,16 +93,57 @@ This repository is organized as a Python repository containing  components for p
 
 ### Continuous Integration
 
-Each component has its own GitHub Actions workflow that:
-- Runs tests on Python 3.10 and 3.11
-- Performs type checking with mypy
-- Generates code coverage reports
-- Triggers on changes to component code
+Current CI coverage includes:
+- Component unit tests on Python 3.11 and 3.13
+- Integration/API and DOPF workflows using current supported environments
+- Lint and formatting checks via pre-commit
+- Component metadata and Dockerfile verification workflows
 
 Additionally:
 - **Dockerfile Verification**: Ensures all components have valid Dockerfiles
 - **Integration Tests**: End-to-end system testing
-- **Docker Build Tests**: Validates container builds
+
+## Adding A Submodule Under Components
+
+Some components can be managed in separate repositories and included here as
+git submodules under `Components/`.
+
+### Add The Submodule
+
+```bash
+git submodule add https://github.com/<org>/<repo> Components/<component-name>
+git submodule update --init --recursive
+git add .gitmodules Components/<component-name>
+git commit -m "Add <component-name> as submodule"
+```
+
+Notes:
+- Commit both `.gitmodules` and the gitlink entry at `Components/<component-name>`.
+- The submodule should include its own `README.md` and `Dockerfile`.
+- Include `component_definition.json`.
+
+### Workflows Applied To Submodules
+
+Submodules under `Components/` are validated by the same repository workflows
+as in-repo components:
+
+- `verify-components.yml` (via `reusable_verify_components.yml`)
+   - Checks `README.md` for all `Components/*` directories.
+   - Checks `component_definition.json` for all `Components/*` directories except `broker`.
+- `verify-dockerfiles.yml` (via `reusable_verify_dockerfiles.yml`)
+   - Checks `Dockerfile` for all `Components/*` directories.
+
+These reusable workflows use `actions/checkout` with `submodules: recursive`,
+so submodule contents are available during file existence checks.
+
+### Workflow Scope Clarification
+
+- Verification workflows in this repository validate submodule metadata files
+   and Dockerfile presence.
+- Unit or integration tests for submodule code are not automatically run here
+   unless explicitly added to this repository's test workflows.
+- If the submodule has its own CI (recommended), link its badges in the
+   Component Status table.
 
 ### Quick Start - Development Installation
 
