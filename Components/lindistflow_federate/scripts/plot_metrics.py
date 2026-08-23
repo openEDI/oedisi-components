@@ -71,11 +71,15 @@ def load_scenario_recorders(scenario_path: Path, data_dir: Path) -> dict[str, Pa
 
     # Identify the Feeder component names
     feeder_names = [name for name, comp in components.items() if comp.get("type") in ["Feeder", "LocalFeeder"]]
-    
+
     # Identify control and reference feeders
-    control_feeder_name = next((name for name in feeder_names if "control" in name.lower() or "local" in name.lower()), None)
-    reference_feeder_name = next((name for name in feeder_names if "reference" in name.lower() or "ref" in name.lower()), None)
-    
+    control_feeder_name = next(
+        (name for name in feeder_names if "control" in name.lower() or "local" in name.lower()), None
+    )
+    reference_feeder_name = next(
+        (name for name in feeder_names if "reference" in name.lower() or "ref" in name.lower()), None
+    )
+
     if not control_feeder_name and feeder_names:
         control_feeder_name = feeder_names[0]
 
@@ -175,7 +179,7 @@ def plot_voltages(v_df: pd.DataFrame, feeder_df: pd.DataFrame | None, output_pat
         logger.warning("Seaborn not installed, falling back to matplotlib defaults.")
 
     time_col = "time" if "time" in v_df.columns else v_df.columns[0]
-    
+
     # Align DataFrames by common timestamps
     v_times = v_df[time_col].unique()
     if feeder_df is not None:
@@ -294,6 +298,7 @@ def plot_power_comparison(
     """
     try:
         import seaborn as sns
+
         sns.set_theme(style="whitegrid")
     except ImportError:
         logger.warning("Seaborn not installed, falling back to matplotlib defaults.")
@@ -301,12 +306,12 @@ def plot_power_comparison(
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
 
     time_col = "time" if "time" in control_p_real_df.columns else control_p_real_df.columns[0]
-    
+
     # Align DataFrames by common timestamps
     c_times = control_p_real_df[time_col].unique()
     r_times = ref_p_real_df[time_col].unique()
     common_times = np.intersect1d(c_times, r_times)
-    
+
     c_p_df = control_p_real_df[control_p_real_df[time_col].isin(common_times)].sort_values(by=time_col)
     c_q_df = control_p_imag_df[control_p_imag_df[time_col].isin(common_times)].sort_values(by=time_col)
     r_p_df = ref_p_real_df[ref_p_real_df[time_col].isin(common_times)].sort_values(by=time_col)
@@ -321,30 +326,50 @@ def plot_power_comparison(
 
     c_p_sum = c_p_df.set_index(time_col)[c_p_cols].sum(axis=1)
     ref_p_sum = r_p_df.set_index(time_col)[ref_p_cols].sum(axis=1)
-    
+
     c_q_sum = c_q_df.set_index(time_col)[c_q_cols].sum(axis=1)
     ref_q_sum = r_q_df.set_index(time_col)[ref_q_cols].sum(axis=1)
-    
+
     timesteps = c_p_df[time_col].apply(format_time_str).tolist()
-    
+
     # Plot active power
-    ax1.plot(range(len(timesteps)), ref_p_sum, color="#ea4335", marker="o", linestyle="--", linewidth=2.0, label="Reference (Uncontrolled)")
-    ax1.plot(range(len(timesteps)), c_p_sum, color="#1a73e8", marker="s", linewidth=2.0, label="Control (LinDistFlow OPF)")
+    ax1.plot(
+        range(len(timesteps)),
+        ref_p_sum,
+        color="#ea4335",
+        marker="o",
+        linestyle="--",
+        linewidth=2.0,
+        label="Reference (Uncontrolled)",
+    )
+    ax1.plot(
+        range(len(timesteps)), c_p_sum, color="#1a73e8", marker="s", linewidth=2.0, label="Control (LinDistFlow OPF)"
+    )
     ax1.set_ylabel("Total Real Power Injection (kW)", fontsize=11)
     ax1.set_title("Total Grid Real and Reactive Power Injection Comparison", fontsize=13, fontweight="bold", pad=10)
     ax1.legend(loc="upper right", frameon=True)
     ax1.grid(True, linestyle=":", alpha=0.6)
-    
+
     # Plot reactive power
-    ax2.plot(range(len(timesteps)), ref_q_sum, color="#ea4335", marker="o", linestyle="--", linewidth=2.0, label="Reference (Uncontrolled)")
-    ax2.plot(range(len(timesteps)), c_q_sum, color="#1a73e8", marker="s", linewidth=2.0, label="Control (LinDistFlow OPF)")
+    ax2.plot(
+        range(len(timesteps)),
+        ref_q_sum,
+        color="#ea4335",
+        marker="o",
+        linestyle="--",
+        linewidth=2.0,
+        label="Reference (Uncontrolled)",
+    )
+    ax2.plot(
+        range(len(timesteps)), c_q_sum, color="#1a73e8", marker="s", linewidth=2.0, label="Control (LinDistFlow OPF)"
+    )
     ax2.set_ylabel("Total Reactive Power Injection (kVar)", fontsize=11)
     ax2.set_xlabel("Time (HH:MM)", fontsize=11)
     ax2.set_xticks(range(len(timesteps)))
     ax2.set_xticklabels(timesteps, rotation=15, ha="right")
     ax2.legend(loc="upper right", frameon=True)
     ax2.grid(True, linestyle=":", alpha=0.6)
-    
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     plt.close()
@@ -357,14 +382,15 @@ def plot_voltage_scatter_at_timestep(
     output_path: Path,
     timestep_idx: int = -1,
 ) -> None:
-    """Generate a scatter plot comparing individual bus voltage magnitudes (control vs reference)
-    at a single timestep.
+    """Generate a scatter plot.
+
+    Comparing individual bus voltage magnitudes at a single timestep.
     """
     time_col = "time" if "time" in control_v_df.columns else control_v_df.columns[0]
     c_times = control_v_df[time_col].unique()
     r_times = ref_v_df[time_col].unique()
     common_times = np.intersect1d(c_times, r_times)
-    
+
     if len(common_times) == 0:
         logger.warning("No common timestamps found for voltage scatter plot.")
         return
@@ -375,30 +401,30 @@ def plot_voltage_scatter_at_timestep(
     t_val = c_v.iloc[timestep_idx][time_col]
     t_str = format_time_str(t_val)
     v_cols = [c for c in c_v.columns if c != time_col and c in r_v.columns]
-    
+
     if not v_cols:
         logger.warning("No matching voltage columns found for scatter plot.")
         return
 
     v_ref = r_v.iloc[timestep_idx][v_cols].values.astype(float)
     v_ctrl = c_v.iloc[timestep_idx][v_cols].values.astype(float)
-    
+
     fig, ax = plt.subplots(figsize=(6.5, 6))
     ax.scatter(v_ref, v_ctrl, color="#1a73e8", alpha=0.7, edgecolors="none", s=50, label="Buses")
-    
+
     min_v = min(v_ref.min(), v_ctrl.min(), 0.94)
     max_v = max(v_ref.max(), v_ctrl.max(), 1.06)
     ax.plot([min_v, max_v], [min_v, max_v], color="#5f6368", linestyle="--", alpha=0.7, label="No Change (y=x)")
-    
+
     ax.axhspan(0.95, 1.05, color="#34a853", alpha=0.08, label="ANSI C84.1 Range")
     ax.axvspan(0.95, 1.05, color="#34a853", alpha=0.08)
-    
+
     ax.set_xlabel("Reference Voltage (p.u.)", fontsize=11)
     ax.set_ylabel("Control Voltage (p.u.)", fontsize=11)
     ax.set_title(f"Individual Bus Voltages at Timestep {t_str}", fontsize=12, fontweight="bold")
     ax.grid(True, linestyle=":", alpha=0.6)
     ax.legend(loc="lower right")
-    
+
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
     plt.close()
@@ -413,14 +439,15 @@ def plot_power_scatter_at_timestep(
     output_path: Path,
     timestep_idx: int = -1,
 ) -> None:
-    """Generate scatter plots comparing individual bus active and reactive power injections
-    at a single timestep.
+    """Generate scatter plots.
+
+    Comparing individual bus active and reactive power injections at a single timestep.
     """
     time_col = "time" if "time" in control_p_df.columns else control_p_df.columns[0]
     c_times = control_p_df[time_col].unique()
     r_times = ref_p_df[time_col].unique()
     common_times = np.intersect1d(c_times, r_times)
-    
+
     if len(common_times) == 0:
         logger.warning("No common timestamps found for power scatter plot.")
         return
@@ -434,9 +461,9 @@ def plot_power_scatter_at_timestep(
     t_str = format_time_str(t_val)
     p_cols = [c for c in c_p.columns if c != time_col and c in r_p.columns]
     q_cols = [c for c in c_q.columns if c != time_col and c in r_q.columns]
-    
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5.5))
-    
+
     if p_cols:
         p_ref = r_p.iloc[timestep_idx][p_cols].values.astype(float)
         p_ctrl = c_p.iloc[timestep_idx][p_cols].values.astype(float)
@@ -449,7 +476,7 @@ def plot_power_scatter_at_timestep(
         ax1.set_title("Real Power Injection Comparison", fontsize=12, fontweight="bold")
         ax1.grid(True, linestyle=":", alpha=0.6)
         ax1.legend(loc="lower right")
-        
+
     if q_cols:
         q_ref = r_q.iloc[timestep_idx][q_cols].values.astype(float)
         q_ctrl = c_q.iloc[timestep_idx][q_cols].values.astype(float)
@@ -462,7 +489,7 @@ def plot_power_scatter_at_timestep(
         ax2.set_title("Reactive Power Injection Comparison", fontsize=12, fontweight="bold")
         ax2.grid(True, linestyle=":", alpha=0.6)
         ax2.legend(loc="lower right")
-        
+
     plt.suptitle(f"Individual Bus Power Comparison at Timestep {t_str}", fontsize=14, fontweight="bold", y=0.98)
     plt.tight_layout()
     plt.savefig(output_path, dpi=300)
@@ -704,9 +731,19 @@ def main() -> None:
 
     # Load Feeder Voltages (Uncontrolled or reference_feeder) & Normalize
     feeder_v_pu_df = None
-    ref_vmag_key = "reference_vmag" if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths else "feeder_vmag"
-    ref_vreal_key = "reference_vreal" if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths else "feeder_vreal"
-    ref_vimag_key = "reference_vimag" if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths else "feeder_vimag"
+    ref_vmag_key = (
+        "reference_vmag" if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths else "feeder_vmag"
+    )
+    ref_vreal_key = (
+        "reference_vreal"
+        if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths
+        else "feeder_vreal"
+    )
+    ref_vimag_key = (
+        "reference_vimag"
+        if "reference_vmag" in recorder_paths or "reference_vreal" in recorder_paths
+        else "feeder_vimag"
+    )
 
     if ref_vreal_key in recorder_paths or ref_vmag_key in recorder_paths:
         vreal_path = recorder_paths.get(ref_vreal_key)
@@ -769,34 +806,22 @@ def main() -> None:
         r_pimag = load_dataframe(recorder_paths["reference_pimag"])
 
         if all(df is not None for df in [c_preal, c_pimag, r_preal, r_pimag]):
-            plot_power_comparison(
-                c_preal,
-                c_pimag,
-                r_preal,
-                r_pimag,
-                output_dir / "lindistflow_power_comparison.png"
-            )
+            plot_power_comparison(c_preal, c_pimag, r_preal, r_pimag, output_dir / "lindistflow_power_comparison.png")
     else:
-        logger.warning("Reference or Control power recorders not configured in scenario. Skipping power comparison plot.")
+        logger.warning(
+            "Reference or Control power recorders not configured in scenario. Skipping power comparison plot."
+        )
 
     # 3. Plot Voltage Scatter Comparison at a Single Timestep
     if v_df is not None and feeder_v_pu_df is not None:
         plot_voltage_scatter_at_timestep(
-            v_df,
-            feeder_v_pu_df,
-            output_dir / "lindistflow_voltage_scatter.png",
-            timestep_idx=-1
+            v_df, feeder_v_pu_df, output_dir / "lindistflow_voltage_scatter.png", timestep_idx=-1
         )
 
     # 4. Plot Power Scatter Comparison at a Single Timestep
     if all(df is not None for df in [c_preal, r_preal, c_pimag, r_pimag]):
         plot_power_scatter_at_timestep(
-            c_preal,
-            r_preal,
-            c_pimag,
-            r_pimag,
-            output_dir / "lindistflow_power_scatter.png",
-            timestep_idx=-1
+            c_preal, r_preal, c_pimag, r_pimag, output_dir / "lindistflow_power_scatter.png", timestep_idx=-1
         )
 
     # 3. Plot 3D Real Control Power Wireframe
