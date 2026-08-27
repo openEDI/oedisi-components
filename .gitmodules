@@ -37,3 +37,6 @@
 [submodule "Components/pnnl-emt-swod"]
 	path = Components/pnnl-emt-swod
 	url = https://github.com/openEDI/pnnl-emt-swod.git
+[submodule "Components/ornl-od-prony"]
+	path = Components/ornl-od-prony
+	url = https://github.com/openEDI/ornl-od-prony

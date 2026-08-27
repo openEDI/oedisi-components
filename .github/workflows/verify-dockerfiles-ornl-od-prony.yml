@@ -1,0 +1,14 @@
+name: Verify Dockerfiles - ornl-od-prony
+
+on:
+  push:
+    paths:
+      - 'Components/ornl-od-prony/**'
+      - '.github/workflows/verify-dockerfiles-ornl-od-prony.yml'
+      - '.github/workflows/reusable_verify_dockerfiles.yml'
+
+jobs:
+  verify:
+    uses: ./.github/workflows/reusable_verify_dockerfiles.yml
+    with:
+      component-root: Components/ornl-od-prony
