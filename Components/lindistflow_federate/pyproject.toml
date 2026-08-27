@@ -18,6 +18,7 @@ dependencies = [
     "helics>=3.4.0",
     "pydantic",
     "cvxpy",
+    "ecos",
     "numpy",
     "networkx",
     "oedisi~=3.0",

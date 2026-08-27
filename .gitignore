@@ -12,6 +12,7 @@ local_feeder
 build
 .vscode/
 *.env
+outputs/*
 
 # macOS
 .DS_Store
