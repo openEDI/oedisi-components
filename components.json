@@ -18,5 +18,8 @@
     "DOPFNLPComponent": "Components/nlpdopf/component_definition.json",
     "DSSENLPComponent": "Components/nlpdsse/component_definition.json",
     "DOPFADMMComponent": "Components/pnnl-dopf-admm/component_definition.json",
-    "SWODComponent": "Components/pnnl-emt-swod/component_definition.json"
+    "SWODComponent": "Components/pnnl-emt-swod/component_definition.json",
+    "ImputationComponent": "Components/pnnl-imputation-ffnn/component_definition.json",
+    "ProfilerSDV": "Components/pnnl-profiler-sdv/component_definition.json",
+    "AnonDP": "Components/pnnl-anon-dp/component_definition.json"
 }
