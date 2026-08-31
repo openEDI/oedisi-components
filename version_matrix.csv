@@ -21,3 +21,4 @@ openEDI,pnnl-hub-power,v0.7.0,pnnl-hub-power,Components/pnnl-hub-power/pyproject
 openEDI,pnnl-hub-voltage,v0.7.0,pnnl-hub-voltage,Components/pnnl-hub-voltage/pyproject.toml,v0.1.0,2026-08-28T17:22:13Z
 openEDI,pnnl-imputation-ffnn,v0.7.0,pnnl-imputation-ffnn,Components/pnnl-imputation-ffnn/pyproject.toml,v0.1.0,2026-08-28T17:22:13Z
 openEDI,pnnl-profiler-sdv,v0.7.0,pnnl-profiler-sdv,Components/pnnl-profiler-sdv/pyproject.toml,v0.1.0,2026-08-28T17:22:13Z
+
