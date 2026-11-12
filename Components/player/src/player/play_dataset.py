@@ -126,7 +126,13 @@ class Player:
 
         fedinfo.core_name = config.name
         fedinfo.core_type = h.HELICS_CORE_TYPE_ZMQ
-        fedinfo.core_init = "--federates=1"
+        # --disable_timer: the player publishes far faster than the broker
+        # relays, so if a large backlog is built up, helicsFederateDisconnect
+        # won't wait long enough before quitting (~15 s, 3 ticks). This
+        # leads to data loss and stalls. This does prevent a timeout
+        # from killing the process if the broker dying.
+        # TODO: Fix upstream in HELICS!
+        fedinfo.core_init = "--federates=1 --disable_timer"
         logger.debug(config.name)
 
         # Use a small delta_t (like the feeder) so HELICS doesn't skip the
